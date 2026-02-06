@@ -1,0 +1,202 @@
+import { useState } from 'react';
+import { Car, User, Bell, LogOut, Check, Trash2, X } from 'lucide-react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { cn } from '@/lib/utils';
+import { useNotifications } from '@/contexts/NotificationContext';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { toast } from 'sonner';
+
+const navItems = [
+  { label: 'Dashboard', path: '/' },
+  { label: 'Painel de controle', path: '/kanban' },
+  { label: 'Estoque', path: '/estoque' },
+  { label: 'Configurações', path: '/configuracoes' },
+];
+
+export function Header() {
+  const navigate = useNavigate();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, removeNotification } = useNotifications();
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+
+  const handleSignOut = () => {
+    toast.success('Você foi desconectado com sucesso!');
+    // In a real app, this would clear auth tokens and redirect to login
+    navigate('/');
+  };
+
+  const formatTimeAgo = (date: Date) => {
+    const now = new Date();
+    const diffMs = now.getTime() - new Date(date).getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 1) return 'Agora';
+    if (diffMins < 60) return `${diffMins}m atrás`;
+    if (diffHours < 24) return `${diffHours}h atrás`;
+    return `${diffDays}d atrás`;
+  };
+
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case 'success':
+        return 'bg-kanban-completed/10 text-kanban-completed';
+      case 'warning':
+        return 'bg-kanban-waiting/10 text-kanban-waiting';
+      case 'error':
+        return 'bg-destructive/10 text-destructive';
+      default:
+        return 'bg-primary/10 text-primary';
+    }
+  };
+
+  return (
+    <header className="sticky top-0 z-50 w-full border-b bg-card">
+      <div className="flex h-16 items-center justify-between px-6">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
+            <Car className="h-5 w-5 text-primary-foreground" />
+          </div>
+          <span className="text-xl font-bold text-foreground">V3 Motors</span>
+        </div>
+
+        <nav className="flex items-center gap-1">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className={({ isActive }) =>
+                cn(
+                  'px-4 py-2 text-sm font-medium rounded-md transition-colors',
+                  isActive
+                    ? 'text-primary bg-primary/5'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                )
+              }
+            >
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="flex items-center gap-2">
+          {/* Notifications */}
+          <Popover open={notificationsOpen} onOpenChange={setNotificationsOpen}>
+            <PopoverTrigger asChild>
+              <button className="relative flex h-9 w-9 items-center justify-center rounded-full border bg-card hover:bg-muted transition-colors">
+                <Bell className="h-5 w-5 text-muted-foreground" />
+                {unreadCount > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80 p-0" align="end">
+              <div className="flex items-center justify-between border-b px-4 py-3">
+                <h4 className="font-semibold text-foreground">Notificações</h4>
+                {unreadCount > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={markAllAsRead}
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    <Check className="mr-1 h-3 w-3" />
+                    Marcar todas como lidas
+                  </Button>
+                )}
+              </div>
+              <ScrollArea className="h-[300px]">
+                {notifications.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <Bell className="h-10 w-10 text-muted-foreground/50 mb-2" />
+                    <p className="text-sm text-muted-foreground">Nenhuma notificação</p>
+                  </div>
+                ) : (
+                  <div className="divide-y">
+                    {notifications.map((notification) => (
+                      <div
+                        key={notification.id}
+                        className={cn(
+                          'flex gap-3 px-4 py-3 hover:bg-muted/50 transition-colors cursor-pointer',
+                          !notification.read && 'bg-primary/5'
+                        )}
+                        onClick={() => markAsRead(notification.id)}
+                      >
+                        <div
+                          className={cn(
+                            'flex h-8 w-8 shrink-0 items-center justify-center rounded-full',
+                            getNotificationIcon(notification.type)
+                          )}
+                        >
+                          <Bell className="h-4 w-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">
+                            {notification.title}
+                          </p>
+                          <p className="text-xs text-muted-foreground line-clamp-2">
+                            {notification.message}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground mt-1">
+                            {formatTimeAgo(notification.createdAt)}
+                          </p>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeNotification(notification.id);
+                          }}
+                          className="shrink-0 p-1 rounded hover:bg-muted"
+                        >
+                          <X className="h-3 w-3 text-muted-foreground" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </ScrollArea>
+            </PopoverContent>
+          </Popover>
+
+          {/* Profile Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex h-9 w-9 items-center justify-center rounded-full border bg-card hover:bg-muted transition-colors">
+                <User className="h-5 w-5 text-muted-foreground" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => navigate('/configuracoes')}>
+                <User className="mr-2 h-4 w-4" />
+                Perfil
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
+                <LogOut className="mr-2 h-4 w-4" />
+                Sair
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+    </header>
+  );
+}
