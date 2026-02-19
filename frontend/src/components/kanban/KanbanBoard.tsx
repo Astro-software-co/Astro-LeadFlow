@@ -10,11 +10,12 @@ interface KanbanBoardProps {
   initialCards: KanbanCard[];
 }
 
-const columns: { id: KanbanColumn; title: string }[] = [
-  { id: 'chatbot', title: 'Falando com Chatbot' },
-  { id: 'aguardando', title: 'Aguardando atendimento' },
-  { id: 'negociacao', title: 'Em negociação' },
-  { id: 'concluido', title: 'Concluído' },
+const columns: { id: KanbanColumn; title: string; description: string }[] = [
+  { id: 'chatbot', title: 'Falando com Chatbot', description: 'Leads que estão interagindo com o chatbot automatizado. Os dados estão sendo coletados antes do atendimento humano.' },
+  { id: 'aguardando', title: 'Aguardando atendimento', description: 'Leads qualificados aguardando um vendedor assumir o atendimento. Clique em "Assumir" para iniciar.' },
+  { id: 'aguardando_documentacao', title: 'Aguardando documentação', description: 'Leads que já foram atendidos mas aguardam envio ou verificação de documentos para prosseguir.' },
+  { id: 'negociacao', title: 'Em negociação', description: 'Leads em processo ativo de negociação com um vendedor. Inclui propostas, contrapropostas e financiamento.' },
+  { id: 'concluido', title: 'Concluído', description: 'Vendas finalizadas com sucesso. O veículo foi entregue e a documentação concluída.' },
 ];
 
 export function KanbanBoard({ initialCards }: KanbanBoardProps) {
@@ -23,26 +24,18 @@ export function KanbanBoard({ initialCards }: KanbanBoardProps) {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const { addNotification } = useNotifications();
 
-  const getCardsByColumn = (column: KanbanColumn) => {
-    return cards.filter((card) => card.coluna === column);
-  };
+  const getCardsByColumn = (column: KanbanColumn) => cards.filter((card) => card.coluna === column);
 
   const handleDragEnd = (result: DropResult) => {
     const { destination, source, draggableId } = result;
-
     if (!destination) return;
-
-    if (destination.droppableId === source.droppableId && destination.index === source.index) {
-      return;
-    }
+    if (destination.droppableId === source.droppableId && destination.index === source.index) return;
 
     const newColumn = destination.droppableId as KanbanColumn;
     const card = cards.find((c) => c.id === draggableId);
-    
+
     setCards((prevCards) =>
-      prevCards.map((card) =>
-        card.id === draggableId ? { ...card, coluna: newColumn } : card
-      )
+      prevCards.map((card) => (card.id === draggableId ? { ...card, coluna: newColumn } : card))
     );
 
     if (card) {
@@ -52,7 +45,6 @@ export function KanbanBoard({ initialCards }: KanbanBoardProps) {
         type: 'info',
       });
     }
-
     toast.success('Card movido com sucesso!');
   };
 
@@ -62,11 +54,7 @@ export function KanbanBoard({ initialCards }: KanbanBoardProps) {
   };
 
   const handleCardUpdate = (updatedCard: KanbanCard) => {
-    setCards((prevCards) =>
-      prevCards.map((card) =>
-        card.id === updatedCard.id ? updatedCard : card
-      )
-    );
+    setCards((prevCards) => prevCards.map((card) => (card.id === updatedCard.id ? updatedCard : card)));
   };
 
   const handleAssume = (cardId: string) => {
@@ -74,54 +62,27 @@ export function KanbanBoard({ initialCards }: KanbanBoardProps) {
     setCards((prevCards) =>
       prevCards.map((card) =>
         card.id === cardId
-          ? {
-              ...card,
-              coluna: 'negociacao',
-              vendedorId: 'current-user',
-              vendedorNome: 'Você',
-              tags: [
-                ...card.tags,
-                { type: 'seller' as const, label: 'Você' },
-              ],
-            }
+          ? { ...card, coluna: 'negociacao', vendedorId: 'current-user', vendedorNome: 'Você', tags: [...card.tags, { type: 'seller' as const, label: 'Você' }] }
           : card
       )
     );
-    
     if (card) {
-      addNotification({
-        title: 'Lead assumido',
-        message: `Você assumiu o lead de ${card.lead.nome}`,
-        type: 'success',
-      });
+      addNotification({ title: 'Lead assumido', message: `Você assumiu o lead de ${card.lead.nome}`, type: 'success' });
     }
-    
     toast.success('Você assumiu este lead!');
   };
 
   const handleAdvance = (cardId: string) => {
     const card = cards.find((c) => c.id === cardId);
     if (!card) return;
-
-    const columnOrder: KanbanColumn[] = ['chatbot', 'aguardando', 'negociacao', 'concluido'];
+    const columnOrder: KanbanColumn[] = ['chatbot', 'aguardando', 'aguardando_documentacao', 'negociacao', 'concluido'];
     const currentIndex = columnOrder.indexOf(card.coluna);
     const nextColumn = columnOrder[currentIndex + 1];
-
     if (nextColumn) {
-      setCards((prevCards) =>
-        prevCards.map((c) =>
-          c.id === cardId ? { ...c, coluna: nextColumn } : c
-        )
-      );
-      
+      setCards((prevCards) => prevCards.map((c) => (c.id === cardId ? { ...c, coluna: nextColumn } : c)));
       if (nextColumn === 'concluido') {
-        addNotification({
-          title: 'Venda concluída!',
-          message: `Lead de ${card.lead.nome} foi finalizado com sucesso`,
-          type: 'success',
-        });
+        addNotification({ title: 'Venda concluída!', message: `Lead de ${card.lead.nome} foi finalizado com sucesso`, type: 'success' });
       }
-      
       toast.success('Card avançado!');
     }
   };
@@ -129,27 +90,22 @@ export function KanbanBoard({ initialCards }: KanbanBoardProps) {
   const handleArchive = (cardId: string) => {
     const card = cards.find((c) => c.id === cardId);
     setCards((prevCards) => prevCards.filter((card) => card.id !== cardId));
-    
     if (card) {
-      addNotification({
-        title: 'Card arquivado',
-        message: `Lead de ${card.lead.nome} foi arquivado`,
-        type: 'info',
-      });
+      addNotification({ title: 'Card arquivado', message: `Lead de ${card.lead.nome} foi arquivado`, type: 'info' });
     }
-    
     toast.success('Card arquivado!');
   };
 
   return (
     <>
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="flex gap-6 overflow-x-auto pb-4">
+        <div className="flex gap-4 overflow-x-auto pb-4">
           {columns.map((column) => (
             <KanbanColumnComponent
               key={column.id}
               id={column.id}
               title={column.title}
+              description={column.description}
               cards={getCardsByColumn(column.id)}
               onAssume={handleAssume}
               onAdvance={handleAdvance}

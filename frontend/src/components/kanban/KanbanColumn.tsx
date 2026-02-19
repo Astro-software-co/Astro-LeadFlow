@@ -1,11 +1,18 @@
 import { Droppable, Draggable } from '@hello-pangea/dnd';
+import { HelpCircle } from 'lucide-react';
 import { KanbanCard as KanbanCardType, KanbanColumn as KanbanColumnType } from '@/types';
 import { KanbanCardComponent } from './KanbanCard';
 import { cn } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface KanbanColumnProps {
   id: KanbanColumnType;
   title: string;
+  description: string;
   cards: KanbanCardType[];
   onAssume?: (cardId: string) => void;
   onAdvance?: (cardId: string) => void;
@@ -16,6 +23,7 @@ interface KanbanColumnProps {
 const columnStyles: Record<KanbanColumnType, string> = {
   chatbot: 'bg-kanban-chatbot',
   aguardando: 'bg-kanban-waiting',
+  aguardando_documentacao: 'bg-amber-600',
   negociacao: 'bg-kanban-negotiation',
   concluido: 'bg-kanban-completed',
 };
@@ -23,6 +31,7 @@ const columnStyles: Record<KanbanColumnType, string> = {
 export function KanbanColumnComponent({
   id,
   title,
+  description,
   cards,
   onAssume,
   onAdvance,
@@ -30,15 +39,25 @@ export function KanbanColumnComponent({
   onCardClick,
 }: KanbanColumnProps) {
   return (
-    <div className="flex w-[340px] flex-shrink-0 flex-col">
+    <div className="flex w-[300px] flex-shrink-0 flex-col">
       {/* Column Header */}
       <div
         className={cn(
-          'rounded-xl px-4 py-3 text-center font-semibold text-white mb-4',
+          'rounded-xl px-4 py-3 font-semibold text-white mb-4 flex items-center justify-between',
           columnStyles[id]
         )}
       >
-        {title}
+        <span className="text-sm">{title}</span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button className="p-0.5 rounded-full hover:bg-white/20 transition-colors">
+              <HelpCircle className="h-4 w-4 text-white/80" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="max-w-[250px] text-xs">
+            {description}
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       {/* Droppable Area */}
