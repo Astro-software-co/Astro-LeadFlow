@@ -131,4 +131,26 @@ class DashboardService(
                 orgId, date.monthValue, date.year
             ) ?: 0.0
 
-            MonthlySa
+            MonthlySalesPoint(
+                month = date.month.name.take(3)
+                    .lowercase()
+                    .replaceFirstChar { it.uppercase() },
+                sales = sales,
+                revenue = revenue
+            )
+        }
+    }
+
+    @Transactional(readOnly = true)
+    fun getSalesByCategoryChart(): List<CategorySalesPoint> {
+        val orgId = SecurityUtils.getCurrentOrganizationId()
+        return vehicleRepository.countSoldAndStockByCategory(orgId)
+            .map {
+                CategorySalesPoint(
+                    category = it[0].toString(),
+                    sold = it[1].toString().toLong(),
+                    inStock = it[2].toString().toLong()
+                )
+            }
+    }
+}

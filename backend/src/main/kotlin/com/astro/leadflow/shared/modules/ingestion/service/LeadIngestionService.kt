@@ -5,7 +5,7 @@ import com.astro.leadflow.modules.crm.domain.Lead
 import com.astro.leadflow.modules.crm.domain.LeadRepository
 import com.astro.leadflow.modules.crm.domain.PipelineStage
 import com.astro.leadflow.modules.iam.domain.OrganizationRepository
-import com.astro.leadflow.modules.ingestion.api.requests.ScrapedLeadDTO
+import com.astro.leadflow.shared.modules.ingestion.api.requests.ScrapedLeadDTO
 import com.astro.leadflow.modules.ingestion.infra.SqsProducer
 import com.astro.leadflow.shared.exception.ResourceNotFoundException
 import org.slf4j.LoggerFactory

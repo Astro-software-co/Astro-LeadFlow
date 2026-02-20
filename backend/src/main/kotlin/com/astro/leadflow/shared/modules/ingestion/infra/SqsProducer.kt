@@ -1,6 +1,6 @@
 package com.astro.leadflow.modules.ingestion.infra
 
-import com.astro.leadflow.modules.ingestion.api.requests.ScrapedLeadDTO
+import com.astro.leadflow.shared.modules.ingestion.api.requests.ScrapedLeadDTO
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component

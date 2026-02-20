@@ -2,8 +2,8 @@ package com.astro.leadflow.modules.inventory.service
 
 import com.astro.leadflow.modules.inventory.api.requests.VehicleCreateRequest
 import com.astro.leadflow.modules.inventory.api.requests.VehicleUpdateRequest
-import com.astro.leadflow.modules.inventory.api.responses.VehicleResponse
-import com.astro.leadflow.modules.inventory.api.responses.VehicleStockSummary
+import com.astro.leadflow.shared.modules.inventory.api.responses.VehicleResponse
+import com.astro.leadflow.shared.modules.inventory.api.responses.VehicleStockSummary
 import com.astro.leadflow.modules.inventory.domain.*
 import com.astro.leadflow.modules.iam.domain.OrganizationRepository
 import com.astro.leadflow.shared.exception.ResourceNotFoundException

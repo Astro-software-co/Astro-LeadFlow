@@ -2,8 +2,8 @@ package com.astro.leadflow.modules.inventory.api
 
 import com.astro.leadflow.modules.inventory.api.requests.VehicleCreateRequest
 import com.astro.leadflow.modules.inventory.api.requests.VehicleUpdateRequest
-import com.astro.leadflow.modules.inventory.api.responses.VehicleResponse
-import com.astro.leadflow.modules.inventory.api.responses.VehicleStockSummary
+import com.astro.leadflow.shared.modules.inventory.api.responses.VehicleResponse
+import com.astro.leadflow.shared.modules.inventory.api.responses.VehicleStockSummary
 import com.astro.leadflow.modules.inventory.domain.VehicleStatus
 import com.astro.leadflow.modules.inventory.service.VehicleService
 import io.swagger.v3.oas.annotations.Operation

@@ -1,7 +1,6 @@
-package com.astro.leadflow.modules.ingestion.api.requests
+package com.astro.leadflow.shared.modules.ingestion.api.requests
 
 import jakarta.validation.constraints.NotBlank
-import java.util.UUID
 
 data class ScrapedLeadDTO(
     // Identifica qual organização/concessionária está recebendo o lead

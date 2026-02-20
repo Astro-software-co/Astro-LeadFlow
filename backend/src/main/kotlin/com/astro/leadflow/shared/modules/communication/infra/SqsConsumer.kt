@@ -1,6 +1,6 @@
 package com.astro.leadflow.modules.communication.infra
 
-import com.astro.leadflow.modules.ingestion.api.requests.ScrapedLeadDTO
+import com.astro.leadflow.shared.modules.ingestion.api.requests.ScrapedLeadDTO
 import com.astro.leadflow.modules.ingestion.service.LeadIngestionService
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.awspring.cloud.sqs.annotation.SqsListener
