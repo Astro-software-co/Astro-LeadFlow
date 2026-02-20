@@ -2,7 +2,7 @@ package com.astro.leadflow.modules.communication.service
 
 import com.astro.leadflow.modules.communication.domain.*
 import com.astro.leadflow.modules.communication.infra.MetaClient
-import com.astro.leadflow.modules.crm.domain.Lead
+import com.astro.leadflow.shared.modules.crm.domain.Lead
 import com.astro.leadflow.modules.iam.domain.Organization
 import com.astro.leadflow.modules.saas.service.UsageLimitService
 import com.astro.leadflow.shared.exception.QuotaExceededException

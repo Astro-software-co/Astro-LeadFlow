@@ -1,11 +1,4 @@
-package com.astro.leadflow.modules.inventory.api.responses
-
-import com.astro.leadflow.modules.inventory.domain.Vehicle
-import com.astro.leadflow.modules.inventory.domain.VehicleCategory
-import com.astro.leadflow.modules.inventory.domain.VehicleStatus
-import java.math.BigDecimal
-import java.time.LocalDateTime
-import java.util.UUID
+package com.astro.leadflow.shared.modules.inventory.api.responses
 
 data class VehicleStockSummary(
     val available: Long,

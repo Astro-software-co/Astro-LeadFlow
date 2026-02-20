@@ -1,4 +1,4 @@
-package com.astro.leadflow.shared.modules.communication.mapper
+package com.astro.leadflow.modules.communication.mapper
 
 import com.astro.leadflow.modules.communication.api.responses.ChatMessageResponse
 import com.astro.leadflow.modules.communication.domain.ChatMessage

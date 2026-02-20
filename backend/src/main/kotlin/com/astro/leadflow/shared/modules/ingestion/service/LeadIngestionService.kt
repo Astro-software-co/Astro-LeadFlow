@@ -1,14 +1,15 @@
-package com.astro.leadflow.modules.ingestion.service
+﻿package com.astro.leadflow.modules.ingestion.service
 
 import com.astro.leadflow.modules.communication.service.MessageSenderService
-import com.astro.leadflow.modules.crm.domain.Lead
-import com.astro.leadflow.modules.crm.domain.LeadRepository
-import com.astro.leadflow.modules.crm.domain.PipelineStage
 import com.astro.leadflow.modules.iam.domain.OrganizationRepository
-import com.astro.leadflow.shared.modules.ingestion.api.requests.ScrapedLeadDTO
+import com.astro.leadflow.modules.ingestion.api.requests.ScrapedLeadDTO
 import com.astro.leadflow.modules.ingestion.infra.SqsProducer
 import com.astro.leadflow.shared.exception.ResourceNotFoundException
+import com.astro.leadflow.shared.modules.crm.domain.Lead
+import com.astro.leadflow.shared.modules.crm.domain.LeadRepository
+import com.astro.leadflow.shared.modules.crm.domain.PipelineStage
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -18,13 +19,14 @@ class LeadIngestionService(
     private val organizationRepository: OrganizationRepository,
     private val normalizationService: NormalizationService,
     private val sqsProducer: SqsProducer,
-    private val messageSenderService: MessageSenderService
+    private val messageSenderService: MessageSenderService,
+    @Value("\${app.aws.enabled:false}") private val awsEnabled: Boolean
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     /**
-     * Recebe lead do ScraperWebhookController (POST direto dos robôs).
-     * Normaliza, valida duplicidade e publica na fila SQS.
+     * Receives lead from webhook.
+     * If AWS is disabled, processes immediately without queue.
      */
     @Transactional
     fun ingestFromWebhook(dto: ScrapedLeadDTO) {
@@ -35,38 +37,43 @@ class LeadIngestionService(
             .orElseThrow { ResourceNotFoundException("Organization", dto.organizationSlug) }
 
         val isDuplicate = leadRepository.existsByOrganizationIdAndPhoneNumber(
-            organization.id, normalizedPhone
+            organization.id,
+            normalizedPhone
         )
 
         if (isDuplicate) {
-            log.info("Lead duplicado ignorado: $normalizedPhone | org: ${dto.organizationSlug}")
+            log.info("Duplicate lead ignored: {} | org: {}", normalizedPhone, dto.organizationSlug)
             return
         }
 
-        // Publica na fila — processamento assíncrono
-        sqsProducer.publishNewLead(
-            dto.copy(
-                phoneNumber = normalizedPhone,
-                marketplace = normalizedMarketplace
-            )
+        val normalizedLead = dto.copy(
+            phoneNumber = normalizedPhone,
+            marketplace = normalizedMarketplace
         )
+
+        if (awsEnabled) {
+            sqsProducer.publishNewLead(normalizedLead)
+            return
+        }
+
+        log.info("AWS disabled. Processing lead locally: {} | {}", normalizedPhone, dto.organizationSlug)
+        processFromQueue(normalizedLead)
     }
 
     /**
-     * Consumido pelo SqsConsumer — persiste lead e dispara mensagem de marketing.
+     * Consumed from SQS or called directly in local mode.
      */
     @Transactional
     fun processFromQueue(dto: ScrapedLeadDTO) {
         val organization = organizationRepository.findBySlug(dto.organizationSlug)
             .orElseThrow { ResourceNotFoundException("Organization", dto.organizationSlug) }
 
-        // Dupla checagem de duplicidade (pode ter chegado mais de uma msg na fila)
         val alreadyExists = leadRepository.existsByOrganizationIdAndPhoneNumber(
-            organization.id, dto.phoneNumber
+            organization.id,
+            dto.phoneNumber
         )
         if (alreadyExists) return
 
-        // Persiste o lead
         val lead = leadRepository.save(
             Lead(
                 organization = organization,
@@ -79,7 +86,6 @@ class LeadIngestionService(
             )
         )
 
-        // Dispara mensagem de marketing (template aprovado pela Meta)
         try {
             messageSenderService.sendTemplate(
                 lead = lead,
@@ -87,10 +93,9 @@ class LeadIngestionService(
                 templateName = "welcome_lead",
                 marketplaceName = dto.marketplace
             )
-            log.info("Mensagem de marketing enviada para ${dto.phoneNumber}")
+            log.info("Marketing message sent to {}", dto.phoneNumber)
         } catch (e: Exception) {
-            // Não falha a transação se o envio falhar — lead já está salvo
-            log.error("Falha ao enviar mensagem de marketing: ${e.message}")
+            log.error("Failed to send marketing message: {}", e.message)
         }
     }
 }

@@ -11,9 +11,10 @@ import java.util.UUID
 
 @Service
 class TokenService(
-    @Value("\${jwt.secret}") private val secret: String,
-    @Value("\${jwt.expiration-ms}") private val expirationMs: Long,
-    @Value("\${jwt.refresh-expiration-ms}") private val refreshExpirationMs: Long
+    @Value("\${jwt.secret:change-this-dev-jwt-secret-with-at-least-32-bytes}")
+    private val secret: String,
+    @Value("\${jwt.expiration-ms:3600000}") private val expirationMs: Long,
+    @Value("\${jwt.refresh-expiration-ms:604800000}") private val refreshExpirationMs: Long
 ) {
     private val signingKey by lazy { Keys.hmacShaKeyFor(secret.toByteArray()) }
 

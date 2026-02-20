@@ -1,4 +1,4 @@
-package com.astro.leadflow.modules.iam.service
+package com.astro.leadflow.shared.modules.iam.service
 
 import com.astro.leadflow.modules.iam.domain.User
 import com.astro.leadflow.modules.iam.domain.UserRepository
@@ -27,7 +27,7 @@ class TwoFactorService(
 
     private fun sendCodeByEmail(email: String, code: String) {
         val message = SimpleMailMessage()
-        message.to = email
+        message.setTo(email)
         message.subject = "LeadFlow — Código de verificação"
         message.text = "Seu código de acesso é: $code\nExpira em 10 minutos."
         mailSender.send(message)

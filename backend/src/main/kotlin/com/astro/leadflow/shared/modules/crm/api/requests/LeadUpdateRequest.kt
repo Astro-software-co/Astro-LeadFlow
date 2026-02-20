@@ -1,9 +1,6 @@
 package com.astro.leadflow.modules.crm.api.requests
 
-import com.astro.leadflow.modules.crm.domain.InterestType
-import com.astro.leadflow.modules.crm.domain.PipelineStage
-import jakarta.validation.constraints.NotBlank
-import jakarta.validation.constraints.NotNull
+import com.astro.leadflow.shared.modules.crm.domain.InterestType
 import java.math.BigDecimal
 import java.util.UUID
 

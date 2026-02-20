@@ -1,6 +1,6 @@
 package com.astro.leadflow.modules.communication.api
 
-import com.astro.leadflow.modules.communication.api.requests.MetaWebhookRequest
+import com.astro.leadflow.shared.modules.communication.api.requests.MetaWebhookRequest
 import com.astro.leadflow.modules.communication.service.BotService
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.beans.factory.annotation.Value

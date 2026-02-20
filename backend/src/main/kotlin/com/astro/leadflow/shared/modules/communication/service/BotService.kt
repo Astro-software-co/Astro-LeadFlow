@@ -1,10 +1,11 @@
 package com.astro.leadflow.modules.communication.service
 
-import com.astro.leadflow.modules.communication.api.requests.MetaMessage
+import com.astro.leadflow.shared.modules.communication.api.requests.MetaMessage
 import com.astro.leadflow.modules.communication.domain.*
-import com.astro.leadflow.modules.crm.domain.*
 import com.astro.leadflow.modules.iam.domain.OrganizationRepository
-import com.astro.leadflow.shared.exception.ResourceNotFoundException
+import com.astro.leadflow.shared.modules.crm.domain.Lead
+import com.astro.leadflow.shared.modules.crm.domain.LeadRepository
+import com.astro.leadflow.shared.modules.crm.domain.PipelineStage
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 

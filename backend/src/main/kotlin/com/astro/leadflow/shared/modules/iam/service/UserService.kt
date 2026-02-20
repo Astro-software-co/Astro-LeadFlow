@@ -5,10 +5,7 @@ import com.astro.leadflow.modules.iam.api.responses.UserResponse
 import com.astro.leadflow.modules.iam.api.responses.UserSummaryResponse
 import com.astro.leadflow.modules.iam.domain.*
 import com.astro.leadflow.modules.iam.mapper.UserMapper
-import com.astro.leadflow.shared.exception.AccessDeniedException
-import com.astro.leadflow.shared.exception.BusinessException
-import com.astro.leadflow.shared.exception.ResourceNotFoundException
-import com.astro.leadflow.shared.util.SecurityUtils
+import com.astro.leadflow.shared.exception.*
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -23,10 +20,8 @@ class UserService(
 ) {
 
     @Transactional(readOnly = true)
-    fun getMe(): UserResponse {
-        val user = SecurityUtils.getCurrentUser()
-        return userMapper.toResponse(user)
-    }
+    fun getMe(): UserResponse =
+        userMapper.toResponse(SecurityUtils.getCurrentUser())
 
     @Transactional
     fun updateMe(request: UpdateUserRequest): UserResponse {
@@ -43,7 +38,7 @@ class UserService(
         if (!passwordEncoder.matches(request.currentPassword, user.password))
             throw BusinessException("Senha atual incorreta.")
         if (request.newPassword != request.confirmNewPassword)
-            throw BusinessException("A nova senha e a confirmação não coincidem.")
+            throw InvalidOperationException("A nova senha e a confirmação não coincidem.")
         user.updatePassword(passwordEncoder.encode(request.newPassword))
         return userMapper.toResponse(userRepository.save(user))
     }
@@ -68,8 +63,6 @@ class UserService(
         return userMapper.toResponse(userRepository.save(user))
     }
 
-    // ── Admin: gestão de usuários da organização ─────────────
-
     @Transactional
     fun inviteUser(request: CreateUserRequest): UserResponse {
         val orgId = SecurityUtils.getCurrentOrganizationId()
@@ -77,11 +70,12 @@ class UserService(
             .orElseThrow { ResourceNotFoundException("Organization", orgId) }
 
         if (userRepository.existsByEmail(request.email))
-            throw BusinessException("E-mail '${request.email}' já está em uso.")
+            throw DuplicateResourceException("User", "email", request.email)
 
-        // Gera senha temporária — usuário deve alterar no primeiro acesso
-        val tempPassword = generateTempPassword()
+        if (request.role == Role.SUPER_ADMIN)
+            throw AccessDeniedException("Role SUPER_ADMIN não pode ser atribuída via painel.")
 
+        val tempPassword = UUID.randomUUID().toString().replace("-", "").take(12)
         val user = userRepository.save(
             User(
                 organization = organization,
@@ -93,9 +87,6 @@ class UserService(
                 status = UserStatus.PENDING_VERIFICATION
             )
         )
-
-        // TODO: enviar e-mail com senha temporária via TwoFactorService/MailSender
-
         return userMapper.toResponse(user)
     }
 
@@ -106,14 +97,18 @@ class UserService(
             .map { userMapper.toSummary(it) }
     }
 
+    @Transactional(readOnly = true)
+    fun findById(userId: UUID): UserResponse {
+        val orgId = SecurityUtils.getCurrentOrganizationId()
+        return userMapper.toResponse(findUserInOrg(userId, orgId))
+    }
+
     @Transactional
     fun updateUserRole(userId: UUID, request: UpdateUserRoleRequest): UserResponse {
         val orgId = SecurityUtils.getCurrentOrganizationId()
         val user = findUserInOrg(userId, orgId)
-
         if (request.role == Role.SUPER_ADMIN)
             throw AccessDeniedException("Role SUPER_ADMIN não pode ser atribuída via painel.")
-
         user.role = request.role
         return userMapper.toResponse(userRepository.save(user))
     }
@@ -121,7 +116,12 @@ class UserService(
     @Transactional
     fun suspendUser(userId: UUID): UserResponse {
         val orgId = SecurityUtils.getCurrentOrganizationId()
+        val currentUser = SecurityUtils.getCurrentUser()
+        if (currentUser.id == userId)
+            throw InvalidOperationException("Você não pode suspender sua própria conta.")
         val user = findUserInOrg(userId, orgId)
+        if (user.status == UserStatus.SUSPENDED)
+            throw InvalidOperationException("Usuário já está suspenso.")
         user.status = UserStatus.SUSPENDED
         return userMapper.toResponse(userRepository.save(user))
     }
@@ -130,8 +130,20 @@ class UserService(
     fun reactivateUser(userId: UUID): UserResponse {
         val orgId = SecurityUtils.getCurrentOrganizationId()
         val user = findUserInOrg(userId, orgId)
+        if (user.status == UserStatus.ACTIVE)
+            throw InvalidOperationException("Usuário já está ativo.")
         user.status = UserStatus.ACTIVE
         return userMapper.toResponse(userRepository.save(user))
+    }
+
+    @Transactional
+    fun deleteUser(userId: UUID) {
+        val orgId = SecurityUtils.getCurrentOrganizationId()
+        val currentUser = SecurityUtils.getCurrentUser()
+        if (currentUser.id == userId)
+            throw InvalidOperationException("Você não pode remover sua própria conta.")
+        val user = findUserInOrg(userId, orgId)
+        userRepository.delete(user)
     }
 
     private fun findUserInOrg(userId: UUID, orgId: UUID): User {
@@ -141,7 +153,7 @@ class UserService(
             throw AccessDeniedException("Usuário não pertence a esta organização.")
         return user
     }
-
-    private fun generateTempPassword(): String =
-        java.util.UUID.randomUUID().toString().replace("-", "").take(12)
 }
+
+// Import necessário
+private val SecurityUtils = com.astro.leadflow.shared.util.SecurityUtils

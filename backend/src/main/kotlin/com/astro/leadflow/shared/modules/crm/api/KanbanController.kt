@@ -1,7 +1,7 @@
-package com.astro.leadflow.modules.crm.api
+package com.astro.leadflow.shared.modules.crm.api
 
-import com.astro.leadflow.modules.crm.api.responses.KanbanBoardResponse
-import com.astro.leadflow.modules.crm.service.PipelineService
+import KanbanBoardResponse
+import com.astro.leadflow.shared.modules.crm.service.PipelineService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.GetMapping

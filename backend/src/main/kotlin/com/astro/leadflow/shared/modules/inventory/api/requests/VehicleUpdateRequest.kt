@@ -1,11 +1,8 @@
-package com.astro.leadflow.modules.inventory.api.requests
+package com.astro.leadflow.shared.modules.inventory.api.requests
 
-import com.astro.leadflow.modules.inventory.domain.VehicleCategory
-import com.astro.leadflow.modules.inventory.domain.VehicleStatus
-import jakarta.validation.constraints.Min
-import jakarta.validation.constraints.NotBlank
+import com.astro.leadflow.shared.modules.inventory.domain.VehicleCategory
+import com.astro.leadflow.shared.modules.inventory.domain.VehicleStatus
 import jakarta.validation.constraints.NotNull
-import jakarta.validation.constraints.Positive
 import java.math.BigDecimal
 
 data class VehicleUpdateRequest(
@@ -20,8 +17,4 @@ data class VehicleUpdateRequest(
     val ipvaPaid: Boolean? = null,
     val category: VehicleCategory? = null,
     val status: VehicleStatus? = null
-)
-
-data class UpdateVehicleStatusRequest(
-    @field:NotNull val status: VehicleStatus
 )

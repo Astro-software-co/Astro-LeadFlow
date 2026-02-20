@@ -1,4 +1,4 @@
-package com.astro.leadflow.modules.crm.domain
+package com.astro.leadflow.shared.modules.crm.domain
 
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
@@ -11,7 +11,7 @@ interface LeadRepository : JpaRepository<Lead, UUID> {
     fun findByOrganizationIdAndPhoneNumber(
     organizationId: UUID,
     phoneNumber: String
-    ): java.util.Optional<Lead>
+    ): Optional<Lead>
 
     fun findAllByOrganizationId(organizationId: UUID): List<Lead>
 
@@ -61,10 +61,6 @@ interface LeadRepository : JpaRepository<Lead, UUID> {
     """)
 
     fun countByStage(@Param("orgId") orgId: UUID): List<Array<Any>>
-
-    interface LeadStageHistoryRepository : JpaRepository<LeadStageHistory, UUID> {
-        fun findAllByLeadIdOrderByMovedAtDesc(leadId: UUID): List<LeadStageHistory>
-    }
 
     // Contagem total de leads da organização
     @Query("SELECT COUNT(l) FROM Lead l WHERE l.organization.id = :orgId")

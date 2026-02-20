@@ -1,6 +1,8 @@
 package com.astro.leadflow.modules.inventory.domain
 
 import com.astro.leadflow.modules.iam.domain.Organization
+import com.astro.leadflow.shared.modules.inventory.domain.VehicleCategory
+import com.astro.leadflow.shared.modules.inventory.domain.VehicleStatus
 import jakarta.persistence.*
 import java.math.BigDecimal
 import java.time.LocalDateTime

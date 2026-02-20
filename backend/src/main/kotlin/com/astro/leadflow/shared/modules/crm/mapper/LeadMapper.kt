@@ -1,8 +1,11 @@
 package com.astro.leadflow.modules.crm.mapper
 
-import com.astro.leadflow.modules.crm.api.responses.*
-import com.astro.leadflow.modules.crm.domain.Lead
-import com.astro.leadflow.modules.crm.domain.LeadStageHistory
+import com.astro.leadflow.shared.modules.crm.domain.Lead
+import com.astro.leadflow.shared.modules.crm.domain.LeadStageHistory
+import com.astro.leadflow.shared.modules.crm.api.responses.LeadResponse
+import com.astro.leadflow.shared.modules.crm.api.responses.SellerSummary
+import com.astro.leadflow.shared.modules.crm.api.responses.StageHistoryResponse
+import com.astro.leadflow.shared.modules.crm.api.responses.VehicleSummary
 import org.springframework.stereotype.Component
 
 @Component

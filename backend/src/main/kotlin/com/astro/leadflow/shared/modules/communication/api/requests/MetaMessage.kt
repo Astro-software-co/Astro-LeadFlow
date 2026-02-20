@@ -1,6 +1,4 @@
-package com.astro.leadflow.modules.communication.api.requests
-
-import com.fasterxml.jackson.annotation.JsonProperty
+package com.astro.leadflow.shared.modules.communication.api.requests
 
 data class MetaMessage(
     val from: String,

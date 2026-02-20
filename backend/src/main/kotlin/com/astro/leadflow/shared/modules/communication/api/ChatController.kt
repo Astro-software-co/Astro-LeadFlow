@@ -1,12 +1,12 @@
-package com.astro.leadflow.shared.modules.communication.api
+package com.astro.leadflow.modules.communication.api
 
 import com.astro.leadflow.shared.modules.communication.api.requests.SendMessageRequest
-import com.astro.leadflow.shared.modules.communication.api.responses.ChatMessageResponse
-import com.astro.leadflow.shared.modules.communication.mapper.ChatMessageMapper
-import com.astro.leadflow.shared.modules.communication.domain.ChatMessageRepository
-import com.astro.leadflow.shared.modules.communication.service.MessageSenderService
+import com.astro.leadflow.modules.communication.api.responses.ChatMessageResponse
+import com.astro.leadflow.modules.communication.mapper.ChatMessageMapper
+import com.astro.leadflow.modules.communication.domain.ChatMessageRepository
+import com.astro.leadflow.modules.communication.service.MessageSenderService
 import com.astro.leadflow.shared.modules.crm.service.LeadService
-import com.astro.leadflow.shared.modules.iam.domain.OrganizationRepository
+import com.astro.leadflow.modules.iam.domain.OrganizationRepository
 import com.astro.leadflow.shared.exception.ResourceNotFoundException
 import com.astro.leadflow.shared.util.SecurityUtils
 import io.swagger.v3.oas.annotations.Operation

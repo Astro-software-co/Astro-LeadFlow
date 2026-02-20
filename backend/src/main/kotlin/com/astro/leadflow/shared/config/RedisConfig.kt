@@ -1,26 +1,25 @@
 package com.astro.leadflow.shared.config
 
-import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.data.redis.connection.RedisConnectionFactory
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer
 import org.springframework.data.redis.serializer.StringRedisSerializer
 
 @Configuration
-internal class RedisConfig {
-    @Bean
-    fun redisTemplate(): `fun`?
+class RedisConfig {
 
-    init {
-        val template: `val` = RedisTemplate < String
-        val Any: `val`
-        ()
+    @Bean
+    fun redisTemplate(
+        connectionFactory: RedisConnectionFactory,
+        objectMapper: ObjectMapper
+    ): RedisTemplate<String, Any> {
+        val template = RedisTemplate<String, Any>()
         template.connectionFactory = connectionFactory
 
-        val objectMapper: `val`? = ObjectMapper().registerModule(KotlinModule.Builder().build())
-        val jsonSerializer: `val`? = Jackson2JsonRedisSerializer(objectMapper, Any::Any::)
-        java
+        val jsonSerializer = Jackson2JsonRedisSerializer(objectMapper, Any::class.java)
         template.keySerializer = StringRedisSerializer()
         template.valueSerializer = jsonSerializer
         template.hashKeySerializer = StringRedisSerializer()

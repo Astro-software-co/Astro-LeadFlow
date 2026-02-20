@@ -1,4 +1,4 @@
-package com.astro.leadflow.modules.crm.domain
+package com.astro.leadflow.shared.modules.crm.domain
 
 enum class PipelineStage(val displayName: String, val order: Int) {
     TALKING_TO_BOT("Falando com Chatbot", 1),

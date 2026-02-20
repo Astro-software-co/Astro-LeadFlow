@@ -1,10 +1,10 @@
 package com.astro.leadflow.modules.analytics.service
 
 import com.astro.leadflow.modules.analytics.responses.*
-import com.astro.leadflow.modules.crm.domain.LeadRepository
-import com.astro.leadflow.modules.crm.domain.PipelineStage
+import com.astro.leadflow.shared.modules.crm.domain.LeadRepository
+import com.astro.leadflow.shared.modules.crm.domain.PipelineStage
 import com.astro.leadflow.modules.inventory.domain.VehicleRepository
-import com.astro.leadflow.modules.inventory.domain.VehicleStatus
+import com.astro.leadflow.shared.modules.inventory.domain.VehicleStatus
 import com.astro.leadflow.modules.communication.domain.ChatMessageRepository
 import com.astro.leadflow.shared.util.SecurityUtils
 import org.springframework.stereotype.Service

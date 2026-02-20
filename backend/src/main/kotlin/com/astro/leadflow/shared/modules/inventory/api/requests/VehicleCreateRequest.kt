@@ -1,7 +1,7 @@
-package com.astro.leadflow.modules.inventory.api.requests
+package com.astro.leadflow.shared.modules.inventory.api.requests
 
-import com.astro.leadflow.modules.inventory.domain.VehicleCategory
-import com.astro.leadflow.modules.inventory.domain.VehicleStatus
+import com.astro.leadflow.shared.modules.inventory.domain.VehicleCategory
+import com.astro.leadflow.shared.modules.inventory.domain.VehicleStatus
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull

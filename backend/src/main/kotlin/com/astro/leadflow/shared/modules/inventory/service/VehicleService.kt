@@ -1,12 +1,14 @@
-package com.astro.leadflow.modules.inventory.service
+package com.astro.leadflow.shared.modules.inventory.service
 
-import com.astro.leadflow.modules.inventory.api.requests.VehicleCreateRequest
-import com.astro.leadflow.modules.inventory.api.requests.VehicleUpdateRequest
+import com.astro.leadflow.shared.modules.inventory.api.requests.VehicleCreateRequest
+import com.astro.leadflow.shared.modules.inventory.api.requests.VehicleUpdateRequest
 import com.astro.leadflow.shared.modules.inventory.api.responses.VehicleResponse
 import com.astro.leadflow.shared.modules.inventory.api.responses.VehicleStockSummary
 import com.astro.leadflow.modules.inventory.domain.*
+import com.astro.leadflow.shared.modules.inventory.mapper.VehicleMapper
 import com.astro.leadflow.modules.iam.domain.OrganizationRepository
-import com.astro.leadflow.shared.exception.ResourceNotFoundException
+import com.astro.leadflow.shared.exception.*
+import com.astro.leadflow.shared.modules.inventory.domain.VehicleStatus
 import com.astro.leadflow.shared.util.SecurityUtils
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -15,7 +17,8 @@ import java.util.UUID
 @Service
 class VehicleService(
     private val vehicleRepository: VehicleRepository,
-    private val organizationRepository: OrganizationRepository
+    private val organizationRepository: OrganizationRepository,
+    private val vehicleMapper: VehicleMapper
 ) {
 
     @Transactional
@@ -40,8 +43,7 @@ class VehicleService(
                 status = request.status
             )
         )
-
-        return VehicleResponse.from(vehicle)
+        return vehicleMapper.toResponse(vehicle)
     }
 
     @Transactional
@@ -59,29 +61,33 @@ class VehicleService(
         request.mileageKm?.let { vehicle.mileageKm = it }
         request.ipvaPaid?.let { vehicle.ipvaPaid = it }
         request.category?.let { vehicle.category = it }
-        request.status?.let { vehicle.status = it }
+        request.status?.let {
+            // Impede desfazer venda diretamente
+            if (vehicle.status == VehicleStatus.SOLD && it != VehicleStatus.SOLD)
+                throw InvalidOperationException(
+                    "Veículos vendidos não podem ter seu status alterado diretamente."
+                )
+            vehicle.status = it
+        }
 
-        return VehicleResponse.from(vehicleRepository.save(vehicle))
+        return vehicleMapper.toResponse(vehicleRepository.save(vehicle))
     }
 
     @Transactional(readOnly = true)
     fun findById(vehicleId: UUID): VehicleResponse {
         val orgId = SecurityUtils.getCurrentOrganizationId()
-        return VehicleResponse.from(findVehicleInOrg(vehicleId, orgId))
+        return vehicleMapper.toResponse(findVehicleInOrg(vehicleId, orgId))
     }
 
     @Transactional(readOnly = true)
     fun findAll(search: String? = null, status: VehicleStatus? = null): List<VehicleResponse> {
         val orgId = SecurityUtils.getCurrentOrganizationId()
         val vehicles = when {
-            !search.isNullOrBlank() ->
-                vehicleRepository.searchByBrandOrModel(orgId, search)
-            status != null ->
-                vehicleRepository.findAllByOrganizationIdAndStatus(orgId, status)
-            else ->
-                vehicleRepository.findAllByOrganizationId(orgId)
+            !search.isNullOrBlank() -> vehicleRepository.searchByBrandOrModel(orgId, search)
+            status != null -> vehicleRepository.findAllByOrganizationIdAndStatus(orgId, status)
+            else -> vehicleRepository.findAllByOrganizationId(orgId)
         }
-        return vehicles.map { VehicleResponse.from(it) }
+        return vehicles.map { vehicleMapper.toResponse(it) }
     }
 
     @Transactional(readOnly = true)
@@ -89,23 +95,22 @@ class VehicleService(
         val orgId = SecurityUtils.getCurrentOrganizationId()
         val counts = vehicleRepository.countByStatus(orgId)
             .associate { VehicleStatus.valueOf(it[0].toString()) to it[1].toString().toLong() }
-
-        return VehicleStockSummary(
-            available = counts[VehicleStatus.AVAILABLE] ?: 0,
-            reserved = counts[VehicleStatus.RESERVED] ?: 0,
-            maintenance = counts[VehicleStatus.MAINTENANCE] ?: 0,
-            sold = counts[VehicleStatus.SOLD] ?: 0
-        )
+        return vehicleMapper.toStockSummary(counts)
     }
 
     @Transactional
     fun delete(vehicleId: UUID) {
         val orgId = SecurityUtils.getCurrentOrganizationId()
         val vehicle = findVehicleInOrg(vehicleId, orgId)
+        if (vehicle.status == VehicleStatus.RESERVED)
+            throw InvalidOperationException(
+                "Veículo reservado não pode ser removido. Cancele a reserva primeiro."
+            )
+        if (vehicle.status == VehicleStatus.SOLD)
+            throw InvalidOperationException("Veículos vendidos não podem ser removidos.")
         vehicleRepository.delete(vehicle)
     }
 
-    // Helper interno — garante multi-tenancy
     fun findVehicleInOrg(vehicleId: UUID, orgId: UUID): Vehicle =
         vehicleRepository.findByOrganizationIdAndId(orgId, vehicleId)
             .orElseThrow { ResourceNotFoundException("Vehicle", vehicleId) }

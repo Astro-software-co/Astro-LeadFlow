@@ -1,9 +1,10 @@
-package com.astro.leadflow.shared.modules.ingestion.api
+package com.astro.leadflow.modules.ingestion.api
 
-import com.astro.leadflow.shared.modules.ingestion.api.requests.ScrapedLeadDTO
+import com.astro.leadflow.modules.ingestion.api.requests.ScrapedLeadDTO
 import com.astro.leadflow.modules.ingestion.service.LeadIngestionService
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
-import org.junit.jupiter.api.Tag
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody

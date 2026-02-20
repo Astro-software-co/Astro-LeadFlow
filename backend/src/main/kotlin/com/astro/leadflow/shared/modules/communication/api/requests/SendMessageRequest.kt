@@ -1,4 +1,4 @@
-package com.astro.leadflow.modules.communication.api.requests
+package com.astro.leadflow.shared.modules.communication.api.requests
 
 import jakarta.validation.constraints.NotBlank
 import java.util.UUID

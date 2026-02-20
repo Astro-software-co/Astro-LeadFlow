@@ -1,5 +1,6 @@
 package com.astro.leadflow.modules.inventory.domain
 
+import com.astro.leadflow.shared.modules.inventory.domain.VehicleStatus
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param

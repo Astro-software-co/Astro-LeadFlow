@@ -1,13 +1,15 @@
 package com.astro.leadflow.modules.communication.infra
 
-import com.astro.leadflow.shared.modules.ingestion.api.requests.ScrapedLeadDTO
+import com.astro.leadflow.modules.ingestion.api.requests.ScrapedLeadDTO
 import com.astro.leadflow.modules.ingestion.service.LeadIngestionService
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.awspring.cloud.sqs.annotation.SqsListener
 import org.slf4j.LoggerFactory
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
 @Component
+@ConditionalOnProperty(prefix = "app.aws", name = ["enabled"], havingValue = "true")
 class SqsConsumer(
     private val leadIngestionService: LeadIngestionService,
     private val objectMapper: ObjectMapper

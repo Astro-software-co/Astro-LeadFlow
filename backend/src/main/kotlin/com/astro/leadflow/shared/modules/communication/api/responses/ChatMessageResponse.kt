@@ -1,4 +1,4 @@
-package com.astro.leadflow.shared.modules.communication.api.responses
+package com.astro.leadflow.modules.communication.api.responses
 
 import com.astro.leadflow.modules.communication.domain.MessageDirection
 import com.astro.leadflow.modules.communication.domain.MessageStatus

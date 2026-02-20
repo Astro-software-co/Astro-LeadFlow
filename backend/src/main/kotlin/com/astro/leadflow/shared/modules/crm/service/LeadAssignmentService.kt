@@ -1,8 +1,9 @@
-package com.astro.leadflow.modules.crm.service
+package com.astro.leadflow.shared.modules.crm.service
 
-import com.astro.leadflow.modules.crm.api.responses.LeadResponse
-import com.astro.leadflow.modules.crm.domain.LeadRepository
-import com.astro.leadflow.modules.crm.domain.PipelineStage
+import com.astro.leadflow.shared.modules.crm.api.responses.LeadResponse
+import com.astro.leadflow.shared.modules.crm.domain.LeadRepository
+import com.astro.leadflow.shared.modules.crm.domain.PipelineStage
+import com.astro.leadflow.modules.crm.mapper.LeadMapper
 import com.astro.leadflow.modules.iam.domain.Role
 import com.astro.leadflow.modules.iam.domain.UserRepository
 import com.astro.leadflow.shared.exception.BusinessException
@@ -17,7 +18,8 @@ class LeadAssignmentService(
     private val leadRepository: LeadRepository,
     private val userRepository: UserRepository,
     private val leadService: LeadService,
-    private val pipelineService: PipelineService
+    private val pipelineService: PipelineService,
+    private val leadMapper: LeadMapper
 ) {
 
     /**
@@ -42,7 +44,7 @@ class LeadAssignmentService(
             return pipelineService.moveLead(leadId, PipelineStage.WAITING_ATTENDANCE)
         }
 
-        return LeadResponse.from(lead)
+        return leadMapper.toResponse(lead)
     }
 
     /**
@@ -67,6 +69,6 @@ class LeadAssignmentService(
         lead.assignedTo = seller
         leadRepository.save(lead)
 
-        return LeadResponse.from(lead)
+        return leadMapper.toResponse(lead)
     }
 }

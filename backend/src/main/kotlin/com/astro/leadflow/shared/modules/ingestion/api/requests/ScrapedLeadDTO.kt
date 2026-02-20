@@ -1,4 +1,4 @@
-package com.astro.leadflow.shared.modules.ingestion.api.requests
+package com.astro.leadflow.modules.ingestion.api.requests
 
 import jakarta.validation.constraints.NotBlank
 
