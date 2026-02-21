@@ -5,7 +5,7 @@ import com.astro.leadflow.modules.crm.api.requests.LeadUpdateRequest
 import com.astro.leadflow.shared.modules.crm.api.responses.LeadResponse
 import com.astro.leadflow.modules.crm.mapper.LeadMapper
 import com.astro.leadflow.modules.iam.domain.OrganizationRepository
-import com.astro.leadflow.modules.inventory.domain.VehicleRepository
+import com.astro.leadflow.shared.modules.inventory.domain.VehicleRepository
 import com.astro.leadflow.shared.exception.*
 import com.astro.leadflow.shared.modules.crm.domain.Lead
 import com.astro.leadflow.shared.modules.crm.domain.LeadRepository

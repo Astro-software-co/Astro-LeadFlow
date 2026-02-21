@@ -1,7 +1,6 @@
 package com.astro.leadflow.modules.inventory.domain
 
 import com.astro.leadflow.modules.iam.domain.Organization
-import com.astro.leadflow.shared.modules.inventory.domain.VehicleCategory
 import com.astro.leadflow.shared.modules.inventory.domain.VehicleStatus
 import jakarta.persistence.*
 import java.math.BigDecimal
@@ -49,7 +48,7 @@ class Vehicle(
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    var category: VehicleCategory,
+    var category: com.astro.leadflow.modules.inventory.domain.VehicleCategory,
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

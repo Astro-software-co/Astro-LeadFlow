@@ -1,0 +1,59 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/leadflow
+    username: leadflow
+    password: leadflow123
+    hikari:
+      maximum-pool-size: 5
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: redis123
+
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  mail:
+    host: localhost
+    port: 1025
+    properties:
+      mail.smtp.auth: false
+      mail.smtp.starttls.enable: false
+
+  flyway:
+    enabled: true
+
+logging:
+  level:
+    com.astro.leadflow: DEBUG
+    org.springframework.security: DEBUG
+
+aws:
+  region: us-east-1
+  endpoint-override: http://localhost:4566
+  sqs:
+    new-leads-queue-url: http://localhost:4566/000000000000/leadflow-new-leads.fifo
+  s3:
+    bucket-name: leadflow-vehicles
+  sns:
+    enabled: false
+
+meta:
+  api-url: https://graph.facebook.com/v19.0
+  webhook-verify-token: local_dev_token
+
+jwt:
+  secret: local_dev_secret_key_must_be_at_least_32_chars_long
+  expiration: 3600000
+  refresh-expiration: 604800000
+
+app:
+  base-url: http://localhost:8080
+  cors:
+    allowed-origins: http://localhost:3000,http://localhost:5173
+

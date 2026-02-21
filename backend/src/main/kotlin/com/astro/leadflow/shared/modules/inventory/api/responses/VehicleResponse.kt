@@ -1,6 +1,6 @@
 package com.astro.leadflow.shared.modules.inventory.api.responses
 
-import com.astro.leadflow.shared.modules.inventory.domain.VehicleCategory
+import com.astro.leadflow.modules.inventory.domain.VehicleCategory
 import com.astro.leadflow.shared.modules.inventory.domain.VehicleStatus
 import java.math.BigDecimal
 import java.time.LocalDateTime

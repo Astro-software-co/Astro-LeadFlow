@@ -1,6 +1,6 @@
 package com.astro.leadflow.shared.modules.inventory.api.requests
 
-import com.astro.leadflow.shared.modules.inventory.domain.VehicleCategory
+import com.astro.leadflow.modules.inventory.domain.VehicleCategory
 import com.astro.leadflow.shared.modules.inventory.domain.VehicleStatus
 import jakarta.validation.constraints.NotNull
 import java.math.BigDecimal

@@ -1,6 +1,7 @@
-package com.astro.leadflow.modules.inventory.domain
+package com.astro.leadflow.shared.modules.inventory.domain
 
-import com.astro.leadflow.shared.modules.inventory.domain.VehicleStatus
+import com.astro.leadflow.modules.inventory.domain.Vehicle
+import com.astro.leadflow.modules.inventory.domain.VehiclePhoto
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
@@ -51,5 +52,10 @@ interface VehicleRepository : JpaRepository<Vehicle, UUID> {
     """)
     
     fun countSoldAndStockByCategory(@Param("orgId") orgId: UUID): List<Array<Any>>
+
+    interface VehiclePhotoRepository : JpaRepository<VehiclePhoto, UUID> {
+        fun findAllByVehicleIdOrderByPositionAsc(vehicleId: UUID): List<VehiclePhoto>
+        fun deleteAllByVehicleId(vehicleId: UUID)
+    }
 
 }

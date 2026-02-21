@@ -8,6 +8,7 @@ import com.astro.leadflow.modules.inventory.domain.*
 import com.astro.leadflow.shared.modules.inventory.mapper.VehicleMapper
 import com.astro.leadflow.modules.iam.domain.OrganizationRepository
 import com.astro.leadflow.shared.exception.*
+import com.astro.leadflow.shared.modules.inventory.domain.VehicleRepository
 import com.astro.leadflow.shared.modules.inventory.domain.VehicleStatus
 import com.astro.leadflow.shared.util.SecurityUtils
 import org.springframework.stereotype.Service

@@ -1,6 +1,6 @@
 package com.astro.leadflow.modules.inventory.service
 
-import com.astro.leadflow.modules.inventory.domain.VehicleRepository
+import com.astro.leadflow.shared.modules.inventory.domain.VehicleRepository
 import com.astro.leadflow.shared.modules.inventory.domain.VehicleStatus
 import com.astro.leadflow.shared.exception.BusinessException
 import com.astro.leadflow.shared.exception.ResourceNotFoundException

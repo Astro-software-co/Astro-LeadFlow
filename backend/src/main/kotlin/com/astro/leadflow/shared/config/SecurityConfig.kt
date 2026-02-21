@@ -8,7 +8,9 @@ import jakarta.servlet.http.HttpServletResponse
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
+import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
@@ -77,5 +79,74 @@ class JwtAuthenticationFilter(
                 .getContext().authentication = auth
         }
         filterChain.doFilter(request, response)
+    }
+
+    @Configuration
+    @EnableWebSecurity
+    @EnableMethodSecurity(prePostEnabled = true)
+    class SecurityConfig(
+        private val jwtAuthenticationFilter: JwtAuthenticationFilter
+    ) {
+
+        @Bean
+        fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
+            http
+                .csrf { it.disable() }
+                .sessionManagement {
+                    it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                }
+                .authorizeHttpRequests { auth ->
+                    auth
+                        // ── Swagger / OpenAPI ─────────────────────────
+                        .requestMatchers(
+                            "/swagger-ui/**",
+                            "/swagger-ui.html",
+                            "/v3/api-docs/**",
+                            "/v3/api-docs.yaml",
+                            "/swagger-resources/**",
+                            "/webjars/**"
+                        ).permitAll()
+
+                        // ── Auth público ──────────────────────────────
+                        .requestMatchers(
+                            "/api/v1/auth/**"
+                        ).permitAll()
+
+                        // ── Webhooks públicos (protegidos por API Key no Gateway)
+                        .requestMatchers(
+                            "/api/v1/webhooks/**"
+                        ).permitAll()
+
+                        // ── Planos públicos (landing page) ────────────
+                        .requestMatchers(
+                            HttpMethod.GET, "/api/v1/plans"
+                        ).permitAll()
+
+                        // ── Admin interno ─────────────────────────────
+                        .requestMatchers("/api/v1/admin/**")
+                        .hasRole("SUPER_ADMIN")
+
+                        // ── Operações restritas ───────────────────────
+                        .requestMatchers(HttpMethod.DELETE, "/**")
+                        .hasAnyRole("ADMIN", "SUPER_ADMIN")
+
+                        // ── Tudo mais requer autenticação ─────────────
+                        .anyRequest().authenticated()
+                }
+                .addFilterBefore(
+                    jwtAuthenticationFilter,
+                    UsernamePasswordAuthenticationFilter::class.java
+                )
+
+            return http.build()
+        }
+
+        @Bean
+        fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
+
+        @Bean
+        fun authenticationManager(
+            config: AuthenticationConfiguration
+        ): AuthenticationManager = config.authenticationManager
     }
 }
