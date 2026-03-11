@@ -1,6 +1,6 @@
-package com.astro.leadflow.modules.saas.domain
+package com.astro.leadflow.shared.modules.saas.domain
 
-import com.astro.leadflow.modules.iam.domain.Organization
+import com.astro.leadflow.shared.modules.iam.domain.Organization
 import jakarta.persistence.*
 import java.time.LocalDateTime
 import java.util.UUID
@@ -24,7 +24,6 @@ class UsageLog(
     @JoinColumn(name = "organization_id", nullable = false)
     val organization: Organization,
 
-    // Null = contabiliza no total geral da organização
     @Column(name = "marketplace_name")
     val marketplaceName: String? = null,
 

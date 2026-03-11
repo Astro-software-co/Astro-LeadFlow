@@ -1,4 +1,4 @@
-package com.astro.leadflow.modules.crm.api.requests
+package com.astro.leadflow.shared.modules.crm.api.requests
 
 import com.astro.leadflow.shared.modules.crm.domain.InterestType
 import jakarta.validation.constraints.NotBlank
@@ -18,8 +18,3 @@ data class LeadCreateRequest(
     val notes: String? = null,
     val vehicleId: UUID? = null
 )
-
-
-
-
-

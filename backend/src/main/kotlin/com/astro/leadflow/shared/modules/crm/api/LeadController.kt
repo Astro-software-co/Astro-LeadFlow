@@ -1,11 +1,13 @@
-package com.astro.leadflow.modules.crm.api
+package com.astro.leadflow.shared.modules.crm.api
 
-import com.astro.leadflow.modules.crm.api.requests.*
+import com.astro.leadflow.modules.crm.api.requests.AssignLeadRequest
+import com.astro.leadflow.modules.crm.api.requests.LeadCreateRequest
+import com.astro.leadflow.modules.crm.api.requests.LeadUpdateRequest
+import com.astro.leadflow.modules.crm.api.requests.MoveLeadRequest
 import com.astro.leadflow.shared.modules.crm.api.responses.LeadResponse
 import com.astro.leadflow.shared.modules.crm.api.responses.StageHistoryResponse
 import com.astro.leadflow.shared.modules.crm.service.LeadAssignmentService
 import com.astro.leadflow.shared.modules.crm.service.LeadService
-import com.astro.leadflow.shared.modules.crm.service.PipelineService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -67,7 +69,7 @@ class LeadController(
     @Operation(summary = "Move lead para estágio específico do Kanban")
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "Lead movido com sucesso"),
-        ApiResponse(responseCode = "422", description = "Operação inválida — lead já está no estágio")
+        ApiResponse(responseCode = "422", description = "Lead já está no estágio ou arquivado")
     )
     fun move(
         @PathVariable id: UUID,
@@ -76,25 +78,39 @@ class LeadController(
 
     @PatchMapping("/{id}/advance")
     @Operation(summary = "Avança lead para o próximo estágio automaticamente")
-    @ApiResponse(responseCode = "422", description = "Lead já está no estágio final")
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "Lead avançado com sucesso"),
+        ApiResponse(responseCode = "422", description = "Lead já está no estágio final")
+    )
     fun advance(@PathVariable id: UUID): LeadResponse =
         pipelineService.advanceLead(id)
 
     @PatchMapping("/{id}/archive")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Arquiva lead")
-    @ApiResponse(responseCode = "422", description = "Lead já está arquivado")
+    @ApiResponses(
+        ApiResponse(responseCode = "204", description = "Lead arquivado com sucesso"),
+        ApiResponse(responseCode = "422", description = "Lead já está arquivado")
+    )
     fun archive(@PathVariable id: UUID) =
         leadService.archive(id)
 
     @PatchMapping("/{id}/assume")
-    @Operation(summary = "Vendedor assume o lead e avança para Aguardando Atendimento")
+    @Operation(summary = "Vendedor assume o lead")
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "Lead assumido com sucesso"),
+        ApiResponse(responseCode = "400", description = "Você já é o responsável por este lead")
+    )
     fun assume(@PathVariable id: UUID): LeadResponse =
         assignmentService.assumeLead(id)
 
     @PatchMapping("/{id}/assign")
     @Operation(summary = "Admin ou Manager atribui lead a um vendedor")
-    @ApiResponse(responseCode = "403", description = "Sem permissão para atribuir leads")
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "Lead atribuído com sucesso"),
+        ApiResponse(responseCode = "400", description = "Vendedor inválido ou não pertence à organização"),
+        ApiResponse(responseCode = "403", description = "Sem permissão para atribuir leads")
+    )
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     fun assign(
         @PathVariable id: UUID,
@@ -103,13 +119,17 @@ class LeadController(
 
     @GetMapping("/{id}/history")
     @Operation(summary = "Histórico de movimentações do lead no Kanban")
+    @ApiResponse(responseCode = "200", description = "Histórico retornado com sucesso")
     fun history(@PathVariable id: UUID): List<StageHistoryResponse> =
         pipelineService.getLeadHistory(id)
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Remove lead permanentemente")
-    @ApiResponse(responseCode = "204", description = "Lead removido com sucesso")
+    @ApiResponses(
+        ApiResponse(responseCode = "204", description = "Lead removido com sucesso"),
+        ApiResponse(responseCode = "403", description = "Sem permissão para remover leads")
+    )
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     fun delete(@PathVariable id: UUID) =
         leadService.delete(id)

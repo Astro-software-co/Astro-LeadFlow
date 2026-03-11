@@ -1,10 +1,14 @@
-package com.astro.leadflow.modules.communication.service
+package com.astro.leadflow.shared.modules.communication.service
 
-import com.astro.leadflow.modules.communication.domain.*
-import com.astro.leadflow.modules.communication.infra.MetaClient
-import com.astro.leadflow.shared.modules.crm.domain.Lead
 import com.astro.leadflow.modules.iam.domain.Organization
 import com.astro.leadflow.modules.saas.service.UsageLimitService
+import com.astro.leadflow.shared.modules.communication.domain.ChatMessage
+import com.astro.leadflow.shared.modules.communication.domain.ChatMessageRepository
+import com.astro.leadflow.shared.modules.communication.domain.MessageDirection
+import com.astro.leadflow.shared.modules.communication.domain.MessageStatus
+import com.astro.leadflow.shared.modules.communication.domain.MessageType
+import com.astro.leadflow.shared.modules.communication.infra.MetaClient
+import com.astro.leadflow.shared.modules.crm.domain.Lead
 import com.astro.leadflow.shared.exception.QuotaExceededException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -23,12 +27,10 @@ class MessageSenderService(
         message: String,
         marketplaceName: String? = null
     ): ChatMessage {
-        // Verifica quota antes de enviar
-        if (!usageLimitService.canSendMessage(organization.id, marketplaceName)) {
+        if (!usageLimitService.canSendMessage(organization.id, marketplaceName))
             throw QuotaExceededException(
                 "Limite de mensagens atingido para ${marketplaceName ?: "esta organização"}."
             )
-        }
 
         val waMessageId = metaClient.sendTextMessage(
             phoneNumberId = organization.whatsappPhoneNumberId
@@ -39,7 +41,6 @@ class MessageSenderService(
             message = message
         )
 
-        // Registra mensagem no histórico
         val chatMessage = chatMessageRepository.save(
             ChatMessage(
                 lead = lead,
@@ -52,9 +53,7 @@ class MessageSenderService(
             )
         )
 
-        // Incrementa contador de uso
         usageLimitService.incrementUsage(organization.id, marketplaceName)
-
         return chatMessage
     }
 
@@ -65,13 +64,16 @@ class MessageSenderService(
         templateName: String,
         marketplaceName: String? = null
     ): ChatMessage {
-        if (!usageLimitService.canSendMessage(organization.id, marketplaceName)) {
-            throw QuotaExceededException()
-        }
+        if (!usageLimitService.canSendMessage(organization.id, marketplaceName))
+            throw QuotaExceededException(
+                "Limite de mensagens atingido para ${marketplaceName ?: "esta organização"}."
+            )
 
         val waMessageId = metaClient.sendTemplateMessage(
-            phoneNumberId = organization.whatsappPhoneNumberId!!,
-            accessToken = organization.whatsappToken!!,
+            phoneNumberId = organization.whatsappPhoneNumberId
+                ?: error("PhoneNumberId não configurado para organização ${organization.id}"),
+            accessToken = organization.whatsappToken
+                ?: error("WhatsApp token não configurado para organização ${organization.id}"),
             toPhone = lead.phoneNumber,
             templateName = templateName
         )
@@ -89,7 +91,6 @@ class MessageSenderService(
         )
 
         usageLimitService.incrementUsage(organization.id, marketplaceName)
-
         return chatMessage
     }
 }

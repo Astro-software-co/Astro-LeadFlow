@@ -1,13 +1,13 @@
-﻿package com.astro.leadflow.modules.ingestion.service
+﻿package com.astro.leadflow.shared.modules.ingestion.service
 
-import com.astro.leadflow.modules.communication.service.MessageSenderService
-import com.astro.leadflow.modules.iam.domain.OrganizationRepository
-import com.astro.leadflow.modules.ingestion.api.requests.ScrapedLeadDTO
-import com.astro.leadflow.modules.ingestion.infra.SqsProducer
-import com.astro.leadflow.shared.exception.ResourceNotFoundException
+import com.astro.leadflow.shared.modules.ingestion.api.requests.ScrapedLeadDTO
+import com.astro.leadflow.shared.modules.communication.service.MessageSenderService
+import com.astro.leadflow.shared.modules.iam.domain.OrganizationRepository
+import com.astro.leadflow.shared.modules.ingestion.infra.SqsProducer
 import com.astro.leadflow.shared.modules.crm.domain.Lead
 import com.astro.leadflow.shared.modules.crm.domain.LeadRepository
 import com.astro.leadflow.shared.modules.crm.domain.PipelineStage
+import com.astro.leadflow.shared.exception.ResourceNotFoundException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -24,10 +24,6 @@ class LeadIngestionService(
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    /**
-     * Receives lead from webhook.
-     * If AWS is disabled, processes immediately without queue.
-     */
     @Transactional
     fun ingestFromWebhook(dto: ScrapedLeadDTO) {
         val normalizedPhone = normalizationService.normalizePhone(dto.phoneNumber)
@@ -37,12 +33,11 @@ class LeadIngestionService(
             .orElseThrow { ResourceNotFoundException("Organization", dto.organizationSlug) }
 
         val isDuplicate = leadRepository.existsByOrganizationIdAndPhoneNumber(
-            organization.id,
-            normalizedPhone
+            organization.id, normalizedPhone
         )
 
         if (isDuplicate) {
-            log.info("Duplicate lead ignored: {} | org: {}", normalizedPhone, dto.organizationSlug)
+            log.info("Lead duplicado ignorado: {} | org: {}", normalizedPhone, dto.organizationSlug)
             return
         }
 
@@ -56,21 +51,17 @@ class LeadIngestionService(
             return
         }
 
-        log.info("AWS disabled. Processing lead locally: {} | {}", normalizedPhone, dto.organizationSlug)
+        log.info("AWS desabilitado. Processando lead localmente: {} | {}", normalizedPhone, dto.organizationSlug)
         processFromQueue(normalizedLead)
     }
 
-    /**
-     * Consumed from SQS or called directly in local mode.
-     */
     @Transactional
     fun processFromQueue(dto: ScrapedLeadDTO) {
         val organization = organizationRepository.findBySlug(dto.organizationSlug)
             .orElseThrow { ResourceNotFoundException("Organization", dto.organizationSlug) }
 
         val alreadyExists = leadRepository.existsByOrganizationIdAndPhoneNumber(
-            organization.id,
-            dto.phoneNumber
+            organization.id, dto.phoneNumber
         )
         if (alreadyExists) return
 
@@ -93,9 +84,9 @@ class LeadIngestionService(
                 templateName = "welcome_lead",
                 marketplaceName = dto.marketplace
             )
-            log.info("Marketing message sent to {}", dto.phoneNumber)
+            log.info("Mensagem de boas-vindas enviada para {}", dto.phoneNumber)
         } catch (e: Exception) {
-            log.error("Failed to send marketing message: {}", e.message)
+            log.error("Falha ao enviar mensagem de boas-vindas: {}", e.message)
         }
     }
 }

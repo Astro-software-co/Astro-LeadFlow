@@ -1,7 +1,7 @@
 package com.astro.leadflow.shared.modules.iam.mapper
 
-import com.astro.leadflow.modules.iam.domain.Organization
 import com.astro.leadflow.shared.modules.iam.api.responses.OrganizationResponse
+import com.astro.leadflow.shared.modules.iam.domain.Organization
 import org.springframework.stereotype.Component
 
 @Component

@@ -3,7 +3,7 @@ package com.astro.leadflow.shared.modules.inventory.service
 import com.astro.leadflow.shared.modules.inventory.api.requests.VehicleCreateRequest
 import com.astro.leadflow.shared.modules.inventory.api.requests.VehicleUpdateRequest
 import com.astro.leadflow.shared.modules.inventory.domain.VehicleRepository
-import com.astro.leadflow.shared.modules.inventory.domain.VehicleStatus
+import com.astro.leadflow.shared.modules.crm.service.VehicleStatus
 import com.astro.leadflow.shared.modules.inventory.mapper.VehicleMapper
 import com.astro.leadflow.modules.iam.domain.Organization
 import com.astro.leadflow.modules.iam.domain.OrganizationRepository

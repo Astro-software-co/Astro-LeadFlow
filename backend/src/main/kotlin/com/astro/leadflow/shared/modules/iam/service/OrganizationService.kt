@@ -1,11 +1,11 @@
 package com.astro.leadflow.shared.modules.iam.service
 
-import com.astro.leadflow.modules.iam.domain.OrganizationRepository
 import com.astro.leadflow.shared.exception.DuplicateResourceException
 import com.astro.leadflow.shared.exception.ResourceNotFoundException
 import com.astro.leadflow.shared.modules.iam.api.requests.UpdateOrganizationRequest
 import com.astro.leadflow.shared.modules.iam.api.requests.UpdateWhatsappCredentialsRequest
 import com.astro.leadflow.shared.modules.iam.api.responses.OrganizationResponse
+import com.astro.leadflow.shared.modules.iam.domain.OrganizationRepository
 import com.astro.leadflow.shared.modules.iam.mapper.OrganizationMapper
 import com.astro.leadflow.shared.util.SecurityUtils
 import org.springframework.stereotype.Service

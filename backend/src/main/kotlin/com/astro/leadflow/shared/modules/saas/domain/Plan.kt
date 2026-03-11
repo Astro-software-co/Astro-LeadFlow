@@ -1,4 +1,4 @@
-package com.astro.leadflow.modules.saas.domain
+package com.astro.leadflow.shared.modules.saas.domain
 
 import jakarta.persistence.*
 import java.math.BigDecimal
@@ -19,11 +19,9 @@ class Plan(
     @Column(name = "monthly_price_brl", nullable = false)
     val monthlyPriceBrl: BigDecimal,
 
-    // Limite total de mensagens por mês para a organização
     @Column(name = "message_limit", nullable = false)
     val messageLimit: Int,
 
-    // Quantos marketplaces a organização pode cadastrar
     @Column(name = "marketplace_limit", nullable = false)
     val marketplaceLimit: Int,
 

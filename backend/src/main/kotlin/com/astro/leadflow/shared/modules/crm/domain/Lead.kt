@@ -2,7 +2,7 @@ package com.astro.leadflow.shared.modules.crm.domain
 
 import com.astro.leadflow.modules.iam.domain.Organization
 import com.astro.leadflow.modules.iam.domain.User
-import com.astro.leadflow.modules.inventory.domain.Vehicle
+import com.astro.leadflow.shared.modules.crm.service.Vehicle
 import jakarta.persistence.*
 import java.math.BigDecimal
 import java.time.LocalDateTime
@@ -11,27 +11,22 @@ import java.util.UUID
 @Entity
 @Table(name = "leads")
 class Lead(
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     val id: UUID = UUID.randomUUID(),
 
-    // Multi-tenancy
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "organization_id", nullable = false)
     val organization: Organization,
 
-    // Vendedor responsável (pode ser null até alguém assumir)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assigned_to", nullable = true)
     var assignedTo: User? = null,
 
-    // Veículo de interesse vinculado ao estoque
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vehicle_id", nullable = true)
     var vehicle: Vehicle? = null,
 
-    // Dados essenciais do lead
     @Column(name = "name")
     var name: String? = null,
 
@@ -41,11 +36,9 @@ class Lead(
     @Column(name = "email")
     var email: String? = null,
 
-    // Origem: WEBMOTORS, OLX, MERCADO_LIVRE, MANUAL, etc.
     @Column(name = "origin", nullable = false)
     var origin: String,
 
-    // Dados de qualificação extraídos pelo chatbot
     @Column(name = "vehicle_interest")
     var vehicleInterest: String? = null,
 
@@ -65,7 +58,6 @@ class Lead(
     @Column(name = "notes", columnDefinition = "TEXT")
     var notes: String? = null,
 
-    // Kanban
     @Enumerated(EnumType.STRING)
     @Column(name = "pipeline_stage", nullable = false)
     var pipelineStage: PipelineStage = PipelineStage.TALKING_TO_BOT,

@@ -1,8 +1,8 @@
-package com.astro.leadflow.modules.communication.service
+package com.astro.leadflow.shared.modules.communication.service
 
 import com.astro.leadflow.shared.modules.communication.api.requests.MetaMessage
-import com.astro.leadflow.modules.communication.domain.*
-import com.astro.leadflow.modules.iam.domain.OrganizationRepository
+import com.astro.leadflow.shared.modules.communication.domain.*
+import com.astro.leadflow.shared.modules.iam.domain.OrganizationRepository
 import com.astro.leadflow.shared.modules.crm.domain.Lead
 import com.astro.leadflow.shared.modules.crm.domain.LeadRepository
 import com.astro.leadflow.shared.modules.crm.domain.PipelineStage
@@ -17,19 +17,14 @@ class BotService(
     private val messageSenderService: MessageSenderService
 ) {
 
-    /**
-     * Ponto de entrada para toda mensagem recebida via webhook da Meta.
-     * Orquestra: localizar lead → registrar mensagem → responder via bot.
-     */
     @Transactional
     fun handleIncoming(phoneNumberId: String, message: MetaMessage, contactName: String?) {
         val organization = organizationRepository.findByWhatsappPhoneNumberId(phoneNumberId)
-            ?: return // Organização não encontrada para esse número — ignora
+            ?: return
 
         val phoneNumber = normalizePhone(message.from)
-        val content = message.text?.body ?: return // Ignora mensagens sem texto por ora
+        val content = message.text?.body ?: return
 
-        // Localiza ou cria lead
         val lead = leadRepository
             .findByOrganizationIdAndPhoneNumber(organization.id, phoneNumber)
             .orElseGet {
@@ -44,7 +39,6 @@ class BotService(
                 )
             }
 
-        // Registra mensagem recebida
         chatMessageRepository.save(
             ChatMessage(
                 lead = lead,
@@ -55,28 +49,21 @@ class BotService(
             )
         )
 
-        // Processa resposta do bot baseada no estágio atual
         val reply = buildBotReply(lead, content)
-
         if (reply != null) {
             messageSenderService.sendText(lead, organization, reply)
         }
     }
 
-    /**
-     * Lógica de resposta do bot por estágio.
-     * Ponto de extensão para Amazon Lex / Bedrock no futuro.
-     */
     private fun buildBotReply(lead: Lead, incomingMessage: String): String? {
         return when (lead.pipelineStage) {
             PipelineStage.TALKING_TO_BOT -> buildQualificationReply(lead, incomingMessage)
-            PipelineStage.WAITING_ATTENDANCE -> null // Humano assume — bot silencia
+            PipelineStage.WAITING_ATTENDANCE -> null
             else -> null
         }
     }
 
     private fun buildQualificationReply(lead: Lead, message: String): String {
-        // Fluxo básico de qualificação — extensível para Lex/Bedrock
         return when {
             lead.name == null ->
                 "Olá! 👋 Bem-vindo à nossa concessionária. Qual o seu nome?"
@@ -89,9 +76,6 @@ class BotService(
         }
     }
 
-    /**
-     * Atualiza status de entrega de mensagem (delivered, read, failed).
-     */
     @Transactional
     fun handleStatusUpdate(waMessageId: String, newStatus: String) {
         val message = chatMessageRepository.findByWaMessageId(waMessageId) ?: return

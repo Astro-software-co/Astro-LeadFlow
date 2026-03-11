@@ -1,4 +1,4 @@
-package com.astro.leadflow.modules.communication.domain
+package com.astro.leadflow.shared.modules.communication.domain
 
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
@@ -9,10 +9,8 @@ interface ChatMessageRepository : JpaRepository<ChatMessage, UUID> {
 
     fun findAllByLeadIdOrderBySentAtAsc(leadId: UUID): List<ChatMessage>
 
-    // Atualiza status de entrega pelo ID da mensagem da Meta
     fun findByWaMessageId(waMessageId: String): ChatMessage?
 
-    // Total de mensagens enviadas por organização no mês
     @Query("""
         SELECT COUNT(m) FROM ChatMessage m
         WHERE m.organization.id = :orgId
@@ -26,7 +24,6 @@ interface ChatMessageRepository : JpaRepository<ChatMessage, UUID> {
         @Param("year") year: Int
     ): Long
 
-    // Tempo médio de resposta em horas (OUTBOUND após INBOUND)
     @Query("""
         SELECT AVG(
             FUNCTION('TIMESTAMPDIFF', HOUR, inbound.sentAt, outbound.sentAt)

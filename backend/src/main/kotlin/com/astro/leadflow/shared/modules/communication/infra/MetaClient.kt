@@ -1,22 +1,21 @@
-package com.astro.leadflow.modules.communication.infra
+package com.astro.leadflow.shared.modules.communication.infra
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.WebClientResponseException
+import org.springframework.web.reactive.function.client.bodyToMono
 
 @Component
 class MetaClient(
-    @Value("\${meta.api-url}") private val apiUrl: String
+    @param:Value("\${meta.api-url}") private val apiUrl: String,
+    webClientBuilder: WebClient.Builder
 ) {
-    private val webClient = WebClient.builder()
+    private val webClient = webClientBuilder
         .baseUrl(apiUrl)
         .defaultHeader("Content-Type", "application/json")
         .build()
 
-    /**
-     * Envia mensagem de texto simples para um número WhatsApp.
-     * Retorna o waMessageId gerado pela Meta.
-     */
     fun sendTextMessage(
         phoneNumberId: String,
         accessToken: String,
@@ -30,24 +29,9 @@ class MetaClient(
             "type" to "text",
             "text" to mapOf("body" to message)
         )
-
-        val response = webClient.post()
-            .uri("/$phoneNumberId/messages")
-            .header("Authorization", "Bearer $accessToken")
-            .bodyValue(payload)
-            .retrieve()
-            .bodyToMono(Map::class.java)
-            .block()
-
-        @Suppress("UNCHECKED_CAST")
-        val messages = response?.get("messages") as? List<Map<String, Any>>
-        return messages?.firstOrNull()?.get("id") as? String
+        return postMessage(phoneNumberId, accessToken, payload)
     }
 
-    /**
-     * Envia mensagem usando template aprovado pela Meta.
-     * Necessário para iniciar conversas (janela 24h fechada).
-     */
     fun sendTemplateMessage(
         phoneNumberId: String,
         accessToken: String,
@@ -66,17 +50,36 @@ class MetaClient(
                 "components" to components
             )
         )
+        return postMessage(phoneNumberId, accessToken, payload)
+    }
 
-        val response = webClient.post()
-            .uri("/$phoneNumberId/messages")
-            .header("Authorization", "Bearer $accessToken")
-            .bodyValue(payload)
-            .retrieve()
-            .bodyToMono(Map::class.java)
-            .block()
+    private fun postMessage(
+        phoneNumberId: String,
+        accessToken: String,
+        payload: Map<String, Any>
+    ): String? {
+        return try {
+            val response = webClient.post()
+                .uri("/$phoneNumberId/messages")
+                .header("Authorization", "Bearer $accessToken")
+                .bodyValue(payload)
+                .retrieve()
+                .onStatus({ it.isError }) { resp ->
+                    resp.bodyToMono<String>().map {
+                        WebClientResponseException.create(
+                            resp.statusCode().value(), it, null, null, null
+                        )
+                    }
+                }
+                .bodyToMono(Map::class.java)
+                .block()
 
-        @Suppress("UNCHECKED_CAST")
-        val messages = response?.get("messages") as? List<Map<String, Any>>
-        return messages?.firstOrNull()?.get("id") as? String
+            @Suppress("UNCHECKED_CAST")
+            val messages = response?.get("messages") as? List<Map<String, Any>>
+            messages?.firstOrNull()?.get("id") as? String
+        } catch (e: WebClientResponseException) {
+            // Log e tratamento de erro da Meta (rate limit, token inválido, etc.)
+            null
+        }
     }
 }

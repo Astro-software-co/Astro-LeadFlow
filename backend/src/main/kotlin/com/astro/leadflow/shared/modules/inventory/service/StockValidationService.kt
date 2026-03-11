@@ -1,4 +1,4 @@
-package com.astro.leadflow.modules.inventory.service
+package com.astro.leadflow.shared.modules.inventory.service
 
 import com.astro.leadflow.shared.modules.inventory.domain.VehicleRepository
 import com.astro.leadflow.shared.modules.inventory.domain.VehicleStatus
@@ -11,10 +11,6 @@ import java.util.UUID
 class StockValidationService(
     private val vehicleRepository: VehicleRepository
 ) {
-    /**
-     * Valida se um veículo pode ser reservado ou vendido.
-     * Chamado por outros módulos antes de vincular veículo a um lead/deal.
-     */
     fun assertVehicleAvailable(vehicleId: UUID, organizationId: UUID) {
         val vehicle = vehicleRepository.findByOrganizationIdAndId(organizationId, vehicleId)
             .orElseThrow { ResourceNotFoundException("Vehicle", vehicleId) }

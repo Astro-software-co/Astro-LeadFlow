@@ -1,7 +1,5 @@
 package com.astro.leadflow.shared.modules.inventory.domain
 
-import com.astro.leadflow.modules.inventory.domain.Vehicle
-import com.astro.leadflow.modules.inventory.domain.VehiclePhoto
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
@@ -19,7 +17,6 @@ interface VehicleRepository : JpaRepository<Vehicle, UUID> {
         status: VehicleStatus
     ): List<Vehicle>
 
-    // Busca por marca ou modelo (usado na tela de estoque)
     @Query("""
         SELECT v FROM Vehicle v
         WHERE v.organization.id = :orgId
@@ -31,7 +28,6 @@ interface VehicleRepository : JpaRepository<Vehicle, UUID> {
         @Param("term") term: String
     ): List<Vehicle>
 
-    // Contagem por status para rodapé da tela de estoque
     @Query("""
         SELECT v.status, COUNT(v)
         FROM Vehicle v
@@ -40,8 +36,6 @@ interface VehicleRepository : JpaRepository<Vehicle, UUID> {
     """)
     fun countByStatus(@Param("orgId") orgId: UUID): List<Array<Any>>
 
-
-// Distribuição de vendidos vs em estoque por categoria
     @Query("""
         SELECT v.category,
             SUM(CASE WHEN v.status = 'SOLD' THEN 1 ELSE 0 END),
@@ -50,12 +44,5 @@ interface VehicleRepository : JpaRepository<Vehicle, UUID> {
         WHERE v.organization.id = :orgId
         GROUP BY v.category
     """)
-    
     fun countSoldAndStockByCategory(@Param("orgId") orgId: UUID): List<Array<Any>>
-
-    interface VehiclePhotoRepository : JpaRepository<VehiclePhoto, UUID> {
-        fun findAllByVehicleIdOrderByPositionAsc(vehicleId: UUID): List<VehiclePhoto>
-        fun deleteAllByVehicleId(vehicleId: UUID)
-    }
-
 }

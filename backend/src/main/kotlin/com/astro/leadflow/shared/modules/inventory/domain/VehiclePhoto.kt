@@ -1,4 +1,4 @@
-package com.astro.leadflow.modules.inventory.domain
+package com.astro.leadflow.shared.modules.inventory.domain
 
 import jakarta.persistence.*
 import java.time.LocalDateTime

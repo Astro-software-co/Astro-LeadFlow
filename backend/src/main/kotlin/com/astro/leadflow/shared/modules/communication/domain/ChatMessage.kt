@@ -1,7 +1,7 @@
-package com.astro.leadflow.modules.communication.domain
+package com.astro.leadflow.shared.modules.communication.domain
 
-import com.astro.leadflow.shared.modules.crm.domain.Lead
 import com.astro.leadflow.modules.iam.domain.Organization
+import com.astro.leadflow.shared.modules.crm.domain.Lead
 import jakarta.persistence.*
 import java.time.LocalDateTime
 import java.util.UUID
@@ -33,7 +33,6 @@ class ChatMessage(
     @Column(name = "message_type", nullable = false)
     val messageType: MessageType = MessageType.TEXT,
 
-    // ID retornado pela API da Meta após envio
     @Column(name = "wa_message_id")
     var waMessageId: String? = null,
 
@@ -46,7 +45,5 @@ class ChatMessage(
 )
 
 enum class MessageDirection { INBOUND, OUTBOUND }
-
 enum class MessageType { TEXT, IMAGE, DOCUMENT, TEMPLATE }
-
 enum class MessageStatus { SENT, DELIVERED, READ, FAILED }

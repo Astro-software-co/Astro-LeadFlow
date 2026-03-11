@@ -1,16 +1,13 @@
-package com.astro.leadflow.modules.ingestion.api
+package com.astro.leadflow.shared.modules.ingestion.api
 
-import com.astro.leadflow.modules.ingestion.api.requests.ScrapedLeadDTO
-import com.astro.leadflow.modules.ingestion.service.LeadIngestionService
+import com.astro.leadflow.shared.modules.ingestion.api.requests.ScrapedLeadDTO
+import com.astro.leadflow.shared.modules.ingestion.service.LeadIngestionService
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.ResponseStatus
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/v1/webhooks/scraper")
@@ -19,13 +16,13 @@ class ScraperWebhookController(
     private val leadIngestionService: LeadIngestionService
 ) {
 
-    /**
-     * Endpoint chamado pelas Lambdas de scraping.
-     * Público mas protegido por API Key no API Gateway (AWS).
-     */
     @PostMapping
     @ResponseStatus(HttpStatus.ACCEPTED)
-    @Operation(summary = "Recebe lead capturado por scraper externo")
+    @Operation(
+        summary = "Recebe lead capturado por scraper externo",
+        description = "Público mas protegido por API Key no API Gateway (AWS)"
+    )
+    @ApiResponse(responseCode = "202", description = "Lead aceito para processamento")
     fun receive(@Valid @RequestBody dto: ScrapedLeadDTO) {
         leadIngestionService.ingestFromWebhook(dto)
     }

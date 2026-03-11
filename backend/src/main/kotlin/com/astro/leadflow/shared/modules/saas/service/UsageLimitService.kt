@@ -1,7 +1,11 @@
-package com.astro.leadflow.modules.saas.service
+package com.astro.leadflow.shared.modules.saas.service
 
-import com.astro.leadflow.modules.saas.domain.*
-import com.astro.leadflow.shared.exception.BusinessException
+import com.astro.leadflow.shared.modules.saas.api.responses.MarketplaceUsageDetail
+import com.astro.leadflow.shared.modules.saas.api.responses.UsageSummaryResponse
+import com.astro.leadflow.shared.modules.saas.domain.MarketplaceConfigRepository
+import com.astro.leadflow.shared.modules.saas.domain.SubscriptionRepository
+import com.astro.leadflow.shared.modules.saas.domain.UsageLog
+import com.astro.leadflow.shared.modules.saas.domain.UsageLogRepository
 import com.astro.leadflow.shared.exception.ResourceNotFoundException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -15,10 +19,6 @@ class UsageLimitService(
     private val usageLogRepository: UsageLogRepository
 ) {
 
-    /**
-     * Verifica se a organização pode enviar mais mensagens.
-     * Checa tanto o limite global da org quanto o limite do marketplace.
-     */
     @Transactional(readOnly = true)
     fun canSendMessage(organizationId: UUID, marketplaceName: String? = null): Boolean {
         val now = LocalDate.now()
@@ -27,15 +27,11 @@ class UsageLimitService(
 
         if (!subscription.isActive()) return false
 
-        val globalLimit = subscription.plan.messageLimit
         val globalUsed = usageLogRepository.sumMessagesByOrganizationAndPeriod(
             organizationId, now.monthValue, now.year
         )
+        if (globalUsed >= subscription.plan.messageLimit) return false
 
-        // Verifica limite global da organização
-        if (globalUsed >= globalLimit) return false
-
-        // Verifica limite específico do marketplace
         if (marketplaceName != null) {
             val config = marketplaceConfigRepository
                 .findByOrganizationIdAndMarketplaceName(organizationId, marketplaceName)
@@ -56,10 +52,6 @@ class UsageLimitService(
         return true
     }
 
-    /**
-     * Incrementa contadores de uso após envio bem-sucedido.
-     * Cria registro do mês se não existir ainda.
-     */
     @Transactional
     fun incrementUsage(organizationId: UUID, marketplaceName: String? = null) {
         val now = LocalDate.now()
@@ -67,18 +59,12 @@ class UsageLimitService(
             .orElseThrow { ResourceNotFoundException("Subscription", organizationId) }
             .organization
 
-        // Incrementa log global da organização
         incrementOrCreate(organizationId, null, now.monthValue, now.year, organization)
-
-        // Incrementa log do marketplace específico
         if (marketplaceName != null) {
             incrementOrCreate(organizationId, marketplaceName, now.monthValue, now.year, organization)
         }
     }
 
-    /**
-     * Retorna resumo de uso do mês atual para exibir no painel Marketing.
-     */
     @Transactional(readOnly = true)
     fun getUsageSummary(organizationId: UUID): UsageSummaryResponse {
         val now = LocalDate.now()
@@ -123,12 +109,10 @@ class UsageLimitService(
         marketplaceName: String?,
         month: Int,
         year: Int,
-        organization: com.astro.leadflow.modules.iam.domain.Organization
+        organization: com.astro.leadflow.shared.modules.iam.domain.Organization
     ) {
         val updated = usageLogRepository.incrementCount(organizationId, marketplaceName, month, year)
-
         if (updated == 0) {
-            // Registro ainda não existe para este mês — cria
             usageLogRepository.save(
                 UsageLog(
                     organization = organization,
@@ -141,22 +125,3 @@ class UsageLimitService(
         }
     }
 }
-
-// ─── Response DTOs (internos ao módulo saas) ───────────────
-
-data class UsageSummaryResponse(
-    val planName: String,
-    val globalLimit: Long,
-    val globalUsed: Long,
-    val globalRemaining: Long,
-    val renewsAt: java.time.LocalDate?,
-    val marketplaces: List<MarketplaceUsageDetail>
-)
-
-data class MarketplaceUsageDetail(
-    val marketplaceName: String,
-    val enabled: Boolean,
-    val used: Long,
-    val limit: Long,
-    val remaining: Long
-)

@@ -1,8 +1,7 @@
 package com.astro.leadflow.shared.modules.inventory.api.requests
 
 import com.astro.leadflow.modules.inventory.domain.VehicleCategory
-import com.astro.leadflow.shared.modules.inventory.domain.VehicleStatus
-import jakarta.validation.constraints.NotNull
+import com.astro.leadflow.shared.modules.crm.service.VehicleStatus
 import java.math.BigDecimal
 
 data class VehicleUpdateRequest(

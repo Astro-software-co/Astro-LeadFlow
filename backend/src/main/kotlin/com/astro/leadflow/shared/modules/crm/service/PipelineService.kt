@@ -1,85 +1,94 @@
 package com.astro.leadflow.shared.modules.crm.service
 
-import KanbanBoardResponse
-import com.astro.leadflow.shared.modules.crm.api.responses.LeadResponse
-import com.astro.leadflow.shared.modules.crm.api.responses.StageHistoryResponse
-import com.astro.leadflow.modules.crm.mapper.LeadMapper
-import com.astro.leadflow.shared.exception.InvalidOperationException
-import com.astro.leadflow.shared.modules.crm.domain.LeadRepository
-import com.astro.leadflow.shared.modules.crm.domain.LeadStageHistory
-import com.astro.leadflow.shared.modules.crm.domain.LeadStageHistoryRepository
-import com.astro.leadflow.shared.modules.crm.domain.PipelineStage
-import com.astro.leadflow.shared.util.SecurityUtils
-import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
+import com.astro.leadflow.modules.iam.domain.Organization
+import com.astro.leadflow.shared.modules.inventory.domain.VehiclePhoto
+import jakarta.persistence.*
+import java.math.BigDecimal
+import java.time.LocalDateTime
 import java.util.UUID
 
-@Service
-class PipelineService(
-    private val leadRepository: LeadRepository,
-    private val historyRepository: LeadStageHistoryRepository,
-    private val leadService: LeadService,
-    private val leadMapper: LeadMapper
+@Entity
+@Table(name = "vehicles")
+class Vehicle(
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    val id: UUID = UUID.randomUUID(),
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "organization_id", nullable = false)
+    val organization: Organization,
+
+    @Column(nullable = false)
+    var brand: String,
+
+    @Column(nullable = false)
+    var model: String,
+
+    @Column(nullable = false)
+    var year: Int,
+
+    @Column
+    var color: String? = null,
+
+    @Column(name = "license_plate")
+    var licensePlate: String? = null,
+
+    @Column(name = "sale_price", nullable = false)
+    var salePrice: BigDecimal,
+
+    @Column(name = "cost_price")
+    var costPrice: BigDecimal? = null,
+
+    @Column(name = "mileage_km")
+    var mileageKm: Int? = null,
+
+    @Column(name = "ipva_paid", nullable = false)
+    var ipvaPaid: Boolean = false,
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    var category: VehicleCategory,
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    var status: VehicleStatus = VehicleStatus.AVAILABLE,
+
+    @OneToMany(
+        mappedBy = "vehicle",
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true,
+        fetch = FetchType.LAZY
+    )
+    @OrderBy("position ASC")
+    var photos: MutableList<VehiclePhoto> = mutableListOf(),
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    val createdAt: LocalDateTime = LocalDateTime.now(),
+
+    @Column(name = "updated_at")
+    var updatedAt: LocalDateTime = LocalDateTime.now()
 ) {
+    @PreUpdate
+    fun onUpdate() { updatedAt = LocalDateTime.now() }
 
-    @Transactional(readOnly = true)
-    fun getBoard(): KanbanBoardResponse {
-        val orgId = SecurityUtils.getCurrentOrganizationId()
-        val leads = leadRepository.findBoardByOrganization(orgId)
-        val grouped = PipelineStage.entries
-            .filter { it != PipelineStage.ARCHIVED }
-            .associateWith { stage ->
-                leads.filter { it.pipelineStage == stage }
-                    .map { leadMapper.toResponse(it) }
-            }
-        return KanbanBoardResponse(stages = grouped)
+    fun isAvailable(): Boolean = status == VehicleStatus.AVAILABLE
+
+    fun belongsToOrganization(organizationId: UUID): Boolean =
+        organization.id == organizationId
+
+    fun addPhoto(s3Url: String, position: Int = photos.size) {
+        photos.add(VehiclePhoto(vehicle = this, s3Url = s3Url, position = position))
     }
+}
 
-    @Transactional
-    fun moveLead(leadId: UUID, targetStage: PipelineStage): LeadResponse {
-        val orgId = SecurityUtils.getCurrentOrganizationId()
-        val currentUser = SecurityUtils.getCurrentUser()
-        val lead = leadService.findLeadInOrg(leadId, orgId)
+enum class VehicleStatus { AVAILABLE, RESERVED, SOLD }
 
-        if (lead.pipelineStage == PipelineStage.ARCHIVED)
-            throw InvalidOperationException("Leads arquivados não podem ser movidos.")
-
-        if (lead.pipelineStage == targetStage)
-            throw InvalidOperationException(
-                "Lead já está no estágio '${targetStage.displayName}'."
-            )
-
-        val fromStage = lead.pipelineStage
-        lead.pipelineStage = targetStage
-        leadRepository.save(lead)
-
-        historyRepository.save(
-            LeadStageHistory(
-                lead = lead,
-                movedBy = currentUser,
-                fromStage = fromStage,
-                toStage = targetStage
-            )
-        )
-        return leadMapper.toResponse(lead)
-    }
-
-    @Transactional
-    fun advanceLead(leadId: UUID): LeadResponse {
-        val orgId = SecurityUtils.getCurrentOrganizationId()
-        val lead = leadService.findLeadInOrg(leadId, orgId)
-        val nextStage = lead.pipelineStage.next()
-            ?: throw InvalidOperationException(
-                "Lead já está no estágio final '${lead.pipelineStage.displayName}'."
-            )
-        return moveLead(leadId, nextStage)
-    }
-
-    @Transactional(readOnly = true)
-    fun getLeadHistory(leadId: UUID): List<StageHistoryResponse> {
-        val orgId = SecurityUtils.getCurrentOrganizationId()
-        leadService.findLeadInOrg(leadId, orgId)
-        return historyRepository.findAllByLeadIdOrderByMovedAtDesc(leadId)
-            .map { leadMapper.toHistory(it) }
-    }
+enum class VehicleCategory(val displayName: String) {
+    HATCH("Hatch"),
+    SEDAN("Sedan"),
+    SUV("SUV"),
+    PICKUP("Pickup"),
+    MINIVAN("Minivan"),
+    CONVERTIBLE("Conversível"),
+    COUPE("Cupê")
 }

@@ -1,9 +1,11 @@
-package com.astro.leadflow.modules.inventory.domain
+package com.astro.leadflow.shared.modules.inventory.domain
 
 enum class VehicleCategory(val displayName: String) {
-    SUV("SUV"),
-    SEDAN("Sedan"),
     HATCH("Hatch"),
+    SEDAN("Sedan"),
+    SUV("SUV"),
     PICKUP("Pickup"),
-    OTHERS("Outros")
+    MINIVAN("Minivan"),
+    CONVERTIBLE("Conversível"),
+    COUPE("Cupê")
 }

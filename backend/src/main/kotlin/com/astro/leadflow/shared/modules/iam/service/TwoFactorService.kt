@@ -1,7 +1,7 @@
 package com.astro.leadflow.shared.modules.iam.service
 
-import com.astro.leadflow.modules.iam.domain.User
-import com.astro.leadflow.modules.iam.domain.UserRepository
+import com.astro.leadflow.shared.modules.iam.domain.User
+import com.astro.leadflow.shared.modules.iam.domain.UserRepository
 import org.springframework.mail.SimpleMailMessage
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.stereotype.Service

@@ -1,9 +1,14 @@
-package com.astro.leadflow.modules.iam.api
+package com.astro.leadflow.shared.modules.iam.api
 
-import com.astro.leadflow.modules.iam.api.requests.*
-import com.astro.leadflow.modules.iam.api.responses.UserResponse
-import com.astro.leadflow.modules.iam.api.responses.UserSummaryResponse
-import com.astro.leadflow.modules.iam.service.UserService
+import com.astro.leadflow.shared.modules.iam.api.requests.ChangePasswordRequest
+import com.astro.leadflow.shared.modules.iam.api.requests.CreateUserRequest
+import com.astro.leadflow.shared.modules.iam.api.requests.UpdateNotificationsRequest
+import com.astro.leadflow.shared.modules.iam.api.requests.UpdateTwoFactorRequest
+import com.astro.leadflow.shared.modules.iam.api.requests.UpdateUserRequest
+import com.astro.leadflow.shared.modules.iam.api.requests.UpdateUserRoleRequest
+import com.astro.leadflow.shared.modules.iam.api.responses.UserResponse
+import com.astro.leadflow.shared.modules.iam.api.responses.UserSummaryResponse
+import com.astro.leadflow.shared.modules.iam.service.UserService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
@@ -21,8 +26,6 @@ import java.util.UUID
 @RequestMapping("/api/v1/users")
 @Tag(name = "IAM — Usuários", description = "Gestão de usuários e preferências")
 class UserController(private val userService: UserService) {
-
-    // ── Perfil do usuário logado ─────────────────────────────
 
     @GetMapping("/me")
     @Operation(summary = "Retorna dados do usuário logado")
@@ -53,17 +56,17 @@ class UserController(private val userService: UserService) {
 
     @PatchMapping("/me/notifications")
     @Operation(summary = "Atualiza preferências de notificação")
+    @ApiResponse(responseCode = "200", description = "Preferências atualizadas com sucesso")
     fun updateNotifications(
         @Valid @RequestBody request: UpdateNotificationsRequest
     ): UserResponse = userService.updateNotifications(request)
 
     @PatchMapping("/me/two-factor")
     @Operation(summary = "Ativa ou desativa autenticação em dois fatores")
+    @ApiResponse(responseCode = "200", description = "2FA atualizado com sucesso")
     fun updateTwoFactor(
         @Valid @RequestBody request: UpdateTwoFactorRequest
     ): UserResponse = userService.updateTwoFactor(request)
-
-    // ── Gestão de usuários da organização ───────────────────
 
     @GetMapping
     @Operation(summary = "Lista usuários da organização")
@@ -111,13 +114,20 @@ class UserController(private val userService: UserService) {
 
     @PatchMapping("/{id}/suspend")
     @Operation(summary = "Suspende acesso de um usuário")
-    @ApiResponse(responseCode = "422", description = "Usuário já suspenso")
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "Usuário suspenso com sucesso"),
+        ApiResponse(responseCode = "422", description = "Usuário já suspenso")
+    )
     @PreAuthorize("hasRole('ADMIN')")
     fun suspend(@PathVariable id: UUID): UserResponse =
         userService.suspendUser(id)
 
     @PatchMapping("/{id}/reactivate")
     @Operation(summary = "Reativa usuário suspenso")
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "Usuário reativado com sucesso"),
+        ApiResponse(responseCode = "422", description = "Usuário já está ativo")
+    )
     @PreAuthorize("hasRole('ADMIN')")
     fun reactivate(@PathVariable id: UUID): UserResponse =
         userService.reactivateUser(id)

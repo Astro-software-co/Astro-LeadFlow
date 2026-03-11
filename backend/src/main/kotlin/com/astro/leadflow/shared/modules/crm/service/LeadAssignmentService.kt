@@ -1,11 +1,11 @@
 package com.astro.leadflow.shared.modules.crm.service
 
+import com.astro.leadflow.modules.iam.domain.Role
 import com.astro.leadflow.shared.modules.crm.api.responses.LeadResponse
 import com.astro.leadflow.shared.modules.crm.domain.LeadRepository
 import com.astro.leadflow.shared.modules.crm.domain.PipelineStage
-import com.astro.leadflow.modules.crm.mapper.LeadMapper
-import com.astro.leadflow.modules.iam.domain.Role
-import com.astro.leadflow.modules.iam.domain.UserRepository
+import com.astro.leadflow.shared.modules.crm.mapper.LeadMapper
+import com.astro.leadflow.shared.modules.iam.domain.UserRepository
 import com.astro.leadflow.shared.exception.BusinessException
 import com.astro.leadflow.shared.exception.ResourceNotFoundException
 import com.astro.leadflow.shared.util.SecurityUtils
@@ -22,34 +22,24 @@ class LeadAssignmentService(
     private val leadMapper: LeadMapper
 ) {
 
-    /**
-     * Vendedor assume o lead para si mesmo.
-     * Move automaticamente para WAITING_ATTENDANCE se ainda estiver em TALKING_TO_BOT.
-     */
     @Transactional
     fun assumeLead(leadId: UUID): LeadResponse {
         val currentUser = SecurityUtils.getCurrentUser()
         val orgId = SecurityUtils.getCurrentOrganizationId()
         val lead = leadService.findLeadInOrg(leadId, orgId)
 
-        if (lead.assignedTo != null && lead.assignedTo!!.id == currentUser.id) {
+        if (lead.assignedTo != null && lead.assignedTo!!.id == currentUser.id)
             throw BusinessException("Você já é o responsável por este lead.")
-        }
 
         lead.assignedTo = currentUser
         leadRepository.save(lead)
 
-        // Avança automaticamente se ainda estiver no bot
-        if (lead.pipelineStage == PipelineStage.TALKING_TO_BOT) {
+        if (lead.pipelineStage == PipelineStage.TALKING_TO_BOT)
             return pipelineService.moveLead(leadId, PipelineStage.WAITING_ATTENDANCE)
-        }
 
         return leadMapper.toResponse(lead)
     }
 
-    /**
-     * Admin/Manager atribui lead a um vendedor específico.
-     */
     @Transactional
     fun assignTo(leadId: UUID, sellerId: UUID): LeadResponse {
         val orgId = SecurityUtils.getCurrentOrganizationId()
@@ -58,13 +48,11 @@ class LeadAssignmentService(
         val seller = userRepository.findById(sellerId)
             .orElseThrow { ResourceNotFoundException("Seller", sellerId) }
 
-        if (!seller.belongsToOrganization(orgId)) {
+        if (!seller.belongsToOrganization(orgId))
             throw BusinessException("Vendedor não pertence a esta organização.")
-        }
 
-        if (seller.role !in listOf(Role.SELLER, Role.MANAGER)) {
+        if (seller.role !in listOf(Role.SELLER, Role.MANAGER))
             throw BusinessException("Usuário não pode receber leads.")
-        }
 
         lead.assignedTo = seller
         leadRepository.save(lead)

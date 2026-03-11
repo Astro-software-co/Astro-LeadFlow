@@ -1,11 +1,25 @@
-package com.astro.leadflow.modules.iam.service
+package com.astro.leadflow.shared.modules.iam.service
 
-import com.astro.leadflow.modules.iam.api.requests.*
-import com.astro.leadflow.modules.iam.api.responses.UserResponse
-import com.astro.leadflow.modules.iam.api.responses.UserSummaryResponse
-import com.astro.leadflow.modules.iam.domain.*
-import com.astro.leadflow.modules.iam.mapper.UserMapper
-import com.astro.leadflow.shared.exception.*
+import com.astro.leadflow.shared.modules.iam.api.requests.ChangePasswordRequest
+import com.astro.leadflow.shared.modules.iam.api.requests.CreateUserRequest
+import com.astro.leadflow.shared.modules.iam.api.requests.UpdateNotificationsRequest
+import com.astro.leadflow.shared.modules.iam.api.requests.UpdateTwoFactorRequest
+import com.astro.leadflow.shared.modules.iam.api.requests.UpdateUserRequest
+import com.astro.leadflow.shared.modules.iam.api.requests.UpdateUserRoleRequest
+import com.astro.leadflow.shared.modules.iam.api.responses.UserResponse
+import com.astro.leadflow.shared.modules.iam.api.responses.UserSummaryResponse
+import com.astro.leadflow.shared.modules.iam.domain.OrganizationRepository
+import com.astro.leadflow.shared.modules.iam.domain.Role
+import com.astro.leadflow.shared.modules.iam.domain.User
+import com.astro.leadflow.shared.modules.iam.domain.UserRepository
+import com.astro.leadflow.shared.modules.iam.domain.UserStatus
+import com.astro.leadflow.shared.modules.iam.mapper.UserMapper
+import com.astro.leadflow.shared.exception.AccessDeniedException
+import com.astro.leadflow.shared.exception.BusinessException
+import com.astro.leadflow.shared.exception.DuplicateResourceException
+import com.astro.leadflow.shared.exception.InvalidOperationException
+import com.astro.leadflow.shared.exception.ResourceNotFoundException
+import com.astro.leadflow.shared.util.SecurityUtils
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -154,6 +168,3 @@ class UserService(
         return user
     }
 }
-
-// Import necessário
-private val SecurityUtils = com.astro.leadflow.shared.util.SecurityUtils

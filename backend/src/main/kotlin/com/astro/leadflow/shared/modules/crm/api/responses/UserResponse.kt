@@ -1,7 +1,7 @@
-package com.astro.leadflow.modules.iam.api.responses
+package com.astro.leadflow.shared.modules.iam.api.responses
 
-import com.astro.leadflow.modules.iam.domain.Role
-import com.astro.leadflow.modules.iam.domain.UserStatus
+import com.astro.leadflow.shared.modules.iam.domain.Role
+import com.astro.leadflow.shared.modules.iam.domain.UserStatus
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -24,12 +24,4 @@ data class UserResponse(
     val notifyViaEmail: Boolean,
     val notifyViaPush: Boolean,
     val createdAt: LocalDateTime
-)
-
-data class UserSummaryResponse(
-    val id: UUID,
-    val name: String,
-    val email: String,
-    val avatarUrl: String?,
-    val role: Role
 )

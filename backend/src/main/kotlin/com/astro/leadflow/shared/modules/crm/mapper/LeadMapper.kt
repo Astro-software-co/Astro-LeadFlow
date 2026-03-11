@@ -1,4 +1,4 @@
-package com.astro.leadflow.modules.crm.mapper
+package com.astro.leadflow.shared.modules.crm.mapper
 
 import com.astro.leadflow.shared.modules.crm.domain.Lead
 import com.astro.leadflow.shared.modules.crm.domain.LeadStageHistory

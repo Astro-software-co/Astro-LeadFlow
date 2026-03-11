@@ -1,6 +1,6 @@
-package com.astro.leadflow.modules.saas.domain
+package com.astro.leadflow.shared.modules.saas.domain
 
-import com.astro.leadflow.modules.iam.domain.Organization
+import com.astro.leadflow.shared.modules.iam.domain.Organization
 import jakarta.persistence.*
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -39,11 +39,4 @@ class Subscription(
     fun onUpdate() { updatedAt = LocalDateTime.now() }
 
     fun isActive(): Boolean = status == SubscriptionStatus.ACTIVE
-}
-
-enum class SubscriptionStatus {
-    ACTIVE,
-    SUSPENDED,
-    CANCELLED,
-    PAST_DUE
 }

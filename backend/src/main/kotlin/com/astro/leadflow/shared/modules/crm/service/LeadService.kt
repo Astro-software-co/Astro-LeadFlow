@@ -3,13 +3,14 @@ package com.astro.leadflow.shared.modules.crm.service
 import com.astro.leadflow.modules.crm.api.requests.LeadCreateRequest
 import com.astro.leadflow.modules.crm.api.requests.LeadUpdateRequest
 import com.astro.leadflow.shared.modules.crm.api.responses.LeadResponse
-import com.astro.leadflow.modules.crm.mapper.LeadMapper
-import com.astro.leadflow.modules.iam.domain.OrganizationRepository
-import com.astro.leadflow.shared.modules.inventory.domain.VehicleRepository
-import com.astro.leadflow.shared.exception.*
 import com.astro.leadflow.shared.modules.crm.domain.Lead
 import com.astro.leadflow.shared.modules.crm.domain.LeadRepository
 import com.astro.leadflow.shared.modules.crm.domain.PipelineStage
+import com.astro.leadflow.shared.modules.crm.mapper.LeadMapper
+import com.astro.leadflow.shared.modules.iam.domain.OrganizationRepository
+import com.astro.leadflow.shared.modules.inventory.domain.VehicleRepository
+import com.astro.leadflow.shared.exception.InvalidOperationException
+import com.astro.leadflow.shared.exception.ResourceNotFoundException
 import com.astro.leadflow.shared.util.SecurityUtils
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -51,7 +52,7 @@ class LeadService(
                 purchaseForecast = request.purchaseForecast,
                 interestType = request.interestType,
                 notes = request.notes,
-                vehicle = vehicle,
+                vehicle = vehicle as Vehicle?,
                 isDuplicate = isDuplicate
             )
         )
@@ -73,7 +74,7 @@ class LeadService(
         request.notes?.let { lead.notes = it }
         request.vehicleId?.let { vehicleId ->
             lead.vehicle = vehicleRepository.findByOrganizationIdAndId(orgId, vehicleId)
-                .orElseThrow { ResourceNotFoundException("Vehicle", vehicleId) }
+                .orElseThrow { ResourceNotFoundException("Vehicle", vehicleId) } as Vehicle?
         }
 
         return leadMapper.toResponse(leadRepository.save(lead))

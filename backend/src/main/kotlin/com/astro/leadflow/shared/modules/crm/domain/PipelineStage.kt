@@ -1,13 +1,19 @@
 package com.astro.leadflow.shared.modules.crm.domain
 
-enum class PipelineStage(val displayName: String, val order: Int) {
-    TALKING_TO_BOT("Falando com Chatbot", 1),
-    WAITING_ATTENDANCE("Aguardando atendimento", 2),
-    WAITING_DOCUMENTS("Aguardando documentação", 3),
-    IN_NEGOTIATION("Em negociação", 4),
-    COMPLETED("Concluído", 5),
-    ARCHIVED("Arquivado", 6);
+enum class PipelineStage(val displayName: String) {
+    TALKING_TO_BOT("Conversando com Bot"),
+    WAITING_ATTENDANCE("Aguardando Atendimento"),
+    IN_ATTENDANCE("Em Atendimento"),
+    IN_NEGOTIATION("Em Negociação"),
+    COMPLETED("Concluído"),
+    ARCHIVED("Arquivado");
 
-    fun next(): PipelineStage? =
-        entries.firstOrNull { it.order == this.order + 1 && it != ARCHIVED }
+    fun next(): PipelineStage? = when (this) {
+        TALKING_TO_BOT      -> WAITING_ATTENDANCE
+        WAITING_ATTENDANCE  -> IN_ATTENDANCE
+        IN_ATTENDANCE       -> IN_NEGOTIATION
+        IN_NEGOTIATION      -> COMPLETED
+        COMPLETED           -> null
+        ARCHIVED            -> null
+    }
 }

@@ -1,10 +1,18 @@
-package com.astro.leadflow.modules.iam.service
+package com.astro.leadflow.shared.modules.iam.service
 
-import com.astro.leadflow.modules.iam.api.requests.*
-import com.astro.leadflow.modules.iam.api.responses.TokenResponse
-import com.astro.leadflow.modules.iam.domain.*
-import com.astro.leadflow.shared.exception.*
-import com.astro.leadflow.shared.modules.iam.service.TwoFactorService
+import com.astro.leadflow.shared.modules.iam.api.requests.LoginRequest
+import com.astro.leadflow.shared.modules.iam.api.requests.RegisterOrganizationRequest
+import com.astro.leadflow.shared.modules.iam.api.requests.Verify2FARequest
+import com.astro.leadflow.shared.modules.iam.api.responses.TokenResponse
+import com.astro.leadflow.shared.modules.iam.domain.Organization
+import com.astro.leadflow.shared.modules.iam.domain.OrganizationRepository
+import com.astro.leadflow.shared.modules.iam.domain.Role
+import com.astro.leadflow.shared.modules.iam.domain.User
+import com.astro.leadflow.shared.modules.iam.domain.UserRepository
+import com.astro.leadflow.shared.modules.iam.domain.UserStatus
+import com.astro.leadflow.shared.exception.BusinessException
+import com.astro.leadflow.shared.exception.DuplicateResourceException
+import com.astro.leadflow.shared.exception.ResourceNotFoundException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

@@ -1,5 +1,4 @@
 package com.astro.leadflow.shared.modules.crm.domain
-
 import com.astro.leadflow.modules.iam.domain.User
 import jakarta.persistence.*
 import java.time.LocalDateTime

@@ -1,8 +1,8 @@
 package com.astro.leadflow.shared.modules.inventory.mapper
 
-import com.astro.leadflow.modules.inventory.domain.Vehicle
 import com.astro.leadflow.shared.modules.inventory.api.responses.VehicleResponse
 import com.astro.leadflow.shared.modules.inventory.api.responses.VehicleStockSummary
+import com.astro.leadflow.shared.modules.inventory.domain.Vehicle
 import com.astro.leadflow.shared.modules.inventory.domain.VehicleStatus
 import org.springframework.stereotype.Component
 
@@ -30,10 +30,11 @@ class VehicleMapper {
         updatedAt = vehicle.updatedAt
     )
 
-    fun toStockSummary(counts: Map<VehicleStatus, Long>): VehicleStockSummary = VehicleStockSummary(
-        available = counts[VehicleStatus.AVAILABLE] ?: 0L,
-        reserved = counts[VehicleStatus.RESERVED] ?: 0L,
-        maintenance = counts[VehicleStatus.MAINTENANCE] ?: 0L,
-        sold = counts[VehicleStatus.SOLD] ?: 0L
-    )
+    fun toStockSummary(counts: Map<VehicleStatus, Long>): VehicleStockSummary =
+        VehicleStockSummary(
+            available = counts[VehicleStatus.AVAILABLE] ?: 0L,
+            reserved = counts[VehicleStatus.RESERVED] ?: 0L,
+            maintenance = counts[VehicleStatus.MAINTENANCE] ?: 0L,
+            sold = counts[VehicleStatus.SOLD] ?: 0L
+        )
 }

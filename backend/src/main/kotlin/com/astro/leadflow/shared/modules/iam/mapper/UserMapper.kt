@@ -1,8 +1,8 @@
-package com.astro.leadflow.modules.iam.mapper
+package com.astro.leadflow.shared.modules.iam.mapper
 
-import com.astro.leadflow.modules.iam.api.responses.UserResponse
-import com.astro.leadflow.modules.iam.api.responses.UserSummaryResponse
-import com.astro.leadflow.modules.iam.domain.User
+import com.astro.leadflow.shared.modules.iam.api.responses.UserResponse
+import com.astro.leadflow.shared.modules.iam.api.responses.UserSummaryResponse
+import com.astro.leadflow.shared.modules.iam.domain.User
 import org.springframework.stereotype.Component
 
 @Component

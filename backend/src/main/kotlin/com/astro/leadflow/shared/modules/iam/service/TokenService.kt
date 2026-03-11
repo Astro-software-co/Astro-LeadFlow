@@ -1,6 +1,6 @@
-package com.astro.leadflow.modules.iam.service
+package com.astro.leadflow.shared.modules.iam.service
 
-import com.astro.leadflow.modules.iam.domain.User
+import com.astro.leadflow.shared.modules.iam.domain.User
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
@@ -11,15 +11,22 @@ import java.util.UUID
 
 @Service
 class TokenService(
-    @Value("\${jwt.secret:change-this-dev-jwt-secret-with-at-least-32-bytes}")
+    @Value("\${jwt.secret:local_dev_secret_key_must_be_at_least_32_chars_long}")
     private val secret: String,
-    @Value("\${jwt.expiration-ms:3600000}") private val expirationMs: Long,
-    @Value("\${jwt.refresh-expiration-ms:604800000}") private val refreshExpirationMs: Long
+
+    @Value("\${jwt.expiration:3600000}")
+    private val expirationMs: Long,
+
+    @Value("\${jwt.refresh-expiration:604800000}")
+    private val refreshExpirationMs: Long
 ) {
     private val signingKey by lazy { Keys.hmacShaKeyFor(secret.toByteArray()) }
 
-    fun generateAccessToken(user: User): String = buildToken(user, expirationMs)
-    fun generateRefreshToken(user: User): String = buildToken(user, refreshExpirationMs, isRefresh = true)
+    fun generateAccessToken(user: User): String =
+        buildToken(user, expirationMs, isRefresh = false)
+
+    fun generateRefreshToken(user: User): String =
+        buildToken(user, refreshExpirationMs, isRefresh = true)
 
     private fun buildToken(user: User, expiration: Long, isRefresh: Boolean = false): String {
         val now = Date()
@@ -39,7 +46,9 @@ class TokenService(
         UUID.fromString(extractAllClaims(token).subject)
 
     fun extractOrganizationId(token: String): UUID? =
-        extractAllClaims(token)["organizationId"]?.toString()?.let { UUID.fromString(it) }
+        extractAllClaims(token)["organizationId"]
+            ?.toString()
+            ?.let { UUID.fromString(it) }
 
     fun isTokenValid(token: String): Boolean = runCatching {
         extractAllClaims(token).expiration.after(Date())
@@ -49,5 +58,9 @@ class TokenService(
         extractAllClaims(token)["refresh"] as? Boolean ?: false
 
     private fun extractAllClaims(token: String): Claims =
-        Jwts.parser().verifyWith(signingKey).build().parseSignedClaims(token).payload
+        Jwts.parser()
+            .verifyWith(signingKey)
+            .build()
+            .parseSignedClaims(token)
+            .payload
 }

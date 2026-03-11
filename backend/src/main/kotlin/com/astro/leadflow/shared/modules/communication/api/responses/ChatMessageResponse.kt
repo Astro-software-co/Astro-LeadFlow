@@ -1,8 +1,8 @@
-package com.astro.leadflow.modules.communication.api.responses
+package com.astro.leadflow.shared.modules.communication.api.responses
 
-import com.astro.leadflow.modules.communication.domain.MessageDirection
-import com.astro.leadflow.modules.communication.domain.MessageStatus
-import com.astro.leadflow.modules.communication.domain.MessageType
+import com.astro.leadflow.shared.modules.communication.domain.MessageDirection
+import com.astro.leadflow.shared.modules.communication.domain.MessageStatus
+import com.astro.leadflow.shared.modules.communication.domain.MessageType
 import java.time.LocalDateTime
 import java.util.UUID
 

@@ -1,4 +1,4 @@
-package com.astro.leadflow.modules.iam.domain
+package com.astro.leadflow.shared.modules.iam.domain
 
 import jakarta.persistence.*
 import org.springframework.security.core.GrantedAuthority

@@ -41,7 +41,10 @@ class OrganizationController(
         summary = "Atualiza credenciais do WhatsApp Business",
         description = "Atualiza token e phone number ID da integração com a Meta"
     )
-    @ApiResponse(responseCode = "403", description = "Apenas ADMIN pode alterar credenciais")
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "Credenciais atualizadas"),
+        ApiResponse(responseCode = "403", description = "Apenas ADMIN pode alterar credenciais")
+    )
     @PreAuthorize("hasRole('ADMIN')")
     fun updateWhatsapp(
         @Valid @RequestBody request: UpdateWhatsappCredentialsRequest

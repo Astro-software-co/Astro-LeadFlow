@@ -1,6 +1,6 @@
-package com.astro.leadflow.modules.saas.domain
+package com.astro.leadflow.shared.modules.saas.domain
 
-import com.astro.leadflow.modules.iam.domain.Organization
+import com.astro.leadflow.shared.modules.iam.domain.Organization
 import jakarta.persistence.*
 import java.time.LocalDateTime
 import java.util.UUID
@@ -20,14 +20,12 @@ class MarketplaceConfig(
     @JoinColumn(name = "organization_id", nullable = false)
     val organization: Organization,
 
-    // Ex: WEBMOTORS, OLX, MERCADO_LIVRE
     @Column(name = "marketplace_name", nullable = false)
     val marketplaceName: String,
 
     @Column(nullable = false)
     var enabled: Boolean = true,
 
-    // Limite de disparos por mês para este marketplace
     @Column(name = "monthly_limit", nullable = false)
     var monthlyLimit: Int = 200,
 

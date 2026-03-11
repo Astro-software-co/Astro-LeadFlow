@@ -4,12 +4,13 @@ import com.astro.leadflow.shared.modules.inventory.api.requests.VehicleCreateReq
 import com.astro.leadflow.shared.modules.inventory.api.requests.VehicleUpdateRequest
 import com.astro.leadflow.shared.modules.inventory.api.responses.VehicleResponse
 import com.astro.leadflow.shared.modules.inventory.api.responses.VehicleStockSummary
-import com.astro.leadflow.modules.inventory.domain.*
-import com.astro.leadflow.shared.modules.inventory.mapper.VehicleMapper
-import com.astro.leadflow.modules.iam.domain.OrganizationRepository
-import com.astro.leadflow.shared.exception.*
+import com.astro.leadflow.shared.modules.inventory.domain.Vehicle
 import com.astro.leadflow.shared.modules.inventory.domain.VehicleRepository
 import com.astro.leadflow.shared.modules.inventory.domain.VehicleStatus
+import com.astro.leadflow.shared.modules.inventory.mapper.VehicleMapper
+import com.astro.leadflow.shared.modules.iam.domain.OrganizationRepository
+import com.astro.leadflow.shared.exception.InvalidOperationException
+import com.astro.leadflow.shared.exception.ResourceNotFoundException
 import com.astro.leadflow.shared.util.SecurityUtils
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -63,7 +64,6 @@ class VehicleService(
         request.ipvaPaid?.let { vehicle.ipvaPaid = it }
         request.category?.let { vehicle.category = it }
         request.status?.let {
-            // Impede desfazer venda diretamente
             if (vehicle.status == VehicleStatus.SOLD && it != VehicleStatus.SOLD)
                 throw InvalidOperationException(
                     "Veículos vendidos não podem ter seu status alterado diretamente."
@@ -107,6 +107,8 @@ class VehicleService(
             throw InvalidOperationException(
                 "Veículo reservado não pode ser removido. Cancele a reserva primeiro."
             )
+        if (vehicle.status == VehicleStatus.MAINTENANCE)
+            throw InvalidOperationException("Veículo em manutenção não pode ser removido.")
         if (vehicle.status == VehicleStatus.SOLD)
             throw InvalidOperationException("Veículos vendidos não podem ser removidos.")
         vehicleRepository.delete(vehicle)

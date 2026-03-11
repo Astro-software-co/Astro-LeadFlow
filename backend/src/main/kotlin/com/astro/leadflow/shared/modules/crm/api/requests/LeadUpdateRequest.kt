@@ -1,4 +1,4 @@
-package com.astro.leadflow.modules.crm.api.requests
+package com.astro.leadflow.shared.modules.crm.api.requests
 
 import com.astro.leadflow.shared.modules.crm.domain.InterestType
 import java.math.BigDecimal

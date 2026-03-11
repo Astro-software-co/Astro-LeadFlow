@@ -1,4 +1,4 @@
-package com.astro.leadflow.modules.iam.api.responses
+package com.astro.leadflow.shared.modules.iam.api.responses
 
 import java.util.UUID
 

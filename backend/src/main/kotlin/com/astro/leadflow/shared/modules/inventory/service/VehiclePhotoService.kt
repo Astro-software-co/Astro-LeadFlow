@@ -3,7 +3,7 @@ package com.astro.leadflow.shared.modules.inventory.service
 import com.astro.leadflow.shared.exception.BusinessException
 import com.astro.leadflow.shared.exception.ResourceNotFoundException
 import com.astro.leadflow.shared.modules.inventory.api.responses.VehiclePhotoResponse
-import com.astro.leadflow.shared.modules.inventory.domain.VehicleRepository
+import com.astro.leadflow.shared.modules.inventory.domain.VehiclePhotoRepository
 import com.astro.leadflow.shared.util.SecurityUtils
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -18,7 +18,7 @@ import java.util.UUID
 @Service
 class VehiclePhotoService(
     private val vehicleService: VehicleService,
-    private val vehiclePhotoRepository: VehicleRepository.VehiclePhotoRepository,
+    private val vehiclePhotoRepository: VehiclePhotoRepository,
     private val s3Client: S3Client,
     @Value("\${aws.s3.bucket-name}") private val bucketName: String,
     @Value("\${aws.s3.region}") private val region: String
@@ -26,7 +26,7 @@ class VehiclePhotoService(
 
     companion object {
         private val ALLOWED_TYPES = setOf("image/jpeg", "image/png", "image/webp")
-        private const val MAX_SIZE_BYTES = 5 * 1024 * 1024L // 5MB
+        private const val MAX_SIZE_BYTES = 5 * 1024 * 1024L
         private const val MAX_PHOTOS_PER_VEHICLE = 20
     }
 
@@ -57,10 +57,7 @@ class VehiclePhotoService(
 
         val s3Url = "https://$bucketName.s3.$region.amazonaws.com/$key"
         vehicle.addPhoto(s3Url, position)
-
-        vehiclePhotoRepository.save(
-            vehicle.photos.last()
-        )
+        vehiclePhotoRepository.save(vehicle.photos.last())
 
         return VehiclePhotoResponse(
             id = vehicle.photos.last().id,

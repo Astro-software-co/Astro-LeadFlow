@@ -1,7 +1,7 @@
-package com.astro.leadflow.modules.communication.infra
+package com.astro.leadflow.shared.modules.communication.infra
 
 import com.astro.leadflow.modules.ingestion.api.requests.ScrapedLeadDTO
-import com.astro.leadflow.modules.ingestion.service.LeadIngestionService
+import com.astro.leadflow.shared.modules.ingestion.service.LeadIngestionService
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.awspring.cloud.sqs.annotation.SqsListener
 import org.slf4j.LoggerFactory
@@ -24,7 +24,6 @@ class SqsConsumer(
             leadIngestionService.processFromQueue(lead)
         } catch (e: Exception) {
             log.error("Erro ao processar mensagem da fila SQS: ${e.message}", e)
-            // Re-throw para SQS mover para DLQ após N tentativas
             throw e
         }
     }

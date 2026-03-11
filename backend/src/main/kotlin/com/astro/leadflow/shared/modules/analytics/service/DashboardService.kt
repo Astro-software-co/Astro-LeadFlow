@@ -1,11 +1,15 @@
-package com.astro.leadflow.modules.analytics.service
+package com.astro.leadflow.shared.modules.analytics.service
 
-import com.astro.leadflow.modules.analytics.responses.*
+import com.astro.leadflow.shared.modules.analytics.api.responses.CategorySalesPoint
+import com.astro.leadflow.shared.modules.analytics.api.responses.KpiCard
+import com.astro.leadflow.shared.modules.analytics.api.responses.KpiResponse
+import com.astro.leadflow.shared.modules.analytics.api.responses.KpiUnit
+import com.astro.leadflow.shared.modules.analytics.api.responses.MonthlySalesPoint
+import com.astro.leadflow.shared.modules.communication.domain.ChatMessageRepository
 import com.astro.leadflow.shared.modules.crm.domain.LeadRepository
 import com.astro.leadflow.shared.modules.crm.domain.PipelineStage
 import com.astro.leadflow.shared.modules.inventory.domain.VehicleRepository
 import com.astro.leadflow.shared.modules.inventory.domain.VehicleStatus
-import com.astro.leadflow.modules.communication.domain.ChatMessageRepository
 import com.astro.leadflow.shared.util.SecurityUtils
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -24,7 +28,6 @@ class DashboardService(
         val now = LocalDate.now()
         val lastMonth = now.minusMonths(1)
 
-        // ── Leads ────────────────────────────────────────────
         val totalLeads = leadRepository.countByOrganizationId(orgId)
         val totalLeadsLastMonth = leadRepository.countByOrganizationIdAndPeriod(
             orgId, lastMonth.monthValue, lastMonth.year
@@ -33,7 +36,6 @@ class DashboardService(
             orgId, now.monthValue, now.year
         )
 
-        // ── Conversão ────────────────────────────────────────
         val completedLeads = leadRepository.countByOrganizationIdAndStage(
             orgId, PipelineStage.COMPLETED
         )
@@ -47,7 +49,6 @@ class DashboardService(
         val conversionRateLastMonth =
             (completedLastMonth.toDouble() / totalLastMonthForRate.toDouble()) * 100
 
-        // ── Estoque ──────────────────────────────────────────
         val stockCounts = vehicleRepository.countByStatus(orgId)
             .associate { VehicleStatus.valueOf(it[0].toString()) to it[1].toString().toLong() }
 
@@ -60,7 +61,6 @@ class DashboardService(
             orgId, lastMonth.monthValue, lastMonth.year
         )
 
-        // ── Receita ──────────────────────────────────────────
         val revenueThisMonth = leadRepository.sumRevenueByOrganizationAndPeriod(
             orgId, now.monthValue, now.year
         ) ?: 0.0
@@ -68,52 +68,20 @@ class DashboardService(
             orgId, lastMonth.monthValue, lastMonth.year
         ) ?: 0.0
 
-        val averageTicket = if (soldThisMonth > 0)
-            revenueThisMonth / soldThisMonth else 0.0
+        val averageTicket = if (soldThisMonth > 0) revenueThisMonth / soldThisMonth else 0.0
+        val averageTicketLastMonth = if (soldLastMonth > 0) revenueLastMonth / soldLastMonth else 0.0
 
-        val averageTicketLastMonth = if (soldLastMonth > 0)
-            revenueLastMonth / soldLastMonth else 0.0
-
-        // ── Tempo médio de resposta ──────────────────────────
         val avgResponseHours = chatMessageRepository
             .avgResponseTimeHoursByOrganization(orgId) ?: 0.0
 
         return KpiResponse(
-            salesThisMonth = KpiCard(
-                value = soldThisMonth.toDouble(),
-                previousValue = soldLastMonth.toDouble(),
-                unit = KpiUnit.NUMBER
-            ),
-            totalRevenue = KpiCard(
-                value = revenueThisMonth,
-                previousValue = revenueLastMonth,
-                unit = KpiUnit.CURRENCY
-            ),
-            vehiclesInStock = KpiCard(
-                value = totalStock.toDouble(),
-                previousValue = availableStock.toDouble(),
-                unit = KpiUnit.NUMBER
-            ),
-            averageTicket = KpiCard(
-                value = averageTicket,
-                previousValue = averageTicketLastMonth,
-                unit = KpiUnit.CURRENCY
-            ),
-            leadsConverted = KpiCard(
-                value = conversionRate,
-                previousValue = conversionRateLastMonth,
-                unit = KpiUnit.PERCENTAGE
-            ),
-            avgResponseTime = KpiCard(
-                value = avgResponseHours,
-                previousValue = 0.0,
-                unit = KpiUnit.HOURS
-            ),
-            totalLeads = KpiCard(
-                value = totalLeadsThisMonth.toDouble(),
-                previousValue = totalLeadsLastMonth.toDouble(),
-                unit = KpiUnit.NUMBER
-            )
+            salesThisMonth = KpiCard(soldThisMonth.toDouble(), soldLastMonth.toDouble(), KpiUnit.NUMBER),
+            totalRevenue = KpiCard(revenueThisMonth, revenueLastMonth, KpiUnit.CURRENCY),
+            vehiclesInStock = KpiCard(totalStock.toDouble(), availableStock.toDouble(), KpiUnit.NUMBER),
+            averageTicket = KpiCard(averageTicket, averageTicketLastMonth, KpiUnit.CURRENCY),
+            leadsConverted = KpiCard(conversionRate, conversionRateLastMonth, KpiUnit.PERCENTAGE),
+            avgResponseTime = KpiCard(avgResponseHours, 0.0, KpiUnit.HOURS),
+            totalLeads = KpiCard(totalLeadsThisMonth.toDouble(), totalLeadsLastMonth.toDouble(), KpiUnit.NUMBER)
         )
     }
 
