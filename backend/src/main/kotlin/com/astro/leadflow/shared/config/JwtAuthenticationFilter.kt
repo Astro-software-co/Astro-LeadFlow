@@ -1,7 +1,7 @@
 package com.astro.leadflow.shared.config
 
 import com.astro.leadflow.modules.iam.service.TokenService
-import com.astro.leadflow.shared.modules.iam.domain.UserRepository
+import com.astro.leadflow.modules.iam.domain.UserRepository
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
