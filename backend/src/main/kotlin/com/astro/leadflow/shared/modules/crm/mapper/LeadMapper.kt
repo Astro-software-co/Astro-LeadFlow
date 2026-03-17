@@ -24,11 +24,11 @@ class LeadMapper {
         interestType = lead.interestType,
         notes = lead.notes,
         pipelineStage = lead.pipelineStage,
-        assignedTo = lead.assignedTo?.let {
-            SellerSummary(it.id, it.name, it.avatarUrl)
+        assignedTo = lead.assignedTo?.let { user ->
+            SellerSummary(user.id, user.name, user.avatarUrl)
         },
-        vehicle = lead.vehicle?.let {
-            VehicleSummary(it.id, it.brand, it.model, it.year, it.salePrice)
+        vehicle = lead.vehicle?.let { vehicle ->
+            VehicleSummary(vehicle.id, vehicle.brand, vehicle.model, vehicle.year, vehicle.salePrice)
         },
         isDuplicate = lead.isDuplicate,
         organizationId = lead.organization.id,
@@ -39,8 +39,8 @@ class LeadMapper {
     fun toHistory(h: LeadStageHistory): StageHistoryResponse = StageHistoryResponse(
         fromStage = h.fromStage,
         toStage = h.toStage,
-        movedBy = h.movedBy?.let {
-            SellerSummary(it.id, it.name, it.avatarUrl)
+        movedBy = h.movedBy?.let { user ->
+            SellerSummary(user.id, user.name, user.avatarUrl)
         },
         movedAt = h.movedAt
     )

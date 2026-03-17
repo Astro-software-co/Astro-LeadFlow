@@ -1,8 +1,14 @@
 package com.astro.leadflow.shared.modules.saas.service
 
-import com.astro.leadflow.modules.iam.domain.Organization
-import com.astro.leadflow.modules.saas.domain.*
-import com.astro.leadflow.modules.saas.service.UsageLimitService
+import com.astro.leadflow.shared.modules.iam.domain.Organization
+import com.astro.leadflow.shared.modules.saas.domain.MarketplaceConfig
+import com.astro.leadflow.shared.modules.saas.domain.MarketplaceConfigRepository
+import com.astro.leadflow.shared.modules.saas.domain.Plan
+import com.astro.leadflow.shared.modules.saas.domain.Subscription
+import com.astro.leadflow.shared.modules.saas.domain.SubscriptionRepository
+import com.astro.leadflow.shared.modules.saas.domain.SubscriptionStatus
+import com.astro.leadflow.shared.modules.saas.domain.UsageLog
+import com.astro.leadflow.shared.modules.saas.domain.UsageLogRepository
 import io.mockk.*
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach

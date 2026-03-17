@@ -1,15 +1,15 @@
 package com.astro.leadflow.shared.modules.crm.service
 
-import com.astro.leadflow.modules.crm.api.requests.LeadCreateRequest
-import com.astro.leadflow.modules.crm.api.requests.LeadUpdateRequest
-import com.astro.leadflow.modules.crm.mapper.LeadMapper
-import com.astro.leadflow.modules.iam.domain.Organization
-import com.astro.leadflow.modules.iam.domain.OrganizationRepository
 import com.astro.leadflow.shared.exception.InvalidOperationException
 import com.astro.leadflow.shared.exception.ResourceNotFoundException
+import com.astro.leadflow.shared.modules.crm.api.requests.LeadCreateRequest
+import com.astro.leadflow.shared.modules.crm.api.requests.LeadUpdateRequest
 import com.astro.leadflow.shared.modules.crm.domain.Lead
 import com.astro.leadflow.shared.modules.crm.domain.LeadRepository
 import com.astro.leadflow.shared.modules.crm.domain.PipelineStage
+import com.astro.leadflow.shared.modules.crm.mapper.LeadMapper
+import com.astro.leadflow.shared.modules.iam.domain.Organization
+import com.astro.leadflow.shared.modules.iam.domain.OrganizationRepository
 import com.astro.leadflow.shared.modules.inventory.domain.VehicleRepository
 import io.mockk.*
 import org.junit.jupiter.api.Assertions

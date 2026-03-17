@@ -1,6 +1,7 @@
 package com.astro.leadflow.shared.modules.communication.infra
 
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
@@ -8,7 +9,7 @@ import org.springframework.web.reactive.function.client.bodyToMono
 
 @Component
 class MetaClient(
-    @param:Value("\${meta.api-url}") private val apiUrl: String,
+    @param:Value("\${app.meta.api-url}") private val apiUrl: String,
     webClientBuilder: WebClient.Builder
 ) {
     private val webClient = webClientBuilder
@@ -65,9 +66,13 @@ class MetaClient(
                 .bodyValue(payload)
                 .retrieve()
                 .onStatus({ it.isError }) { resp ->
-                    resp.bodyToMono<String>().map {
+                    resp.bodyToMono<String>().map { body ->
                         WebClientResponseException.create(
-                            resp.statusCode().value(), it, null, null, null
+                            resp.statusCode().value(),
+                            body,
+                            HttpHeaders.EMPTY,
+                            ByteArray(0),
+                            null
                         )
                     }
                 }
@@ -78,7 +83,6 @@ class MetaClient(
             val messages = response?.get("messages") as? List<Map<String, Any>>
             messages?.firstOrNull()?.get("id") as? String
         } catch (e: WebClientResponseException) {
-            // Log e tratamento de erro da Meta (rate limit, token inválido, etc.)
             null
         }
     }

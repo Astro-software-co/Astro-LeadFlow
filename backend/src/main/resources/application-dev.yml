@@ -5,55 +5,59 @@ spring:
     password: leadflow123
     hikari:
       maximum-pool-size: 5
+      minimum-idle: 2
+
+  jpa:
+    show-sql: true
 
   data:
     redis:
       host: localhost
       port: 6379
       password: redis123
-
-  jpa:
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
+      timeout: 2000ms
 
   mail:
     host: localhost
     port: 1025
     properties:
-      mail.smtp.auth: false
-      mail.smtp.starttls.enable: false
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
 
-  flyway:
-    enabled: true
+  cloud:
+    aws:
+      region:
+        static: us-east-1
+      credentials:
+        access-key: test
+        secret-key: test
+      sqs:
+        endpoint: http://localhost:4566
+      s3:
+        endpoint: http://localhost:4566
+      autoconfigure:
+        exclude: io.awspring.cloud.autoconfigure.sqs.SqsAutoConfiguration
+
+app:
+  base-url: http://localhost:8080
+  jwt:
+    secret: local_dev_secret_key_must_be_at_least_32_chars_long
+    expiration-ms: 3600000
+    refresh-expiration-ms: 604800000
+  meta:
+    api-url: https://graph.facebook.com/v19.0
+    webhook-verify-token: local_dev_token
+  aws:
+    enabled: false
+  cors:
+    allowed-origins: http://localhost:3000,http://localhost:5173
 
 logging:
   level:
     com.astro.leadflow: DEBUG
+    org.hibernate.SQL: DEBUG
     org.springframework.security: DEBUG
-
-aws:
-  region: us-east-1
-  endpoint-override: http://localhost:4566
-  sqs:
-    new-leads-queue-url: http://localhost:4566/000000000000/leadflow-new-leads.fifo
-  s3:
-    bucket-name: leadflow-vehicles
-  sns:
-    enabled: false
-
-meta:
-  api-url: https://graph.facebook.com/v19.0
-  webhook-verify-token: local_dev_token
-
-jwt:
-  secret: local_dev_secret_key_must_be_at_least_32_chars_long
-  expiration: 3600000
-  refresh-expiration: 604800000
-
-app:
-  base-url: http://localhost:8080
-  cors:
-    allowed-origins: http://localhost:3000,http://localhost:5173
-
+    org.flywaydb: DEBUG

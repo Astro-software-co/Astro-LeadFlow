@@ -1,6 +1,5 @@
 ﻿package com.astro.leadflow.shared.modules.ingestion.service
 
-import com.astro.leadflow.shared.modules.ingestion.api.requests.ScrapedLeadDTO
 import com.astro.leadflow.shared.modules.communication.service.MessageSenderService
 import com.astro.leadflow.shared.modules.iam.domain.OrganizationRepository
 import com.astro.leadflow.shared.modules.ingestion.infra.SqsProducer
@@ -8,6 +7,7 @@ import com.astro.leadflow.shared.modules.crm.domain.Lead
 import com.astro.leadflow.shared.modules.crm.domain.LeadRepository
 import com.astro.leadflow.shared.modules.crm.domain.PipelineStage
 import com.astro.leadflow.shared.exception.ResourceNotFoundException
+import com.astro.leadflow.shared.modules.ingestion.dto.ScrapedLeadDTO
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -27,7 +27,7 @@ class LeadIngestionService(
     @Transactional
     fun ingestFromWebhook(dto: ScrapedLeadDTO) {
         val normalizedPhone = normalizationService.normalizePhone(dto.phoneNumber)
-        val normalizedMarketplace = normalizationService.normalizeMarketplace(dto.marketplace)
+        val normalizedMarketplace = normalizationService.normalizeMarketplace(dto.marketplaceType)
 
         val organization = organizationRepository.findBySlug(dto.organizationSlug)
             .orElseThrow { ResourceNotFoundException("Organization", dto.organizationSlug) }
@@ -43,7 +43,7 @@ class LeadIngestionService(
 
         val normalizedLead = dto.copy(
             phoneNumber = normalizedPhone,
-            marketplace = normalizedMarketplace
+            marketplaceType = normalizedMarketplace
         )
 
         if (awsEnabled) {
@@ -71,7 +71,7 @@ class LeadIngestionService(
                 phoneNumber = dto.phoneNumber,
                 name = dto.name,
                 email = dto.email,
-                origin = dto.marketplace,
+                origin = dto.marketplaceType,
                 vehicleInterest = dto.vehicleInterest,
                 pipelineStage = PipelineStage.TALKING_TO_BOT
             )
@@ -82,7 +82,7 @@ class LeadIngestionService(
                 lead = lead,
                 organization = organization,
                 templateName = "welcome_lead",
-                marketplaceName = dto.marketplace
+                marketplaceName = dto.marketplaceType
             )
             log.info("Mensagem de boas-vindas enviada para {}", dto.phoneNumber)
         } catch (e: Exception) {

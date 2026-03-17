@@ -1,6 +1,7 @@
 package com.astro.leadflow.shared.modules.inventory.api.requests
 
-import com.astro.leadflow.shared.modules.crm.service.VehicleStatus
+import com.astro.leadflow.shared.modules.inventory.domain.VehicleCategory
+import com.astro.leadflow.shared.modules.inventory.domain.VehicleStatus
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
@@ -17,7 +18,7 @@ data class VehicleCreateRequest(
     val costPrice: BigDecimal? = null,
     val mileageKm: Int? = null,
     val ipvaPaid: Boolean = false,
-    @field:NotNull val category: com.astro.leadflow.modules.inventory.domain.VehicleCategory,
+    @field:NotNull val category: VehicleCategory,
     val status: VehicleStatus = VehicleStatus.AVAILABLE
 )
 

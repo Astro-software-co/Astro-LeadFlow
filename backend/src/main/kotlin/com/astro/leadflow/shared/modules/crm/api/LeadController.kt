@@ -1,13 +1,14 @@
 package com.astro.leadflow.shared.modules.crm.api
 
-import com.astro.leadflow.modules.crm.api.requests.AssignLeadRequest
-import com.astro.leadflow.modules.crm.api.requests.LeadCreateRequest
-import com.astro.leadflow.modules.crm.api.requests.LeadUpdateRequest
-import com.astro.leadflow.modules.crm.api.requests.MoveLeadRequest
+import com.astro.leadflow.shared.modules.crm.api.requests.AssignLeadRequest
+import com.astro.leadflow.shared.modules.crm.api.requests.LeadCreateRequest
+import com.astro.leadflow.shared.modules.crm.api.requests.LeadUpdateRequest
+import com.astro.leadflow.shared.modules.crm.api.requests.MoveLeadRequest
 import com.astro.leadflow.shared.modules.crm.api.responses.LeadResponse
 import com.astro.leadflow.shared.modules.crm.api.responses.StageHistoryResponse
 import com.astro.leadflow.shared.modules.crm.service.LeadAssignmentService
 import com.astro.leadflow.shared.modules.crm.service.LeadService
+import com.astro.leadflow.shared.modules.crm.service.PipelineService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -74,16 +75,7 @@ class LeadController(
     fun move(
         @PathVariable id: UUID,
         @Valid @RequestBody request: MoveLeadRequest
-    ): LeadResponse = pipelineService.moveLead(id, request.targetStage)
-
-    @PatchMapping("/{id}/advance")
-    @Operation(summary = "Avança lead para o próximo estágio automaticamente")
-    @ApiResponses(
-        ApiResponse(responseCode = "200", description = "Lead avançado com sucesso"),
-        ApiResponse(responseCode = "422", description = "Lead já está no estágio final")
-    )
-    fun advance(@PathVariable id: UUID): LeadResponse =
-        pipelineService.advanceLead(id)
+    ): LeadResponse = pipelineService.moveLead(id, request)
 
     @PatchMapping("/{id}/archive")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -115,13 +107,7 @@ class LeadController(
     fun assign(
         @PathVariable id: UUID,
         @Valid @RequestBody request: AssignLeadRequest
-    ): LeadResponse = assignmentService.assignTo(id, request.sellerId)
-
-    @GetMapping("/{id}/history")
-    @Operation(summary = "Histórico de movimentações do lead no Kanban")
-    @ApiResponse(responseCode = "200", description = "Histórico retornado com sucesso")
-    fun history(@PathVariable id: UUID): List<StageHistoryResponse> =
-        pipelineService.getLeadHistory(id)
+    ): LeadResponse = assignmentService.assignTo(id, request.userId)
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)

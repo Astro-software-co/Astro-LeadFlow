@@ -1,12 +1,15 @@
 package com.astro.leadflow.shared.modules.iam.service
 
-import com.astro.leadflow.modules.iam.api.requests.LoginRequest
-import com.astro.leadflow.modules.iam.api.requests.RegisterOrganizationRequest
-import com.astro.leadflow.modules.iam.domain.*
-import com.astro.leadflow.modules.iam.service.AuthService
-import com.astro.leadflow.modules.iam.service.TokenService
 import com.astro.leadflow.shared.exception.BusinessException
 import com.astro.leadflow.shared.exception.DuplicateResourceException
+import com.astro.leadflow.shared.modules.iam.api.requests.LoginRequest
+import com.astro.leadflow.shared.modules.iam.api.requests.RegisterOrganizationRequest
+import com.astro.leadflow.shared.modules.iam.domain.Organization
+import com.astro.leadflow.shared.modules.iam.domain.OrganizationRepository
+import com.astro.leadflow.shared.modules.iam.domain.Role
+import com.astro.leadflow.shared.modules.iam.domain.User
+import com.astro.leadflow.shared.modules.iam.domain.UserRepository
+import com.astro.leadflow.shared.modules.iam.domain.UserStatus
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import org.junit.jupiter.api.Assertions

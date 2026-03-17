@@ -11,13 +11,13 @@ import java.util.UUID
 
 @Service
 class TokenService(
-    @Value("\${jwt.secret:local_dev_secret_key_must_be_at_least_32_chars_long}")
+    @Value("\${app.jwt.secret:local_dev_secret_key_must_be_at_least_32_chars_long}")
     private val secret: String,
 
-    @Value("\${jwt.expiration:3600000}")
+    @Value("\${app.jwt.expiration-ms:3600000}")
     private val expirationMs: Long,
 
-    @Value("\${jwt.refresh-expiration:604800000}")
+    @Value("\${app.jwt.refresh-expiration-ms:604800000}")
     private val refreshExpirationMs: Long
 ) {
     private val signingKey by lazy { Keys.hmacShaKeyFor(secret.toByteArray()) }

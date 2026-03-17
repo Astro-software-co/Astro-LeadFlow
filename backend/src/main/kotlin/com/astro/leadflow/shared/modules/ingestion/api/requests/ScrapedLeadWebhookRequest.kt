@@ -2,7 +2,7 @@ package com.astro.leadflow.shared.modules.ingestion.api.requests
 
 import jakarta.validation.constraints.NotBlank
 
-data class ScrapedLeadDTO(
+data class ScrapedLeadWebhookRequest(
     @field:NotBlank val organizationSlug: String,
     @field:NotBlank val phoneNumber: String,
     val name: String? = null,

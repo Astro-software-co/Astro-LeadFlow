@@ -1,13 +1,14 @@
 package com.astro.leadflow.shared.modules.crm.service
 
-import com.astro.leadflow.modules.crm.api.requests.LeadCreateRequest
-import com.astro.leadflow.modules.crm.api.requests.LeadUpdateRequest
+import com.astro.leadflow.shared.modules.crm.api.requests.LeadCreateRequest
+import com.astro.leadflow.shared.modules.crm.api.requests.LeadUpdateRequest
 import com.astro.leadflow.shared.modules.crm.api.responses.LeadResponse
 import com.astro.leadflow.shared.modules.crm.domain.Lead
 import com.astro.leadflow.shared.modules.crm.domain.LeadRepository
 import com.astro.leadflow.shared.modules.crm.domain.PipelineStage
 import com.astro.leadflow.shared.modules.crm.mapper.LeadMapper
 import com.astro.leadflow.shared.modules.iam.domain.OrganizationRepository
+import com.astro.leadflow.shared.modules.inventory.domain.Vehicle
 import com.astro.leadflow.shared.modules.inventory.domain.VehicleRepository
 import com.astro.leadflow.shared.exception.InvalidOperationException
 import com.astro.leadflow.shared.exception.ResourceNotFoundException
@@ -34,9 +35,9 @@ class LeadService(
             orgId, request.phoneNumber
         )
 
-        val vehicle = request.vehicleId?.let {
-            vehicleRepository.findByOrganizationIdAndId(orgId, it)
-                .orElseThrow { ResourceNotFoundException("Vehicle", it) }
+        val vehicle: Vehicle? = request.vehicleId?.let { vehicleId ->
+            vehicleRepository.findByOrganizationIdAndId(orgId, vehicleId)
+                .orElseThrow { ResourceNotFoundException("Vehicle", vehicleId) }
         }
 
         val lead = leadRepository.save(
@@ -52,7 +53,7 @@ class LeadService(
                 purchaseForecast = request.purchaseForecast,
                 interestType = request.interestType,
                 notes = request.notes,
-                vehicle = vehicle as Vehicle?,
+                vehicle = vehicle,
                 isDuplicate = isDuplicate
             )
         )
@@ -74,7 +75,7 @@ class LeadService(
         request.notes?.let { lead.notes = it }
         request.vehicleId?.let { vehicleId ->
             lead.vehicle = vehicleRepository.findByOrganizationIdAndId(orgId, vehicleId)
-                .orElseThrow { ResourceNotFoundException("Vehicle", vehicleId) } as Vehicle?
+                .orElseThrow { ResourceNotFoundException("Vehicle", vehicleId) }
         }
 
         return leadMapper.toResponse(leadRepository.save(lead))
@@ -90,7 +91,7 @@ class LeadService(
     fun findAll(): List<LeadResponse> {
         val orgId = SecurityUtils.getCurrentOrganizationId()
         return leadRepository.findAllByOrganizationId(orgId)
-            .map { leadMapper.toResponse(it) }
+            .map { lead -> leadMapper.toResponse(lead) }
     }
 
     @Transactional

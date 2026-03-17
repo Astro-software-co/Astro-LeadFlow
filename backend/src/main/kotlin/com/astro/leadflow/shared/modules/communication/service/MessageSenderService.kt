@@ -1,7 +1,5 @@
 package com.astro.leadflow.shared.modules.communication.service
 
-import com.astro.leadflow.modules.iam.domain.Organization
-import com.astro.leadflow.modules.saas.service.UsageLimitService
 import com.astro.leadflow.shared.modules.communication.domain.ChatMessage
 import com.astro.leadflow.shared.modules.communication.domain.ChatMessageRepository
 import com.astro.leadflow.shared.modules.communication.domain.MessageDirection
@@ -10,6 +8,8 @@ import com.astro.leadflow.shared.modules.communication.domain.MessageType
 import com.astro.leadflow.shared.modules.communication.infra.MetaClient
 import com.astro.leadflow.shared.modules.crm.domain.Lead
 import com.astro.leadflow.shared.exception.QuotaExceededException
+import com.astro.leadflow.shared.modules.iam.domain.Organization
+import com.astro.leadflow.shared.modules.saas.service.UsageLimitService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 

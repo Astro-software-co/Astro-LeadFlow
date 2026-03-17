@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*
 @Tag(name = "Communication — Webhook", description = "Webhook oficial da Meta/WhatsApp")
 class MetaWebhookController(
     private val botService: BotService,
-    @Value("\${meta.webhook-verify-token}") private val verifyToken: String
+    @Value("\${app.meta.webhook-verify-token}") private val verifyToken: String
 ) {
 
     @GetMapping
@@ -33,7 +33,7 @@ class MetaWebhookController(
                 val value = change.value
                 value.messages?.forEach { message ->
                     val contactName = value.contacts
-                        ?.firstOrNull { it.wa_id == message.from }
+                        ?.firstOrNull { it.waId == message.from }
                         ?.profile?.name
                     botService.handleIncoming(
                         phoneNumberId = value.metadata.phoneNumberId,

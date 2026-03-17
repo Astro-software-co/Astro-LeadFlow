@@ -1,6 +1,6 @@
 package com.astro.leadflow.shared.modules.inventory.api.requests
 
-import com.astro.leadflow.shared.modules.crm.service.VehicleStatus
+import com.astro.leadflow.shared.modules.inventory.domain.VehicleStatus
 import jakarta.validation.constraints.NotNull
 
 data class UpdateVehicleStatusRequest(

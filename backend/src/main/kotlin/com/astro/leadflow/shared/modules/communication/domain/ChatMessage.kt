@@ -1,7 +1,7 @@
 package com.astro.leadflow.shared.modules.communication.domain
 
-import com.astro.leadflow.modules.iam.domain.Organization
 import com.astro.leadflow.shared.modules.crm.domain.Lead
+import com.astro.leadflow.shared.modules.iam.domain.Organization
 import jakarta.persistence.*
 import java.time.LocalDateTime
 import java.util.UUID

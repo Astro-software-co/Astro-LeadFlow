@@ -11,7 +11,7 @@ import software.amazon.awssdk.services.sqs.SqsClient
 @Configuration
 @ConditionalOnProperty(prefix = "app.aws", name = ["enabled"], havingValue = "true")
 class SqsConfig(
-    @Value("\${aws.region}") private val region: String
+    @Value("\${app.aws.region}") private val region: String
 ) {
 
     @Bean

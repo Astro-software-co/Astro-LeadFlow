@@ -1,6 +1,5 @@
 package com.astro.leadflow.shared.modules.crm.service
 
-import com.astro.leadflow.modules.iam.domain.Role
 import com.astro.leadflow.shared.modules.crm.api.responses.LeadResponse
 import com.astro.leadflow.shared.modules.crm.domain.LeadRepository
 import com.astro.leadflow.shared.modules.crm.domain.PipelineStage
@@ -8,6 +7,8 @@ import com.astro.leadflow.shared.modules.crm.mapper.LeadMapper
 import com.astro.leadflow.shared.modules.iam.domain.UserRepository
 import com.astro.leadflow.shared.exception.BusinessException
 import com.astro.leadflow.shared.exception.ResourceNotFoundException
+import com.astro.leadflow.shared.modules.crm.api.requests.MoveLeadRequest
+import com.astro.leadflow.shared.modules.iam.domain.Role
 import com.astro.leadflow.shared.util.SecurityUtils
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -35,7 +36,7 @@ class LeadAssignmentService(
         leadRepository.save(lead)
 
         if (lead.pipelineStage == PipelineStage.TALKING_TO_BOT)
-            return pipelineService.moveLead(leadId, PipelineStage.WAITING_ATTENDANCE)
+            return pipelineService.moveLead(leadId, MoveLeadRequest(toStage = PipelineStage.WAITING_ATTENDANCE))
 
         return leadMapper.toResponse(lead)
     }

@@ -1,8 +1,8 @@
 package com.astro.leadflow.shared.util
 
-import com.astro.leadflow.modules.iam.domain.Role
-import com.astro.leadflow.modules.iam.domain.User
 import com.astro.leadflow.shared.exception.AccessDeniedException
+import com.astro.leadflow.shared.modules.iam.domain.Role
+import com.astro.leadflow.shared.modules.iam.domain.User
 import org.springframework.security.core.context.SecurityContextHolder
 import java.util.UUID
 

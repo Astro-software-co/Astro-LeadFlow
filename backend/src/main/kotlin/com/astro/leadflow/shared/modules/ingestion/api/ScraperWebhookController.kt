@@ -1,6 +1,6 @@
 package com.astro.leadflow.shared.modules.ingestion.api
 
-import com.astro.leadflow.shared.modules.ingestion.api.requests.ScrapedLeadDTO
+import com.astro.leadflow.shared.modules.ingestion.dto.ScrapedLeadDTO
 import com.astro.leadflow.shared.modules.ingestion.service.LeadIngestionService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse

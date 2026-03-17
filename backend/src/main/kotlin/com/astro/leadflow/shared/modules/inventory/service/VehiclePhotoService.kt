@@ -20,8 +20,8 @@ class VehiclePhotoService(
     private val vehicleService: VehicleService,
     private val vehiclePhotoRepository: VehiclePhotoRepository,
     private val s3Client: S3Client,
-    @Value("\${aws.s3.bucket-name}") private val bucketName: String,
-    @Value("\${aws.s3.region}") private val region: String
+    @Value("\${app.aws.s3.bucket}") private val bucketName: String,
+    @Value("\${app.aws.region}") private val region: String
 ) {
 
     companion object {
