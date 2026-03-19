@@ -30,12 +30,26 @@ class UsageLimitServiceTest {
         name = "Básico",
         monthlyPriceBrl = BigDecimal("149.00"),
         messageLimit = 1000,
-        marketplaceLimit = 1
+        marketplaceLimit = 2
     )
     private val subscription = Subscription(
         organization = organization,
         plan = plan,
         status = SubscriptionStatus.ACTIVE
+    )
+
+    private val webmotorsConfig = MarketplaceConfig(
+        organization = organization,
+        marketplaceName = "WEBMOTORS",
+        enabled = true,
+        monthlyLimit = 200
+    )
+
+    private val olxConfig = MarketplaceConfig(
+        organization = organization,
+        marketplaceName = "OLX",
+        enabled = true,
+        monthlyLimit = 200
     )
 
     @BeforeEach
@@ -50,24 +64,20 @@ class UsageLimitServiceTest {
         )
     }
 
+    // ─── Testes de limite global ───────────────────────────────────────────────
+
     @Test
     fun `canSendMessage should return true when under global limit`() {
-        every { subscriptionRepository.findByOrganizationId(orgId) } returns
-                Optional.of(subscription)
-        every {
-            usageLogRepository.sumMessagesByOrganizationAndPeriod(orgId, any(), any())
-        } returns 500L
+        every { subscriptionRepository.findByOrganizationId(orgId) } returns Optional.of(subscription)
+        every { usageLogRepository.sumMessagesByOrganizationAndPeriod(orgId, any(), any()) } returns 500L
 
         Assertions.assertTrue(usageLimitService.canSendMessage(orgId))
     }
 
     @Test
     fun `canSendMessage should return false when global limit is reached`() {
-        every { subscriptionRepository.findByOrganizationId(orgId) } returns
-                Optional.of(subscription)
-        every {
-            usageLogRepository.sumMessagesByOrganizationAndPeriod(orgId, any(), any())
-        } returns 1000L
+        every { subscriptionRepository.findByOrganizationId(orgId) } returns Optional.of(subscription)
+        every { usageLogRepository.sumMessagesByOrganizationAndPeriod(orgId, any(), any()) } returns 1000L
 
         Assertions.assertFalse(usageLimitService.canSendMessage(orgId))
     }
@@ -79,8 +89,7 @@ class UsageLimitServiceTest {
             plan = plan,
             status = SubscriptionStatus.SUSPENDED
         )
-        every { subscriptionRepository.findByOrganizationId(orgId) } returns
-                Optional.of(suspended)
+        every { subscriptionRepository.findByOrganizationId(orgId) } returns Optional.of(suspended)
 
         Assertions.assertFalse(usageLimitService.canSendMessage(orgId))
     }
@@ -92,37 +101,83 @@ class UsageLimitServiceTest {
         Assertions.assertFalse(usageLimitService.canSendMessage(orgId))
     }
 
-    @Test
-    fun `canSendMessage should return false when marketplace limit is reached`() {
-        val marketplaceConfig = MarketplaceConfig(
-            organization = organization,
-            marketplaceName = "WEBMOTORS",
-            enabled = true,
-            monthlyLimit = 200
-        )
+    // ─── Testes de limite por marketplace ─────────────────────────────────────
 
-        every { subscriptionRepository.findByOrganizationId(orgId) } returns
-                Optional.of(subscription)
+    @Test
+    fun `canSendMessage should return true when marketplace limit not reached`() {
+        every { subscriptionRepository.findByOrganizationId(orgId) } returns Optional.of(subscription)
+        every { usageLogRepository.sumMessagesByOrganizationAndPeriod(orgId, any(), any()) } returns 100L
         every {
-            usageLogRepository.sumMessagesByOrganizationAndPeriod(orgId, any(), any())
-        } returns 100L
-        every {
-            marketplaceConfigRepository.findByOrganizationIdAndMarketplaceName(
-                orgId, "WEBMOTORS"
-            )
-        } returns Optional.of(marketplaceConfig)
+            marketplaceConfigRepository.findByOrganizationIdAndMarketplaceName(orgId, "WEBMOTORS")
+        } returns Optional.of(webmotorsConfig)
         every {
             usageLogRepository.findByOrganizationIdAndMarketplaceNameAndPeriodMonthAndPeriodYear(
                 orgId, "WEBMOTORS", any(), any()
             )
         } returns Optional.of(
-            UsageLog(
-                organization = organization,
-                marketplaceName = "WEBMOTORS",
-                messagesSent = 200,
-                periodMonth = 1,
-                periodYear = 2026
+            UsageLog(organization = organization, marketplaceName = "WEBMOTORS",
+                messagesSent = 100, periodMonth = 1, periodYear = 2026)
+        )
+
+        Assertions.assertTrue(usageLimitService.canSendMessage(orgId, "WEBMOTORS"))
+    }
+
+    @Test
+    fun `canSendMessage with marketplace over limit should redistribute to another marketplace`() {
+        // WEBMOTORS estourou, OLX tem saldo — deve retornar true (redistribuição)
+        every { subscriptionRepository.findByOrganizationId(orgId) } returns Optional.of(subscription)
+        every { usageLogRepository.sumMessagesByOrganizationAndPeriod(orgId, any(), any()) } returns 100L
+        every {
+            marketplaceConfigRepository.findByOrganizationIdAndMarketplaceName(orgId, "WEBMOTORS")
+        } returns Optional.of(webmotorsConfig)
+        every {
+            usageLogRepository.findByOrganizationIdAndMarketplaceNameAndPeriodMonthAndPeriodYear(
+                orgId, "WEBMOTORS", any(), any()
             )
+        } returns Optional.of(
+            UsageLog(organization = organization, marketplaceName = "WEBMOTORS",
+                messagesSent = 200, periodMonth = 1, periodYear = 2026)
+        )
+        // OLX ainda tem saldo
+        every { marketplaceConfigRepository.findAllByOrganizationId(orgId) } returns
+            listOf(webmotorsConfig, olxConfig)
+        every {
+            usageLogRepository.findByOrganizationIdAndMarketplaceNameAndPeriodMonthAndPeriodYear(
+                orgId, "OLX", any(), any()
+            )
+        } returns Optional.empty()
+
+        Assertions.assertTrue(usageLimitService.canSendMessage(orgId, "WEBMOTORS"))
+    }
+
+    @Test
+    fun `canSendMessage should return false when all marketplaces are over limit`() {
+        // Todos os marketplaces esgotaram — deve bloquear
+        val webmotorsEsgotado = MarketplaceConfig(organization = organization, marketplaceName = "WEBMOTORS", enabled = true, monthlyLimit = 200)
+        val olxEsgotado = MarketplaceConfig(organization = organization, marketplaceName = "OLX", enabled = true, monthlyLimit = 200)
+
+        every { subscriptionRepository.findByOrganizationId(orgId) } returns Optional.of(subscription)
+        every { usageLogRepository.sumMessagesByOrganizationAndPeriod(orgId, any(), any()) } returns 100L
+        every {
+            marketplaceConfigRepository.findByOrganizationIdAndMarketplaceName(orgId, "WEBMOTORS")
+        } returns Optional.of(webmotorsEsgotado)
+        every {
+            usageLogRepository.findByOrganizationIdAndMarketplaceNameAndPeriodMonthAndPeriodYear(
+                orgId, "WEBMOTORS", any(), any()
+            )
+        } returns Optional.of(
+            UsageLog(organization = organization, marketplaceName = "WEBMOTORS",
+                messagesSent = 200, periodMonth = 1, periodYear = 2026)
+        )
+        every { marketplaceConfigRepository.findAllByOrganizationId(orgId) } returns
+            listOf(webmotorsEsgotado, olxEsgotado)
+        every {
+            usageLogRepository.findByOrganizationIdAndMarketplaceNameAndPeriodMonthAndPeriodYear(
+                orgId, "OLX", any(), any()
+            )
+        } returns Optional.of(
+            UsageLog(organization = organization, marketplaceName = "OLX",
+                messagesSent = 200, periodMonth = 1, periodYear = 2026)
         )
 
         Assertions.assertFalse(usageLimitService.canSendMessage(orgId, "WEBMOTORS"))
@@ -137,11 +192,8 @@ class UsageLimitServiceTest {
             monthlyLimit = 200
         )
 
-        every { subscriptionRepository.findByOrganizationId(orgId) } returns
-                Optional.of(subscription)
-        every {
-            usageLogRepository.sumMessagesByOrganizationAndPeriod(orgId, any(), any())
-        } returns 0L
+        every { subscriptionRepository.findByOrganizationId(orgId) } returns Optional.of(subscription)
+        every { usageLogRepository.sumMessagesByOrganizationAndPeriod(orgId, any(), any()) } returns 0L
         every {
             marketplaceConfigRepository.findByOrganizationIdAndMarketplaceName(orgId, "OLX")
         } returns Optional.of(disabledConfig)

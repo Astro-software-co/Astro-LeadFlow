@@ -7,6 +7,7 @@ import com.astro.leadflow.shared.modules.saas.domain.SubscriptionRepository
 import com.astro.leadflow.shared.modules.saas.domain.UsageLog
 import com.astro.leadflow.shared.modules.saas.domain.UsageLogRepository
 import com.astro.leadflow.shared.exception.ResourceNotFoundException
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -19,37 +20,74 @@ class UsageLimitService(
     private val usageLogRepository: UsageLogRepository
 ) {
 
+    private val log = LoggerFactory.getLogger(this::class.java)
+
     @Transactional(readOnly = true)
     fun canSendMessage(organizationId: UUID, marketplaceName: String? = null): Boolean {
         val now = LocalDate.now()
+
+        // 1. Verifica subscription ativa
         val subscription = subscriptionRepository.findByOrganizationId(organizationId)
             .orElse(null) ?: return false
 
         if (!subscription.isActive()) return false
 
+        // 2. Verifica limite global do plano (regra soberana)
         val globalUsed = usageLogRepository.sumMessagesByOrganizationAndPeriod(
             organizationId, now.monthValue, now.year
         )
-        if (globalUsed >= subscription.plan.messageLimit) return false
+        val globalLimit = subscription.plan.messageLimit
+        if (globalLimit != -1 && globalUsed >= globalLimit) return false
 
-        if (marketplaceName != null) {
-            val config = marketplaceConfigRepository
-                .findByOrganizationIdAndMarketplaceName(organizationId, marketplaceName)
-                .orElse(null) ?: return false
+        // 3. Se não foi informado marketplace, só o global importa
+        if (marketplaceName == null) return true
 
-            if (!config.enabled) return false
+        // 4. Verifica se o marketplace de origem está habilitado
+        val config = marketplaceConfigRepository
+            .findByOrganizationIdAndMarketplaceName(organizationId, marketplaceName)
+            .orElse(null) ?: return false
 
-            val marketplaceUsed = usageLogRepository
-                .findByOrganizationIdAndMarketplaceNameAndPeriodMonthAndPeriodYear(
-                    organizationId, marketplaceName, now.monthValue, now.year
-                )
-                .map { it.messagesSent.toLong() }
-                .orElse(0L)
+        if (!config.enabled) return false
 
-            if (marketplaceUsed >= config.monthlyLimit) return false
+        // 5. Verifica quota individual do marketplace de origem
+        val marketplaceUsed = usageLogRepository
+            .findByOrganizationIdAndMarketplaceNameAndPeriodMonthAndPeriodYear(
+                organizationId, marketplaceName, now.monthValue, now.year
+            )
+            .map { it.messagesSent.toLong() }
+            .orElse(0L)
+
+        val marketplaceLimit = config.monthlyLimit
+        if (marketplaceLimit == -1 || marketplaceUsed < marketplaceLimit) return true
+
+        // 6. Marketplace de origem estourou — notifica admin e tenta redistribuição
+        log.warn(
+            "Marketplace {} da organização {} atingiu o limite mensal ({}/{}). " +
+            "Tentando redistribuição para outros marketplaces ativos.",
+            marketplaceName, organizationId, marketplaceUsed, marketplaceLimit
+        )
+
+        val outroComSaldo = marketplaceConfigRepository
+            .findAllByOrganizationId(organizationId)
+            .filter { it.enabled && it.marketplaceName != marketplaceName }
+            .any { outro ->
+                val outroUsed = usageLogRepository
+                    .findByOrganizationIdAndMarketplaceNameAndPeriodMonthAndPeriodYear(
+                        organizationId, outro.marketplaceName, now.monthValue, now.year
+                    )
+                    .map { it.messagesSent.toLong() }
+                    .orElse(0L)
+                outro.monthlyLimit == -1 || outroUsed < outro.monthlyLimit
+            }
+
+        if (!outroComSaldo) {
+            log.warn(
+                "Organização {} sem saldo em nenhum marketplace ativo. Envio bloqueado.",
+                organizationId
+            )
         }
 
-        return true
+        return outroComSaldo
     }
 
     @Transactional
