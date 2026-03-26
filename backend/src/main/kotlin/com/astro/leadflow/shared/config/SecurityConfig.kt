@@ -18,7 +18,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 class SecurityConfig(
-    private val jwtAuthenticationFilter: JwtAuthenticationFilter
+    private val jwtAuthenticationFilter: JwtAuthenticationFilter,
+    private val apiKeyAuthFilter: ApiKeyAuthFilter
 ) {
 
     @Bean
@@ -49,6 +50,10 @@ class SecurityConfig(
                     // ── Planos públicos (landing page) ─────────────
                     .requestMatchers(HttpMethod.GET, "/api/v1/plans").permitAll()
 
+                    // ── Actuator (health público, demais restritos) ─
+                    .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                    .requestMatchers("/actuator/**").hasRole("SUPER_ADMIN")
+
                     // ── Admin interno ──────────────────────────────
                     .requestMatchers("/api/v1/admin/**").hasRole("SUPER_ADMIN")
 
@@ -59,6 +64,10 @@ class SecurityConfig(
                     // ── Tudo mais requer autenticação ──────────────
                     .anyRequest().authenticated()
             }
+            .addFilterBefore(
+                apiKeyAuthFilter,
+                UsernamePasswordAuthenticationFilter::class.java
+            )
             .addFilterBefore(
                 jwtAuthenticationFilter,
                 UsernamePasswordAuthenticationFilter::class.java

@@ -44,6 +44,22 @@ server:
     include-message: always
     include-binding-errors: always
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  health:
+    redis:
+      enabled: true
+    db:
+      enabled: true
+
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
@@ -64,6 +80,12 @@ app:
     access-token: ${META_ACCESS_TOKEN:}
     phone-number-id: ${META_PHONE_NUMBER_ID:}
     webhook-verify-token: ${META_WEBHOOK_TOKEN:dev-webhook-token}
+    webhook-secret: ${META_WEBHOOK_SECRET:}
+  rate-limit:
+    enabled: ${RATE_LIMIT_ENABLED:true}
+    webhook-per-minute: ${RATE_LIMIT_WEBHOOK:100}
+    auth-per-minute: ${RATE_LIMIT_AUTH:10}
+    general-per-minute: ${RATE_LIMIT_GENERAL:500}
   saas:
     default-plan: ${DEFAULT_PLAN:free}
     trial-days: ${TRIAL_DAYS:14}
@@ -77,6 +99,24 @@ app:
       bucket: ${AWS_S3_BUCKET:leadflow-files}
     sqs:
       lead-queue: ${AWS_SQS_LEAD_QUEUE:leadflow-leads}
+      marketplace-queue: ${AWS_SQS_MARKETPLACE_QUEUE:marketplace-leads.fifo}
+
+marketplace:
+  webhook-token: ${MARKETPLACE_WEBHOOK_TOKEN:}
+  webmotors:
+    base-url: ${WEBMOTORS_BASE_URL:https://api-webmotors.sensedia.com}
+    oauth-url: ${WEBMOTORS_OAUTH_URL:https://api-webmotors.sensedia.com/oauth/v1/access-token}
+    client-id: ${WEBMOTORS_CLIENT_ID:}
+    client-secret: ${WEBMOTORS_CLIENT_SECRET:}
+  mercadolivre:
+    base-url: ${ML_BASE_URL:https://api.mercadolibre.com}
+    oauth-url: ${ML_OAUTH_URL:https://api.mercadolibre.com/oauth/token}
+    auth-url: ${ML_AUTH_URL:https://auth.mercadolivre.com.br/authorization}
+    app-id: ${ML_APP_ID:}
+    client-secret: ${ML_CLIENT_SECRET:}
+    redirect-uri: ${ML_REDIRECT_URI:http://localhost:8080/api/v1/auth/mercadolivre/callback}
+  reconciliation:
+    cron: ${MARKETPLACE_RECONCILIATION_CRON:0 0 3 * * *}
 
 logging:
   level:

@@ -41,6 +41,10 @@ spring:
       autoconfigure:
         exclude: io.awspring.cloud.autoconfigure.sqs.SqsAutoConfiguration
 
+marketplace:
+  reconciliation:
+    enabled: true
+
 app:
   base-url: http://localhost:8080
   jwt:

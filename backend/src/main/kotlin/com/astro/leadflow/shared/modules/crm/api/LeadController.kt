@@ -35,21 +35,32 @@ class LeadController(
     @ApiResponses(
         ApiResponse(responseCode = "201", description = "Lead criado com sucesso"),
         ApiResponse(responseCode = "400", description = "Dados inválidos"),
-        ApiResponse(responseCode = "404", description = "Veículo não encontrado")
+        ApiResponse(responseCode = "401", description = "Não autenticado"),
+        ApiResponse(responseCode = "403", description = "Sem permissão"),
+        ApiResponse(responseCode = "404", description = "Veículo não encontrado"),
+        ApiResponse(responseCode = "500", description = "Erro interno do servidor")
     )
     fun create(@Valid @RequestBody request: LeadCreateRequest): LeadResponse =
         leadService.create(request)
 
     @GetMapping
     @Operation(summary = "Lista todos os leads da organização")
-    @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "Lista retornada com sucesso"),
+        ApiResponse(responseCode = "401", description = "Não autenticado"),
+        ApiResponse(responseCode = "403", description = "Sem permissão"),
+        ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    )
     fun findAll(): List<LeadResponse> = leadService.findAll()
 
     @GetMapping("/{id}")
     @Operation(summary = "Busca lead por ID")
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "Lead encontrado"),
-        ApiResponse(responseCode = "404", description = "Lead não encontrado")
+        ApiResponse(responseCode = "401", description = "Não autenticado"),
+        ApiResponse(responseCode = "403", description = "Sem permissão"),
+        ApiResponse(responseCode = "404", description = "Lead não encontrado"),
+        ApiResponse(responseCode = "500", description = "Erro interno do servidor")
     )
     fun findById(
         @Parameter(description = "ID do lead") @PathVariable id: UUID
@@ -59,7 +70,11 @@ class LeadController(
     @Operation(summary = "Atualiza dados do lead")
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "Lead atualizado"),
-        ApiResponse(responseCode = "404", description = "Lead ou veículo não encontrado")
+        ApiResponse(responseCode = "400", description = "Dados inválidos"),
+        ApiResponse(responseCode = "401", description = "Não autenticado"),
+        ApiResponse(responseCode = "403", description = "Sem permissão"),
+        ApiResponse(responseCode = "404", description = "Lead ou veículo não encontrado"),
+        ApiResponse(responseCode = "500", description = "Erro interno do servidor")
     )
     fun update(
         @PathVariable id: UUID,
@@ -70,7 +85,11 @@ class LeadController(
     @Operation(summary = "Move lead para estágio específico do Kanban")
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "Lead movido com sucesso"),
-        ApiResponse(responseCode = "422", description = "Lead já está no estágio ou arquivado")
+        ApiResponse(responseCode = "401", description = "Não autenticado"),
+        ApiResponse(responseCode = "403", description = "Sem permissão"),
+        ApiResponse(responseCode = "404", description = "Lead não encontrado"),
+        ApiResponse(responseCode = "422", description = "Lead já está no estágio ou arquivado"),
+        ApiResponse(responseCode = "500", description = "Erro interno do servidor")
     )
     fun move(
         @PathVariable id: UUID,
@@ -82,7 +101,11 @@ class LeadController(
     @Operation(summary = "Arquiva lead")
     @ApiResponses(
         ApiResponse(responseCode = "204", description = "Lead arquivado com sucesso"),
-        ApiResponse(responseCode = "422", description = "Lead já está arquivado")
+        ApiResponse(responseCode = "401", description = "Não autenticado"),
+        ApiResponse(responseCode = "403", description = "Sem permissão"),
+        ApiResponse(responseCode = "404", description = "Lead não encontrado"),
+        ApiResponse(responseCode = "422", description = "Lead já está arquivado"),
+        ApiResponse(responseCode = "500", description = "Erro interno do servidor")
     )
     fun archive(@PathVariable id: UUID) =
         leadService.archive(id)
@@ -91,7 +114,11 @@ class LeadController(
     @Operation(summary = "Vendedor assume o lead")
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "Lead assumido com sucesso"),
-        ApiResponse(responseCode = "400", description = "Você já é o responsável por este lead")
+        ApiResponse(responseCode = "400", description = "Você já é o responsável por este lead"),
+        ApiResponse(responseCode = "401", description = "Não autenticado"),
+        ApiResponse(responseCode = "403", description = "Sem permissão"),
+        ApiResponse(responseCode = "404", description = "Lead não encontrado"),
+        ApiResponse(responseCode = "500", description = "Erro interno do servidor")
     )
     fun assume(@PathVariable id: UUID): LeadResponse =
         assignmentService.assumeLead(id)
@@ -101,7 +128,10 @@ class LeadController(
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "Lead atribuído com sucesso"),
         ApiResponse(responseCode = "400", description = "Vendedor inválido ou não pertence à organização"),
-        ApiResponse(responseCode = "403", description = "Sem permissão para atribuir leads")
+        ApiResponse(responseCode = "401", description = "Não autenticado"),
+        ApiResponse(responseCode = "403", description = "Sem permissão para atribuir leads"),
+        ApiResponse(responseCode = "404", description = "Lead não encontrado"),
+        ApiResponse(responseCode = "500", description = "Erro interno do servidor")
     )
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     fun assign(
@@ -114,7 +144,10 @@ class LeadController(
     @Operation(summary = "Remove lead permanentemente")
     @ApiResponses(
         ApiResponse(responseCode = "204", description = "Lead removido com sucesso"),
-        ApiResponse(responseCode = "403", description = "Sem permissão para remover leads")
+        ApiResponse(responseCode = "401", description = "Não autenticado"),
+        ApiResponse(responseCode = "403", description = "Sem permissão para remover leads"),
+        ApiResponse(responseCode = "404", description = "Lead não encontrado"),
+        ApiResponse(responseCode = "500", description = "Erro interno do servidor")
     )
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     fun delete(@PathVariable id: UUID) =

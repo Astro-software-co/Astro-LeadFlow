@@ -95,6 +95,3 @@ class User(
     fun belongsToOrganization(organizationId: UUID): Boolean =
         organization?.id == organizationId
 }
-
-enum class Role { SUPER_ADMIN, ADMIN, MANAGER, SELLER }
-enum class UserStatus { ACTIVE, SUSPENDED, PENDING_VERIFICATION }

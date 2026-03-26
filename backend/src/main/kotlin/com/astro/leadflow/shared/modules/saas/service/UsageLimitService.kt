@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
+import java.time.YearMonth
 import java.util.UUID
 
 @Service
@@ -22,19 +23,31 @@ class UsageLimitService(
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
+    /** Retorna o mês/ano do início do ciclo de cobrança atual.
+     *  Se renewsAt for nulo, usa o mês calendário corrente. */
+    private fun billingPeriodStart(renewsAt: LocalDate?): YearMonth {
+        if (renewsAt == null) return YearMonth.now()
+        val today = LocalDate.now()
+        // renewsAt é o dia em que o próximo ciclo começa.
+        // O ciclo atual vai de (renewsAt - 1 mês) até renewsAt - 1 dia.
+        val periodStart = renewsAt.minusMonths(1)
+        return if (today >= periodStart) YearMonth.of(periodStart.year, periodStart.monthValue)
+        else YearMonth.now()
+    }
+
     @Transactional(readOnly = true)
     fun canSendMessage(organizationId: UUID, marketplaceName: String? = null): Boolean {
-        val now = LocalDate.now()
-
         // 1. Verifica subscription ativa
         val subscription = subscriptionRepository.findByOrganizationId(organizationId)
             .orElse(null) ?: return false
 
         if (!subscription.isActive()) return false
 
+        val period = billingPeriodStart(subscription.renewsAt)
+
         // 2. Verifica limite global do plano (regra soberana)
         val globalUsed = usageLogRepository.sumMessagesByOrganizationAndPeriod(
-            organizationId, now.monthValue, now.year
+            organizationId, period.monthValue, period.year
         )
         val globalLimit = subscription.plan.messageLimit
         if (globalLimit != -1 && globalUsed >= globalLimit) return false
@@ -52,7 +65,7 @@ class UsageLimitService(
         // 5. Verifica quota individual do marketplace de origem
         val marketplaceUsed = usageLogRepository
             .findByOrganizationIdAndMarketplaceNameAndPeriodMonthAndPeriodYear(
-                organizationId, marketplaceName, now.monthValue, now.year
+                organizationId, marketplaceName, period.monthValue, period.year
             )
             .map { it.messagesSent.toLong() }
             .orElse(0L)
@@ -73,7 +86,7 @@ class UsageLimitService(
             .any { outro ->
                 val outroUsed = usageLogRepository
                     .findByOrganizationIdAndMarketplaceNameAndPeriodMonthAndPeriodYear(
-                        organizationId, outro.marketplaceName, now.monthValue, now.year
+                        organizationId, outro.marketplaceName, period.monthValue, period.year
                     )
                     .map { it.messagesSent.toLong() }
                     .orElse(0L)
@@ -92,25 +105,25 @@ class UsageLimitService(
 
     @Transactional
     fun incrementUsage(organizationId: UUID, marketplaceName: String? = null) {
-        val now = LocalDate.now()
-        val organization = subscriptionRepository.findByOrganizationId(organizationId)
+        val subscription = subscriptionRepository.findByOrganizationId(organizationId)
             .orElseThrow { ResourceNotFoundException("Subscription", organizationId) }
-            .organization
+        val organization = subscription.organization
+        val period = billingPeriodStart(subscription.renewsAt)
 
-        incrementOrCreate(organizationId, null, now.monthValue, now.year, organization)
+        incrementOrCreate(organizationId, null, period.monthValue, period.year, organization)
         if (marketplaceName != null) {
-            incrementOrCreate(organizationId, marketplaceName, now.monthValue, now.year, organization)
+            incrementOrCreate(organizationId, marketplaceName, period.monthValue, period.year, organization)
         }
     }
 
     @Transactional(readOnly = true)
     fun getUsageSummary(organizationId: UUID): UsageSummaryResponse {
-        val now = LocalDate.now()
         val subscription = subscriptionRepository.findByOrganizationId(organizationId)
             .orElseThrow { ResourceNotFoundException("Subscription", organizationId) }
+        val period = billingPeriodStart(subscription.renewsAt)
 
         val totalUsed = usageLogRepository.sumMessagesByOrganizationAndPeriod(
-            organizationId, now.monthValue, now.year
+            organizationId, period.monthValue, period.year
         )
 
         val marketplaceUsages = marketplaceConfigRepository
@@ -118,7 +131,7 @@ class UsageLimitService(
             .map { config ->
                 val used = usageLogRepository
                     .findByOrganizationIdAndMarketplaceNameAndPeriodMonthAndPeriodYear(
-                        organizationId, config.marketplaceName, now.monthValue, now.year
+                        organizationId, config.marketplaceName, period.monthValue, period.year
                     )
                     .map { it.messagesSent.toLong() }
                     .orElse(0L)

@@ -60,6 +60,11 @@ dependencies {
 	implementation(platform("io.awspring.cloud:spring-cloud-aws-dependencies:3.1.0"))
 	implementation("io.awspring.cloud:spring-cloud-aws-starter-sqs")
 
+	// ── Observabilidade ───────────────────────────────────────────
+	implementation("org.springframework.boot:spring-boot-starter-actuator")
+	// Structured JSON logging (ativar no profile "prod"):
+	// implementation("net.logstash.logback:logstash-logback-encoder:7.4")
+
 	// ── OpenAPI / Swagger ─────────────────────────────────────────
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.4.0")
 
@@ -70,6 +75,7 @@ dependencies {
 	testImplementation("com.h2database:h2")
 	testImplementation("org.testcontainers:junit-jupiter")
 	testImplementation("org.testcontainers:postgresql")
+	testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
 }
 
 // ── Configuração do Kotlin ────────────────────────────────────────

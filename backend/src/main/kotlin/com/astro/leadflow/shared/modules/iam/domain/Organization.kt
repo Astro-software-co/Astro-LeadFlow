@@ -22,6 +22,12 @@ class Organization(
     @Column(name = "whatsapp_phone_number_id")
     var whatsappPhoneNumberId: String? = null,
 
+    @Column(name = "api_key", unique = true)
+    var apiKey: String? = null,
+
+    @Column(name = "cnpj", length = 20)
+    var cnpj: String? = null,
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     var status: OrganizationStatus = OrganizationStatus.ACTIVE,

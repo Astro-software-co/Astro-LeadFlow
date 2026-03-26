@@ -1,0 +1,7 @@
+marketplace:
+  reconciliation:
+    enabled: false
+
+app:
+  aws:
+    enabled: false

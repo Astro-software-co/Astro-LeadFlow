@@ -43,7 +43,3 @@ class ChatMessage(
     @Column(name = "sent_at", nullable = false, updatable = false)
     val sentAt: LocalDateTime = LocalDateTime.now()
 )
-
-enum class MessageDirection { INBOUND, OUTBOUND }
-enum class MessageType { TEXT, IMAGE, DOCUMENT, TEMPLATE }
-enum class MessageStatus { SENT, DELIVERED, READ, FAILED }
