@@ -21,10 +21,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 
 const navItems = [
-  { label: 'Dashboard', path: '/dashboard' },
-  { label: 'Painel de controle', path: '/' },
-  { label: 'Estoque', path: '/estoque' },
-  { label: 'Configurações', path: '/configuracoes' },
+  { label: 'Dashboard', path: '/app/dashboard' },
+  { label: 'Painel de controle', path: '/app/kanban' },
+  { label: 'Estoque', path: '/app/estoque' },
+  { label: 'Configurações', path: '/app/configuracoes' },
 ];
 
 export function Header() {
@@ -34,7 +34,7 @@ export function Header() {
 
   const handleSignOut = () => {
     toast.success('Você foi desconectado com sucesso!');
-    navigate('/login');
+    navigate('/app/login');
   };
 
   const formatTimeAgo = (date: Date) => {
@@ -74,7 +74,7 @@ export function Header() {
             <NavLink
               key={item.path}
               to={item.path}
-              end={item.path === '/'}
+              end={false}
               className={({ isActive }) =>
                 cn(
                   'px-4 py-2 text-sm font-medium rounded-md transition-colors',
@@ -158,7 +158,7 @@ export function Header() {
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate('/configuracoes')}>
+              <DropdownMenuItem onClick={() => navigate('/app/configuracoes')}>
                 <Settings className="mr-2 h-4 w-4" />
                 Configurações
               </DropdownMenuItem>
