@@ -37,6 +37,7 @@ export default function LandingPage() {
           property="og:description"
           content="CRM inteligente para concessionarias. Integracao com marketplaces, WhatsApp automatico e pipeline visual de vendas."
         />
+        <meta property="og:image" content="/og-image.png" />
         <meta property="og:type" content="website" />
         <meta property="og:locale" content="pt_BR" />
         <meta name="twitter:card" content="summary_large_image" />

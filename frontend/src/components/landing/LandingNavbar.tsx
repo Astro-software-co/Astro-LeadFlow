@@ -81,15 +81,17 @@ export function LandingNavbar() {
             <SheetTrigger asChild>
               <Button
                 variant="ghost"
-                size="sm"
+                size="icon"
+                aria-label="Abrir menu de navegacao"
+                aria-expanded={sheetOpen}
                 className={cn(
+                  'h-10 w-10',
                   isScrolled
                     ? 'text-slate-900'
                     : 'text-white hover:bg-white/10'
                 )}
               >
                 <Menu className="h-6 w-6" />
-                <span className="sr-only">Menu</span>
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-72">

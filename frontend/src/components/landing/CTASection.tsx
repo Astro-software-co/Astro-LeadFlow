@@ -54,7 +54,7 @@ export function CTASection() {
             asChild
             className="border-white/30 text-white hover:bg-white/10"
           >
-            <a href="#contato">Agendar demonstracao</a>
+            <Link to="/app/login">Agendar demonstracao</Link>
           </Button>
         </div>
       </div>

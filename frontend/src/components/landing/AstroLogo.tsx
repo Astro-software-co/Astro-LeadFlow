@@ -31,7 +31,7 @@ export function AstroLogo({ variant = 'dark', className }: AstroLogoProps) {
           variant === 'light' ? 'text-white' : 'text-slate-900'
         )}
       >
-        Astro
+        Astro <span className="font-normal">LeadFlow</span>
       </span>
     </div>
   );
