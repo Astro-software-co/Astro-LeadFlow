@@ -208,7 +208,7 @@ export function CardDetailModal({ open, onOpenChange, card, onUpdate }: CardDeta
                 <Label>Origem *</Label>
                 <Select
                   value={origem}
-                  onValueChange={(value: any) => setValue('origem', value)}
+                  onValueChange={(value: string) => setValue('origem', value as LeadFormData['origem'])}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione" />
@@ -260,7 +260,7 @@ export function CardDetailModal({ open, onOpenChange, card, onUpdate }: CardDeta
                 <Label>Urgência</Label>
                 <Select
                   value={urgencia || ''}
-                  onValueChange={(value: any) => setValue('urgencia', value || undefined)}
+                  onValueChange={(value: string) => setValue('urgencia', (value || undefined) as LeadFormData['urgencia'])}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione" />

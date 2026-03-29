@@ -1,26 +1,47 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Car, Eye, EyeOff, Mail, Lock, User, Phone } from 'lucide-react';
+import { useNavigate, Navigate } from 'react-router-dom';
+import { Car, Eye, EyeOff, Mail, Lock, User, Phone, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Login() {
   const navigate = useNavigate();
+  const { login, register, isAuthenticated } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [form, setForm] = useState({ nome: '', email: '', telefone: '', senha: '', confirmarSenha: '' });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  if (isAuthenticated) {
+    return <Navigate to="/app/dashboard" replace />;
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isLogin && form.senha !== form.confirmarSenha) {
-      toast.error('As senhas não coincidem');
+      toast.error('As senhas nao coincidem');
       return;
     }
-    toast.success(isLogin ? 'Login realizado com sucesso!' : 'Conta criada com sucesso!');
-    navigate('/');
+
+    setIsSubmitting(true);
+    try {
+      if (isLogin) {
+        await login(form.email, form.senha);
+      } else {
+        await register(form.nome, form.email, form.senha, form.telefone || undefined);
+      }
+      toast.success(isLogin ? 'Login realizado com sucesso!' : 'Conta criada com sucesso!');
+      navigate('/app/dashboard');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Erro ao autenticar';
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -32,7 +53,7 @@ export default function Login() {
             <Car className="h-8 w-8 text-primary-foreground" />
           </div>
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-foreground">V3 Motors</h1>
+            <h1 className="text-2xl font-bold text-foreground">Astro LeadFlow</h1>
             <p className="text-sm text-muted-foreground">CRM Automotivo</p>
           </div>
         </div>
@@ -75,6 +96,7 @@ export default function Login() {
                       onChange={(e) => setForm({ ...form, nome: e.target.value })}
                       className="pl-10"
                       required
+                      disabled={isSubmitting}
                     />
                   </div>
                 </div>
@@ -88,6 +110,7 @@ export default function Login() {
                       value={form.telefone}
                       onChange={(e) => setForm({ ...form, telefone: e.target.value })}
                       className="pl-10"
+                      disabled={isSubmitting}
                     />
                   </div>
                 </div>
@@ -106,6 +129,7 @@ export default function Login() {
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                   className="pl-10"
                   required
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -122,6 +146,7 @@ export default function Login() {
                   onChange={(e) => setForm({ ...form, senha: e.target.value })}
                   className="pl-10 pr-10"
                   required
+                  disabled={isSubmitting}
                 />
                 <button
                   type="button"
@@ -146,6 +171,7 @@ export default function Login() {
                     onChange={(e) => setForm({ ...form, confirmarSenha: e.target.value })}
                     className="pl-10"
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
               </div>
@@ -159,14 +185,17 @@ export default function Login() {
               </div>
             )}
 
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : null}
               {isLogin ? 'Entrar' : 'Criar Conta'}
             </Button>
           </form>
         </div>
 
         <p className="text-center text-xs text-muted-foreground">
-          © 2026 V3 Motors. Todos os direitos reservados.
+          &copy; 2026 Astro Software Co. Todos os direitos reservados.
         </p>
       </div>
     </div>

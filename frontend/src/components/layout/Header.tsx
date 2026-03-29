@@ -19,6 +19,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 
 const navItems = [
   { label: 'Dashboard', path: '/app/dashboard' },
@@ -29,10 +30,12 @@ const navItems = [
 
 export function Header() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const { notifications, unreadCount, markAsRead, markAllAsRead, removeNotification } = useNotifications();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   const handleSignOut = () => {
+    logout();
     toast.success('Você foi desconectado com sucesso!');
     navigate('/app/login');
   };
@@ -66,7 +69,7 @@ export function Header() {
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
             <Car className="h-5 w-5 text-primary-foreground" />
           </div>
-          <span className="text-xl font-bold text-foreground">V3 Motors</span>
+          <span className="text-xl font-bold text-foreground">Astro LeadFlow</span>
         </div>
 
         <nav className="flex items-center gap-1">

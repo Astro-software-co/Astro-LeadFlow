@@ -1,16 +1,19 @@
 import { Suspense, lazy } from 'react';
 import { HelmetProvider } from 'react-helmet-async';
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
+import { AuthProvider } from "./contexts/AuthContext";
+import { AuthGuard } from '@/components/layout/AuthGuard';
 import { LandingLayout } from '@/components/landing/LandingLayout';
 import { AppLayout } from '@/components/layout/AppLayout';
 import LandingPage from '@/pages/LandingPage';
 import NotFound from "./pages/NotFound";
+import { ErrorBoundary } from '@/components/layout/ErrorBoundary';
+import { Loader2 } from 'lucide-react';
 
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
 const Kanban = lazy(() => import('@/pages/Kanban'));
@@ -20,31 +23,42 @@ const Login = lazy(() => import('@/pages/Login'));
 
 const queryClient = new QueryClient();
 
+const PageLoader = () => (
+  <div className="flex min-h-[50vh] items-center justify-center">
+    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+  </div>
+);
+
 const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <NotificationProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route element={<LandingLayout />}>
-                  <Route path="/" element={<LandingPage />} />
-                </Route>
-                <Route path="/app" element={<AppLayout />}>
-                  <Route path="dashboard" element={<Suspense fallback={null}><Dashboard /></Suspense>} />
-                  <Route path="kanban" element={<Suspense fallback={null}><Kanban /></Suspense>} />
-                  <Route path="estoque" element={<Suspense fallback={null}><Estoque /></Suspense>} />
-                  <Route path="configuracoes" element={<Suspense fallback={null}><Configuracoes /></Suspense>} />
-                </Route>
-                <Route path="/app/login" element={<Suspense fallback={null}><Login /></Suspense>} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
-        </NotificationProvider>
+        <AuthProvider>
+          <NotificationProvider>
+            <TooltipProvider>
+              <Toaster />
+              <ErrorBoundary>
+              <BrowserRouter>
+                <Routes>
+                  <Route element={<LandingLayout />}>
+                    <Route path="/" element={<LandingPage />} />
+                  </Route>
+                  <Route element={<AuthGuard />}>
+                    <Route path="/app" element={<AppLayout />}>
+                      <Route path="dashboard" element={<Suspense fallback={<PageLoader />}><Dashboard /></Suspense>} />
+                      <Route path="kanban" element={<Suspense fallback={<PageLoader />}><Kanban /></Suspense>} />
+                      <Route path="estoque" element={<Suspense fallback={<PageLoader />}><Estoque /></Suspense>} />
+                      <Route path="configuracoes" element={<Suspense fallback={<PageLoader />}><Configuracoes /></Suspense>} />
+                    </Route>
+                  </Route>
+                  <Route path="/app/login" element={<Suspense fallback={<PageLoader />}><Login /></Suspense>} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+              </ErrorBoundary>
+            </TooltipProvider>
+          </NotificationProvider>
+        </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
   </HelmetProvider>
