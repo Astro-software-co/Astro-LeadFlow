@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { AddUserModal } from '@/components/modals/AddUserModal';
 import { EditUserModal } from '@/components/modals/EditUserModal';
@@ -94,6 +95,10 @@ export default function Configuracoes() {
 
   return (
     <MainLayout>
+      <Helmet>
+        <title>Configuracoes — Astro LeadFlow</title>
+        <meta name="description" content="Gerencie perfil, equipe e preferencias do sistema." />
+      </Helmet>
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Configurações</h1>

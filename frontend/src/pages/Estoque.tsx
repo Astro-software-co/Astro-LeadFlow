@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { Plus, Search, Filter } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
+import { Plus, Search, Filter, Car } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { AddVehicleModal } from '@/components/modals/AddVehicleModal';
 import { Vehicle, VehicleStatus } from '@/types';
 import { mockVehicles } from '@/data/mockData';
 import { cn } from '@/lib/utils';
+import { EmptyState } from '@/components/shared/EmptyState';
 
 const statusConfig: Record<VehicleStatus, { label: string; className: string }> = {
   disponivel: { label: 'Disponível', className: 'bg-status-available/10 text-status-available' },
@@ -46,6 +48,10 @@ export default function Estoque() {
 
   return (
     <MainLayout>
+      <Helmet>
+        <title>Estoque — Astro LeadFlow</title>
+        <meta name="description" content="Catalogo de veiculos da concessionaria." />
+      </Helmet>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -121,7 +127,19 @@ export default function Estoque() {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {filteredVehicles.map((vehicle) => {
+                {filteredVehicles.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-4">
+                      <EmptyState
+                        icon={Car}
+                        title={searchQuery || statusFilter !== 'all' ? 'Nenhum resultado encontrado' : 'Nenhum veiculo cadastrado'}
+                        description={searchQuery || statusFilter !== 'all' ? 'Tente alterar os filtros de busca.' : 'Adicione seu primeiro veiculo ao estoque.'}
+                        actionLabel={!searchQuery && statusFilter === 'all' ? 'Adicionar veiculo' : undefined}
+                        onAction={!searchQuery && statusFilter === 'all' ? () => setIsModalOpen(true) : undefined}
+                      />
+                    </td>
+                  </tr>
+                ) : filteredVehicles.map((vehicle) => {
                   const status = statusConfig[vehicle.status];
                   return (
                     <tr key={vehicle.id} className="hover:bg-muted/20 transition-colors">

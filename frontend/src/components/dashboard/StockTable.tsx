@@ -54,7 +54,13 @@ export function StockTable({ vehicles }: StockTableProps) {
             </tr>
           </thead>
           <tbody className="divide-y">
-            {vehicles.map((vehicle) => {
+            {vehicles.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-6 py-12 text-center text-sm text-muted-foreground">
+                  Nenhum veiculo no estoque
+                </td>
+              </tr>
+            ) : vehicles.map((vehicle) => {
               const status = statusConfig[vehicle.status];
               return (
                 <tr key={vehicle.id} className="hover:bg-muted/20 transition-colors">

@@ -45,7 +45,13 @@ export function RecentSalesTable({ sales }: RecentSalesTableProps) {
             </tr>
           </thead>
           <tbody className="divide-y">
-            {sales.map((sale, index) => (
+            {sales.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-6 py-12 text-center text-sm text-muted-foreground">
+                  Nenhuma venda recente
+                </td>
+              </tr>
+            ) : sales.map((sale, index) => (
               <tr key={index} className="hover:bg-muted/20 transition-colors">
                 <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-foreground">
                   {sale.cliente}

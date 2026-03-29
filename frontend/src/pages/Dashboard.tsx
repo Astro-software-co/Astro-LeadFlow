@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import { TrendingUp, DollarSign, Car, Receipt, Users, Clock, Activity } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { KPICard } from '@/components/dashboard/KPICard';
@@ -30,6 +31,10 @@ function formatCurrency(value: number): string {
 export default function Dashboard() {
   return (
     <MainLayout>
+      <Helmet>
+        <title>Dashboard — Astro LeadFlow</title>
+        <meta name="description" content="Painel de KPIs, vendas e performance da sua concessionaria." />
+      </Helmet>
       <div className="space-y-6">
         {/* KPI Cards */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

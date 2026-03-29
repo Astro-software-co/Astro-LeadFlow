@@ -71,6 +71,11 @@ export function KanbanColumnComponent({
               snapshot.isDraggingOver ? 'bg-muted/50' : 'bg-transparent'
             )}
           >
+            {cards.length === 0 && !snapshot.isDraggingOver && (
+              <p className="py-8 text-center text-xs text-muted-foreground">
+                Nenhum lead nesta etapa
+              </p>
+            )}
             {cards.map((card, index) => (
               <Draggable key={card.id} draggableId={card.id} index={index}>
                 {(provided, snapshot) => (
