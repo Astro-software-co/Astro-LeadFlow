@@ -8,6 +8,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { AuthGuard } from '@/components/layout/AuthGuard';
+import { RoleGate } from '@/components/layout/RoleGate';
 import { LandingLayout } from '@/components/landing/LandingLayout';
 import { AppLayout } from '@/components/layout/AppLayout';
 import LandingPage from '@/pages/LandingPage';
@@ -48,7 +49,13 @@ const App = () => (
                       <Route path="dashboard" element={<Suspense fallback={<PageLoader />}><Dashboard /></Suspense>} />
                       <Route path="kanban" element={<Suspense fallback={<PageLoader />}><Kanban /></Suspense>} />
                       <Route path="estoque" element={<Suspense fallback={<PageLoader />}><Estoque /></Suspense>} />
-                      <Route path="configuracoes" element={<Suspense fallback={<PageLoader />}><Configuracoes /></Suspense>} />
+                      <Route path="configuracoes" element={
+                        <Suspense fallback={<PageLoader />}>
+                          <RoleGate allowedRoles={['ADMIN', 'MANAGER']}>
+                            <Configuracoes />
+                          </RoleGate>
+                        </Suspense>
+                      } />
                     </Route>
                   </Route>
                   <Route path="/app/login" element={<Suspense fallback={<PageLoader />}><Login /></Suspense>} />
