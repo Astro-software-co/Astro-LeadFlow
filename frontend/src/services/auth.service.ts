@@ -33,6 +33,7 @@ export const authService = {
   },
 
   async register(data: RegisterRequest): Promise<AuthResponse> {
+    // Backend expects org onboarding fields — registration is private-only, handled in Plan 02
     const response = await api.post<AuthResponse>('/auth/register', data);
     return response.data;
   },
@@ -42,11 +43,12 @@ export const authService = {
     return response.data;
   },
 
-  async logout(): Promise<void> {
-    await api.post('/auth/logout');
+  async logout(refreshToken: string): Promise<void> {
+    await api.post('/auth/logout', { refreshToken });
   },
 
   async getProfile(): Promise<UserProfile> {
+    // TODO: verify backend profile endpoint path — may be /users/me
     const response = await api.get<UserProfile>('/auth/me');
     return response.data;
   },
