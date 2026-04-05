@@ -7,6 +7,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" />
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" /></noscript>
+    <!-- Content-Security-Policy: baseline XSS and clickjacking protection.
+         Note: 'unsafe-inline' for script-src is included for Vite dev server compatibility.
+         In production, consider enforcing stricter CSP via server headers with nonces. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' http://localhost:8080 https://api.astro.com.br; frame-src 'none'; object-src 'none'; base-uri 'self';" />
     <title>Astro LeadFlow</title>
     <meta name="description" content="CRM para concessionarias de veiculos" />
     <meta name="author" content="Astro Software Co." />

@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: in_progress
-stopped_at: "Phase 1 mostly complete, Phase 2 wiring needed (pages still import mockData directly)"
-last_updated: "2026-03-29T00:00:00.000Z"
-last_activity: 2026-03-29 — Audit: reconstructed state from codebase analysis (260329-wfb)
+status: executing
+stopped_at: Completed 01.1-01-PLAN.md
+last_updated: "2026-04-05T14:10:55.294Z"
+last_activity: 2026-04-05
 progress:
-  total_phases: 6
-  completed_phases: 1
-  total_plans: 0
-  completed_plans: 0
+  total_phases: 7
+  completed_phases: 0
+  total_plans: 7
+  completed_plans: 1
   percent: 25
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** Every lead that enters the system must be visible, traceable, and actionable within seconds
-**Current focus:** Phase 2 — Core CRM (wire Dashboard/Kanban/Estoque pages to existing React Query hooks)
+**Current focus:** Phase 01.1 — bug-fix-security-hardening
 
 ## Current Position
 
-Phase: 2 of 5 (Core CRM)
-Plan: 0 of ? in current phase
-Status: In progress — Phase 0 done, Phase 1 ~90% done, Phase 2 infra ready but pages not wired
-Last activity: 2026-03-29 — Audit reconstructed from codebase; phases 0-1 completed outside GSD workflow
+Phase: 01.1 (bug-fix-security-hardening) — EXECUTING
+Plan: 2 of 2
+Status: Ready to execute
+Last activity: 2026-04-05
 
 Progress: [████████░░] ~25%
 
@@ -55,6 +55,7 @@ Progress: [████████░░] ~25%
 - Trend: —
 
 *Updated after each plan completion*
+| Phase 01.1-bug-fix-security-hardening P01 | 20 | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,19 @@ Recent decisions affecting current work:
 - [Audit 2026-03-29]: VITE_USE_MOCKS=true is the current default; pages need to switch from direct mockData imports to React Query hooks
 - [Audit 2026-03-29]: Token storage uses localStorage (not httpOnly cookie) — acceptable for MVP, revisit before production
 - [Audit 2026-03-29]: Service layer + React Query hooks exist (useDashboard, useLeads, useVehicles) but Dashboard/Kanban/Estoque pages import mockData directly instead of using them
+- [Decisions 2026-04-04]: Token strategy — try httpOnly cookie (verify backend), fallback to memory token (NOT localStorage)
+- [Decisions 2026-04-04]: Registration is private-only — landing CTA → /app/login, registration via specific private URL
+- [Decisions 2026-04-04]: RBAC minimal — /app/configuracoes = ADMIN/MANAGER, all other routes = any authenticated role
+- [Decisions 2026-04-04]: Mock flag (VITE_USE_MOCKS) kept as-is, verify functionality in Phase 01.1
+- [Decisions 2026-04-04]: Landing CTA → /app/login; "Agendar demonstração" → mailto/external form
+- [Decisions 2026-04-04]: Landing pricing stays static/hardcoded
+- [Phase 01.1-bug-fix-security-hardening]: Tokens stored in module-level closure (tokenStore) — never in localStorage, page refresh requires re-login (SEC-001)
+- [Phase 01.1-bug-fix-security-hardening]: queryClient.clear() on logout is primary multi-tenant defense; orgId in query keys is defense-in-depth
+- [Phase 01.1-bug-fix-security-hardening]: Predicate-based React Query invalidation (query.queryKey.includes) handles orgId-prefixed keys correctly
+
+### Roadmap Evolution
+
+- Phase 01.1 inserted after Phase 1: Bug Fix + Security Hardening (URGENT) — Fix audit bugs BUG-001–BUG-008, security vulnerabilities SEC-001/SEC-002/SEC-005, API contract divergences, and verify mock flags. Must complete before Phase 2 wiring.
 
 ### What Exists (Phase 0 — COMPLETE)
 
@@ -142,7 +156,7 @@ Next action for Phase 2: Wire each page to its React Query hook (useDashboard, u
 
 ## Session Continuity
 
-Last session: 2026-03-29T00:00:00.000Z
-Stopped at: Phase 2 — Core CRM (wire pages to existing React Query hooks)
-Resume file: .planning/ROADMAP.md (see Phase 2 requirements: DASH-01 through VEHI-03)
+Last session: 2026-04-05T14:10:55.273Z
+Stopped at: Completed 01.1-01-PLAN.md
+Resume file: None
 Next command: `/gsd:discuss-phase 2` then `/gsd:plan-phase 2`
