@@ -19,8 +19,11 @@ build
 
 # Environment variables
 .env
+.env.*
 .env.local
 .env.*.local
+**/.env
+**/.env.*
 
 # Editor directories and files
 .vscode/*
@@ -61,4 +64,10 @@ ENV/
 *~
 
 out/
+
+# GSD planning and AI context artifacts
 .planning/
+
+# Loose context/scratch files in repo root
+arquivo.md
+contextoGeral.md
