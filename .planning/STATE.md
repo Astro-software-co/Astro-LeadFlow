@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 01.1-01-PLAN.md
-last_updated: "2026-04-05T14:10:55.294Z"
+status: verifying
+stopped_at: Completed 01.1-02-PLAN.md — Auth UI bugs + RBAC + CSP
+last_updated: "2026-04-05T14:16:19.082Z"
 last_activity: 2026-04-05
 progress:
   total_phases: 7
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 7
-  completed_plans: 1
+  completed_plans: 2
   percent: 25
 ---
 
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 
 Phase: 01.1 (bug-fix-security-hardening) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-05
 
 Progress: [████████░░] ~25%
@@ -56,6 +56,7 @@ Progress: [████████░░] ~25%
 
 *Updated after each plan completion*
 | Phase 01.1-bug-fix-security-hardening P01 | 20 | 3 tasks | 8 files |
+| Phase 01.1 P02 | 8 | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -82,6 +83,9 @@ Recent decisions affecting current work:
 - [Phase 01.1-bug-fix-security-hardening]: Tokens stored in module-level closure (tokenStore) — never in localStorage, page refresh requires re-login (SEC-001)
 - [Phase 01.1-bug-fix-security-hardening]: queryClient.clear() on logout is primary multi-tenant defense; orgId in query keys is defense-in-depth
 - [Phase 01.1-bug-fix-security-hardening]: Predicate-based React Query invalidation (query.queryKey.includes) handles orgId-prefixed keys correctly
+- [Phase 01.1]: Login is login-only (no registration tab) — users invited by admins per Decision B
+- [Phase 01.1]: RoleGate RBAC wrapper created, applied only to /app/configuracoes (ADMIN/MANAGER) per Decision C
+- [Phase 01.1]: Agendar demonstracao CTA uses mailto not /app/login per Decision E
 
 ### Roadmap Evolution
 
@@ -156,7 +160,7 @@ Next action for Phase 2: Wire each page to its React Query hook (useDashboard, u
 
 ## Session Continuity
 
-Last session: 2026-04-05T14:10:55.273Z
-Stopped at: Completed 01.1-01-PLAN.md
+Last session: 2026-04-05T14:16:19.055Z
+Stopped at: Completed 01.1-02-PLAN.md — Auth UI bugs + RBAC + CSP
 Resume file: None
 Next command: `/gsd:discuss-phase 2` then `/gsd:plan-phase 2`
