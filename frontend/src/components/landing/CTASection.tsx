@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Mail } from 'lucide-react';
 
 export function CTASection() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -54,7 +55,13 @@ export function CTASection() {
             asChild
             className="border-white/30 text-white hover:bg-white/10"
           >
-            <Link to="/app/login">Agendar demonstracao</Link>
+            <a
+              href="mailto:contato@astrosoftware.com.br?subject=Demonstra%C3%A7%C3%A3o%20Astro%20LeadFlow"
+              rel="noopener noreferrer"
+            >
+              <Mail className="mr-2 h-4 w-4" />
+              Agendar demonstracao
+            </a>
           </Button>
         </div>
       </div>
