@@ -11,6 +11,7 @@
 
 - [x] **Phase 0: Landing Page + Route Restructuring** - Public institutional landing page and `/app/*` route namespace
 - [ ] **Phase 1: Auth + API Foundation + Layout Shell** - Real JWT authentication, API client, layout, and infrastructure
+- [ ] **Phase 01.1: Bug Fix + Security Hardening (INSERTED)** - Fix audit bugs, security vulnerabilities, API contract divergences
 - [ ] **Phase 2: Core CRM** - Dashboard, leads CRUD, Kanban pipeline, and vehicle catalog connected to backend
 - [ ] **Phase 3: Communication + SaaS** - WhatsApp templates, subscription management, marketplace usage
 - [ ] **Phase 4: Responsiveness + UX Polish** - Systematic responsive design and interaction quality across all screens
@@ -53,6 +54,17 @@ Plans:
 **Plans**: TBD
 **UI hint**: yes
 **Status**: ~90% COMPLETE (outside GSD workflow — AUTH-06 role-gating partial; React Query cache clear on logout unverified)
+
+### Phase 01.1: Bug Fix + Security Hardening (INSERTED)
+
+**Goal:** Fix all audit bugs (BUG-001 through BUG-008), resolve security vulnerabilities (SEC-001 token→httpOnly/memory, SEC-002 RBAC RoleGate, SEC-005 CSP), correct API contract divergences (dashboard/leads/profile/logout/register endpoints), and verify mock flag functionality — ensuring Phase 2 wiring builds on correct foundations
+**Requirements**: AUTH-06 (partial from Phase 1), SEC-001, SEC-002, SEC-005, BUG-001–BUG-008
+**Depends on:** Phase 1
+**Plans:** 2 plans
+
+Plans:
+- [ ] 01.1-01-PLAN.md — Token security: migrate localStorage to in-memory, refresh interceptor, cache clear on logout, orgId query keys
+- [ ] 01.1-02-PLAN.md — Auth UI fixes: remove public registration, fix landing CTAs, create RoleGate, add CSP
 
 ### Phase 2: Core CRM
 **Goal**: Users can manage the full lead lifecycle — from dashboard overview through lead CRUD, Kanban pipeline, and vehicle catalog — all powered by real backend data
@@ -112,6 +124,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 0. Landing Page + Route Restructuring | 5/5 | Done (outside GSD) | 2026-03-28 |
 | 1. Auth + API Foundation + Layout Shell | 0/? | ~90% done (outside GSD, AUTH-06 partial) | - |
+| 01.1. Bug Fix + Security Hardening (INSERTED) | 0/2 | Planned | - |
 | 2. Core CRM | 0/? | Infra ready, pages not wired | - |
 | 3. Communication + SaaS | 0/? | Not started | - |
 | 4. Responsiveness + UX Polish | 0/? | Not started | - |
@@ -184,4 +197,4 @@ Plans:
 
 ---
 *Created: 2026-03-27*
-*Last updated: 2026-03-29 — Audit: reconstructed state from codebase analysis (260329-wfb)*
+*Last updated: 2026-04-05 — Phase 01.1 planned: 2 plans in 1 wave*
