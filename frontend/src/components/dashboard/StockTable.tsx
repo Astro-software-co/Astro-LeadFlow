@@ -1,6 +1,7 @@
 import { Package } from 'lucide-react';
 import { Vehicle, VehicleStatus } from '@/types';
 import { cn } from '@/lib/utils';
+import { formatCurrency } from '@/lib/formatters';
 
 interface StockTableProps {
   vehicles: Vehicle[];
@@ -13,14 +14,6 @@ const statusConfig: Record<VehicleStatus, { label: string; className: string }> 
   vendido: { label: 'Vendido', className: 'bg-status-sold/10 text-status-sold' },
   aguardando_documentacao: { label: 'Aguardando Doc.', className: 'bg-kanban-waiting/10 text-kanban-waiting' },
 };
-
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-    minimumFractionDigits: 0,
-  }).format(value);
-}
 
 export function StockTable({ vehicles }: StockTableProps) {
   return (
@@ -60,35 +53,31 @@ export function StockTable({ vehicles }: StockTableProps) {
                   Nenhum veiculo no estoque
                 </td>
               </tr>
-            ) : vehicles.map((vehicle) => {
-              const status = statusConfig[vehicle.status];
-              return (
-                <tr key={vehicle.id} className="hover:bg-muted/20 transition-colors">
-                  <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-foreground">
-                    {vehicle.marca}
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">
-                    {vehicle.modelo}
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">
-                    {vehicle.ano}
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">
-                    {formatCurrency(vehicle.preco)}
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4">
-                    <span
-                      className={cn(
-                        'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
-                        status.className
-                      )}
-                    >
-                      {status.label}
-                    </span>
-                  </td>
-                </tr>
-              );
-            })}
+            ) : (
+              vehicles.map((vehicle) => {
+                const status = statusConfig[vehicle.status];
+                return (
+                  <tr key={vehicle.id} className="hover:bg-muted/20 transition-colors">
+                    <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-foreground">{vehicle.marca}</td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">{vehicle.modelo}</td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">{vehicle.ano}</td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">
+                      {formatCurrency(vehicle.preco)}
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4">
+                      <span
+                        className={cn(
+                          'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
+                          status.className,
+                        )}
+                      >
+                        {status.label}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </div>

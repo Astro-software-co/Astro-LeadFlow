@@ -1,49 +1,48 @@
 import api from '@/lib/api';
-import { Lead } from '@/types';
+import { LeadCreateRequestDTO, LeadResponseDTO, LeadUpdateRequestDTO, MoveLeadRequestDTO } from '@/types/api/leads';
 
 export interface LeadFilters {
-  page?: number;
-  size?: number;
   search?: string;
-  origem?: string;
-  urgencia?: string;
-}
-
-export interface PageResponse<T> {
-  content: T[];
-  totalElements: number;
-  totalPages: number;
-  page: number;
-  size: number;
+  origin?: string;
+  stage?: string;
 }
 
 export const leadsService = {
-  async list(filters?: LeadFilters): Promise<PageResponse<Lead>> {
-    const response = await api.get<PageResponse<Lead>>('/leads', { params: filters });
+  async list(filters?: LeadFilters): Promise<LeadResponseDTO[]> {
+    const response = await api.get<LeadResponseDTO[]>('/leads', { params: filters });
     return response.data;
   },
 
-  async getById(id: string): Promise<Lead> {
-    const response = await api.get<Lead>(`/leads/${id}`);
+  async getById(id: string): Promise<LeadResponseDTO> {
+    const response = await api.get<LeadResponseDTO>(`/leads/${id}`);
     return response.data;
   },
 
-  async create(data: Partial<Lead>): Promise<Lead> {
-    const response = await api.post<Lead>('/leads', data);
+  async create(data: LeadCreateRequestDTO): Promise<LeadResponseDTO> {
+    const response = await api.post<LeadResponseDTO>('/leads', data);
     return response.data;
   },
 
-  async update(id: string, data: Partial<Lead>): Promise<Lead> {
-    const response = await api.put<Lead>(`/leads/${id}`, data);
+  async update(id: string, data: LeadUpdateRequestDTO): Promise<LeadResponseDTO> {
+    const response = await api.put<LeadResponseDTO>(`/leads/${id}`, data);
     return response.data;
   },
 
-  async updateStage(id: string, stage: string): Promise<Lead> {
-    const response = await api.patch<Lead>(`/leads/${id}/stage`, { stage });
+  async updateStage(id: string, toStage: MoveLeadRequestDTO['toStage']): Promise<LeadResponseDTO> {
+    const response = await api.patch<LeadResponseDTO>(`/leads/${id}/move`, { toStage });
     return response.data;
+  },
+
+  async archive(id: string): Promise<void> {
+    await api.patch(`/leads/${id}/archive`);
   },
 
   async delete(id: string): Promise<void> {
     await api.delete(`/leads/${id}`);
+  },
+
+  async assume(id: string): Promise<LeadResponseDTO> {
+    const response = await api.patch<LeadResponseDTO>(`/leads/${id}/assume`);
+    return response.data;
   },
 };

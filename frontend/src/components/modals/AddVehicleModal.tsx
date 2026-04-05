@@ -2,31 +2,26 @@ import { useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Car, X, Upload, Image as ImageIcon } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Car, X, Upload } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Vehicle, VehicleStatus, VehicleCategory } from '@/types';
 
 const vehicleSchema = z.object({
   marca: z.string().min(2, 'Marca deve ter pelo menos 2 caracteres').max(50, 'Marca deve ter no máximo 50 caracteres'),
-  modelo: z.string().min(2, 'Modelo deve ter pelo menos 2 caracteres').max(50, 'Modelo deve ter no máximo 50 caracteres'),
-  ano: z.number().min(1990, 'Ano mínimo é 1990').max(new Date().getFullYear() + 1, 'Ano inválido'),
+  modelo: z
+    .string()
+    .min(2, 'Modelo deve ter pelo menos 2 caracteres')
+    .max(50, 'Modelo deve ter no máximo 50 caracteres'),
+  ano: z
+    .number()
+    .min(1990, 'Ano mínimo é 1990')
+    .max(new Date().getFullYear() + 1, 'Ano inválido'),
   preco: z.number().min(1000, 'Preço mínimo é R$ 1.000').max(10000000, 'Preço máximo é R$ 10.000.000'),
   precoCusto: z.number().min(0, 'Preço de custo inválido').optional(),
   status: z.enum(['disponivel', 'reservado', 'manutencao', 'vendido', 'aguardando_documentacao'] as const),
@@ -145,9 +140,7 @@ export function AddVehicleModal({ open, onOpenChange, onSubmit }: AddVehicleModa
                 {...register('marca')}
                 className={errors.marca ? 'border-destructive' : ''}
               />
-              {errors.marca && (
-                <p className="text-xs text-destructive">{errors.marca.message}</p>
-              )}
+              {errors.marca && <p className="text-xs text-destructive">{errors.marca.message}</p>}
             </div>
 
             <div className="space-y-2">
@@ -158,9 +151,7 @@ export function AddVehicleModal({ open, onOpenChange, onSubmit }: AddVehicleModa
                 {...register('modelo')}
                 className={errors.modelo ? 'border-destructive' : ''}
               />
-              {errors.modelo && (
-                <p className="text-xs text-destructive">{errors.modelo.message}</p>
-              )}
+              {errors.modelo && <p className="text-xs text-destructive">{errors.modelo.message}</p>}
             </div>
           </div>
 
@@ -175,27 +166,17 @@ export function AddVehicleModal({ open, onOpenChange, onSubmit }: AddVehicleModa
                 {...register('ano', { valueAsNumber: true })}
                 className={errors.ano ? 'border-destructive' : ''}
               />
-              {errors.ano && (
-                <p className="text-xs text-destructive">{errors.ano.message}</p>
-              )}
+              {errors.ano && <p className="text-xs text-destructive">{errors.ano.message}</p>}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="cor">Cor</Label>
-              <Input
-                id="cor"
-                placeholder="Ex: Preto"
-                {...register('cor')}
-              />
+              <Input id="cor" placeholder="Ex: Preto" {...register('cor')} />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="placa">Placa (Rodízio)</Label>
-              <Input
-                id="placa"
-                placeholder="Ex: ABC1D23"
-                {...register('placa')}
-              />
+              <Input id="placa" placeholder="Ex: ABC1D23" {...register('placa')} />
             </div>
           </div>
 
@@ -210,9 +191,7 @@ export function AddVehicleModal({ open, onOpenChange, onSubmit }: AddVehicleModa
                 {...register('preco', { valueAsNumber: true })}
                 className={errors.preco ? 'border-destructive' : ''}
               />
-              {errors.preco && (
-                <p className="text-xs text-destructive">{errors.preco.message}</p>
-              )}
+              {errors.preco && <p className="text-xs text-destructive">{errors.preco.message}</p>}
             </div>
 
             <div className="space-y-2">
@@ -224,9 +203,7 @@ export function AddVehicleModal({ open, onOpenChange, onSubmit }: AddVehicleModa
                 {...register('precoCusto', { valueAsNumber: true })}
                 className={errors.precoCusto ? 'border-destructive' : ''}
               />
-              {errors.precoCusto && (
-                <p className="text-xs text-destructive">{errors.precoCusto.message}</p>
-              )}
+              {errors.precoCusto && <p className="text-xs text-destructive">{errors.precoCusto.message}</p>}
             </div>
           </div>
 
@@ -243,12 +220,10 @@ export function AddVehicleModal({ open, onOpenChange, onSubmit }: AddVehicleModa
             </div>
 
             <div className="flex items-center justify-between rounded-lg border p-3">
-              <Label htmlFor="ipvaPago" className="cursor-pointer">IPVA Pago</Label>
-              <Switch
-                id="ipvaPago"
-                checked={ipvaPago}
-                onCheckedChange={(checked) => setValue('ipvaPago', checked)}
-              />
+              <Label htmlFor="ipvaPago" className="cursor-pointer">
+                IPVA Pago
+              </Label>
+              <Switch id="ipvaPago" checked={ipvaPago} onCheckedChange={(checked) => setValue('ipvaPago', checked)} />
             </div>
           </div>
 
@@ -256,10 +231,7 @@ export function AddVehicleModal({ open, onOpenChange, onSubmit }: AddVehicleModa
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Categoria *</Label>
-              <Select
-                value={categoria}
-                onValueChange={(value: VehicleCategory) => setValue('categoria', value)}
-              >
+              <Select value={categoria} onValueChange={(value: VehicleCategory) => setValue('categoria', value)}>
                 <SelectTrigger className={errors.categoria ? 'border-destructive' : ''}>
                   <SelectValue placeholder="Selecione" />
                 </SelectTrigger>
@@ -271,17 +243,12 @@ export function AddVehicleModal({ open, onOpenChange, onSubmit }: AddVehicleModa
                   <SelectItem value="Outros">Outros</SelectItem>
                 </SelectContent>
               </Select>
-              {errors.categoria && (
-                <p className="text-xs text-destructive">{errors.categoria.message}</p>
-              )}
+              {errors.categoria && <p className="text-xs text-destructive">{errors.categoria.message}</p>}
             </div>
 
             <div className="space-y-2">
               <Label>Status *</Label>
-              <Select
-                value={status}
-                onValueChange={(value: VehicleStatus) => setValue('status', value)}
-              >
+              <Select value={status} onValueChange={(value: VehicleStatus) => setValue('status', value)}>
                 <SelectTrigger className={errors.status ? 'border-destructive' : ''}>
                   <SelectValue placeholder="Selecione" />
                 </SelectTrigger>
@@ -293,9 +260,7 @@ export function AddVehicleModal({ open, onOpenChange, onSubmit }: AddVehicleModa
                   <SelectItem value="aguardando_documentacao">Aguardando Documentação</SelectItem>
                 </SelectContent>
               </Select>
-              {errors.status && (
-                <p className="text-xs text-destructive">{errors.status.message}</p>
-              )}
+              {errors.status && <p className="text-xs text-destructive">{errors.status.message}</p>}
             </div>
           </div>
 
@@ -307,12 +272,8 @@ export function AddVehicleModal({ open, onOpenChange, onSubmit }: AddVehicleModa
               className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/20 p-6 transition-colors hover:border-primary/50 hover:bg-muted/30"
             >
               <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-              <p className="text-sm text-muted-foreground">
-                Clique para adicionar fotos
-              </p>
-              <p className="text-xs text-muted-foreground/70">
-                PNG, JPG até 5MB cada
-              </p>
+              <p className="text-sm text-muted-foreground">Clique para adicionar fotos</p>
+              <p className="text-xs text-muted-foreground/70">PNG, JPG até 5MB cada</p>
             </div>
             <input
               ref={fileInputRef}
@@ -327,11 +288,7 @@ export function AddVehicleModal({ open, onOpenChange, onSubmit }: AddVehicleModa
               <div className="grid grid-cols-4 gap-2 mt-3">
                 {photos.map((photo, index) => (
                   <div key={index} className="relative group">
-                    <img
-                      src={photo}
-                      alt={`Foto ${index + 1}`}
-                      className="h-20 w-full object-cover rounded-lg"
-                    />
+                    <img src={photo} alt={`Foto ${index + 1}`} className="h-20 w-full object-cover rounded-lg" />
                     <button
                       type="button"
                       onClick={() => removePhoto(index)}

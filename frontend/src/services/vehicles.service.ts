@@ -1,33 +1,34 @@
 import api from '@/lib/api';
-import { Vehicle } from '@/types';
-import { PageResponse } from './leads.service';
+import {
+  VehicleCreateRequestDTO,
+  VehicleResponseDTO,
+  VehicleStatusDTO,
+  VehicleUpdateRequestDTO,
+} from '@/types/api/vehicles';
 
 export interface VehicleFilters {
-  page?: number;
-  size?: number;
   search?: string;
-  status?: string;
-  categoria?: string;
+  status?: VehicleStatusDTO;
 }
 
 export const vehiclesService = {
-  async list(filters?: VehicleFilters): Promise<PageResponse<Vehicle>> {
-    const response = await api.get<PageResponse<Vehicle>>('/vehicles', { params: filters });
+  async list(filters?: VehicleFilters): Promise<VehicleResponseDTO[]> {
+    const response = await api.get<VehicleResponseDTO[]>('/vehicles', { params: filters });
     return response.data;
   },
 
-  async getById(id: string): Promise<Vehicle> {
-    const response = await api.get<Vehicle>(`/vehicles/${id}`);
+  async getById(id: string): Promise<VehicleResponseDTO> {
+    const response = await api.get<VehicleResponseDTO>(`/vehicles/${id}`);
     return response.data;
   },
 
-  async create(data: Partial<Vehicle>): Promise<Vehicle> {
-    const response = await api.post<Vehicle>('/vehicles', data);
+  async create(data: VehicleCreateRequestDTO): Promise<VehicleResponseDTO> {
+    const response = await api.post<VehicleResponseDTO>('/vehicles', data);
     return response.data;
   },
 
-  async update(id: string, data: Partial<Vehicle>): Promise<Vehicle> {
-    const response = await api.put<Vehicle>(`/vehicles/${id}`, data);
+  async update(id: string, data: VehicleUpdateRequestDTO): Promise<VehicleResponseDTO> {
+    const response = await api.put<VehicleResponseDTO>(`/vehicles/${id}`, data);
     return response.data;
   },
 

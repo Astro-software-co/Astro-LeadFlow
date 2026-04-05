@@ -11,15 +11,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { formatTimeAgo } from '@/lib/formatters';
 
 const navItems = [
   { label: 'Dashboard', path: '/app/dashboard' },
@@ -40,25 +37,16 @@ export function Header() {
     navigate('/app/login');
   };
 
-  const formatTimeAgo = (date: Date) => {
-    const now = new Date();
-    const diffMs = now.getTime() - new Date(date).getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMins / 60);
-    const diffDays = Math.floor(diffHours / 24);
-
-    if (diffMins < 1) return 'Agora';
-    if (diffMins < 60) return `${diffMins}m atrás`;
-    if (diffHours < 24) return `${diffHours}h atrás`;
-    return `${diffDays}d atrás`;
-  };
-
   const getNotificationIcon = (type: string) => {
     switch (type) {
-      case 'success': return 'bg-kanban-completed/10 text-kanban-completed';
-      case 'warning': return 'bg-kanban-waiting/10 text-kanban-waiting';
-      case 'error': return 'bg-destructive/10 text-destructive';
-      default: return 'bg-primary/10 text-primary';
+      case 'success':
+        return 'bg-kanban-completed/10 text-kanban-completed';
+      case 'warning':
+        return 'bg-kanban-waiting/10 text-kanban-waiting';
+      case 'error':
+        return 'bg-destructive/10 text-destructive';
+      default:
+        return 'bg-primary/10 text-primary';
     }
   };
 
@@ -81,9 +69,7 @@ export function Header() {
               className={({ isActive }) =>
                 cn(
                   'px-4 py-2 text-sm font-medium rounded-md transition-colors',
-                  isActive
-                    ? 'text-primary bg-primary/5'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                  isActive ? 'text-primary bg-primary/5' : 'text-muted-foreground hover:text-foreground hover:bg-muted',
                 )
               }
             >
@@ -109,7 +95,12 @@ export function Header() {
               <div className="flex items-center justify-between border-b border-border/50 px-4 py-3">
                 <h4 className="font-semibold text-foreground">Notificações</h4>
                 {unreadCount > 0 && (
-                  <Button variant="ghost" size="sm" onClick={markAllAsRead} className="text-xs text-muted-foreground hover:text-foreground">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={markAllAsRead}
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                  >
                     <Check className="mr-1 h-3 w-3" />
                     Marcar todas como lidas
                   </Button>
@@ -128,19 +119,32 @@ export function Header() {
                         key={notification.id}
                         className={cn(
                           'flex gap-3 px-4 py-3 hover:bg-muted/50 transition-colors cursor-pointer',
-                          !notification.read && 'bg-primary/5'
+                          !notification.read && 'bg-primary/5',
                         )}
                         onClick={() => markAsRead(notification.id)}
                       >
-                        <div className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-full', getNotificationIcon(notification.type))}>
+                        <div
+                          className={cn(
+                            'flex h-8 w-8 shrink-0 items-center justify-center rounded-full',
+                            getNotificationIcon(notification.type),
+                          )}
+                        >
                           <Bell className="h-4 w-4" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-foreground truncate">{notification.title}</p>
                           <p className="text-xs text-muted-foreground line-clamp-2">{notification.message}</p>
-                          <p className="text-[10px] text-muted-foreground mt-1">{formatTimeAgo(notification.createdAt)}</p>
+                          <p className="text-[10px] text-muted-foreground mt-1">
+                            {formatTimeAgo(notification.createdAt)}
+                          </p>
                         </div>
-                        <button onClick={(e) => { e.stopPropagation(); removeNotification(notification.id); }} className="shrink-0 p-1 rounded hover:bg-muted">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeNotification(notification.id);
+                          }}
+                          className="shrink-0 p-1 rounded hover:bg-muted"
+                        >
                           <X className="h-3 w-3 text-muted-foreground" />
                         </button>
                       </div>

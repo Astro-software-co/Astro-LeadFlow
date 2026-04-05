@@ -1,16 +1,9 @@
 import { TrendingUp } from 'lucide-react';
 import { RecentSale } from '@/types';
+import { formatCurrency } from '@/lib/formatters';
 
 interface RecentSalesTableProps {
   sales: RecentSale[];
-}
-
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-    minimumFractionDigits: 0,
-  }).format(value);
 }
 
 export function RecentSalesTable({ sales }: RecentSalesTableProps) {
@@ -51,25 +44,19 @@ export function RecentSalesTable({ sales }: RecentSalesTableProps) {
                   Nenhuma venda recente
                 </td>
               </tr>
-            ) : sales.map((sale, index) => (
-              <tr key={index} className="hover:bg-muted/20 transition-colors">
-                <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-foreground">
-                  {sale.cliente}
-                </td>
-                <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">
-                  {sale.veiculo}
-                </td>
-                <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-chart-primary">
-                  {formatCurrency(sale.valor)}
-                </td>
-                <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">
-                  {sale.data}
-                </td>
-                <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">
-                  {sale.vendedor}
-                </td>
-              </tr>
-            ))}
+            ) : (
+              sales.map((sale, index) => (
+                <tr key={index} className="hover:bg-muted/20 transition-colors">
+                  <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-foreground">{sale.cliente}</td>
+                  <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">{sale.veiculo}</td>
+                  <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-chart-primary">
+                    {formatCurrency(sale.valor)}
+                  </td>
+                  <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">{sale.data}</td>
+                  <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">{sale.vendedor}</td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

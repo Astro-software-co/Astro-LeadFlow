@@ -25,12 +25,7 @@ export function KPICard({ title, value, trend, icon: Icon, iconBgColor = 'bg-pri
             ) : (
               <TrendingDown className="h-4 w-4 text-trend-negative" />
             )}
-            <span
-              className={cn(
-                'text-sm font-medium',
-                isPositive ? 'text-trend-positive' : 'text-trend-negative'
-              )}
-            >
+            <span className={cn('text-sm font-medium', isPositive ? 'text-trend-positive' : 'text-trend-negative')}>
               {trendText}
             </span>
             <span className="text-sm text-muted-foreground">vs mês anterior</span>

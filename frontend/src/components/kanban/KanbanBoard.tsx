@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { DragDropContext, DropResult } from '@hello-pangea/dnd';
 import { KanbanCard, KanbanColumn } from '@/types';
 import { KanbanColumnComponent } from './KanbanColumn';
@@ -8,21 +8,49 @@ import { useNotifications } from '@/contexts/NotificationContext';
 
 interface KanbanBoardProps {
   initialCards: KanbanCard[];
+  onMoveLead?: (leadId: string, stage: KanbanColumn) => Promise<void> | void;
+  onArchiveLead?: (leadId: string) => Promise<void> | void;
 }
 
 const columns: { id: KanbanColumn; title: string; description: string }[] = [
-  { id: 'chatbot', title: 'Falando com Chatbot', description: 'Leads que estão interagindo com o chatbot automatizado. Os dados estão sendo coletados antes do atendimento humano.' },
-  { id: 'aguardando', title: 'Aguardando atendimento', description: 'Leads qualificados aguardando um vendedor assumir o atendimento. Clique em "Assumir" para iniciar.' },
-  { id: 'aguardando_documentacao', title: 'Aguardando documentação', description: 'Leads que já foram atendidos mas aguardam envio ou verificação de documentos para prosseguir.' },
-  { id: 'negociacao', title: 'Em negociação', description: 'Leads em processo ativo de negociação com um vendedor. Inclui propostas, contrapropostas e financiamento.' },
-  { id: 'concluido', title: 'Concluído', description: 'Vendas finalizadas com sucesso. O veículo foi entregue e a documentação concluída.' },
+  {
+    id: 'chatbot',
+    title: 'Falando com Chatbot',
+    description:
+      'Leads que estão interagindo com o chatbot automatizado. Os dados estão sendo coletados antes do atendimento humano.',
+  },
+  {
+    id: 'aguardando',
+    title: 'Aguardando atendimento',
+    description: 'Leads qualificados aguardando um vendedor assumir o atendimento. Clique em "Assumir" para iniciar.',
+  },
+  {
+    id: 'aguardando_documentacao',
+    title: 'Aguardando documentação',
+    description: 'Leads que já foram atendidos mas aguardam envio ou verificação de documentos para prosseguir.',
+  },
+  {
+    id: 'negociacao',
+    title: 'Em negociação',
+    description:
+      'Leads em processo ativo de negociação com um vendedor. Inclui propostas, contrapropostas e financiamento.',
+  },
+  {
+    id: 'concluido',
+    title: 'Concluído',
+    description: 'Vendas finalizadas com sucesso. O veículo foi entregue e a documentação concluída.',
+  },
 ];
 
-export function KanbanBoard({ initialCards }: KanbanBoardProps) {
+export function KanbanBoard({ initialCards, onMoveLead, onArchiveLead }: KanbanBoardProps) {
   const [cards, setCards] = useState<KanbanCard[]>(initialCards);
   const [selectedCard, setSelectedCard] = useState<KanbanCard | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const { addNotification } = useNotifications();
+
+  useEffect(() => {
+    setCards(initialCards);
+  }, [initialCards]);
 
   const getCardsByColumn = (column: KanbanColumn) => cards.filter((card) => card.coluna === column);
 
@@ -34,14 +62,18 @@ export function KanbanBoard({ initialCards }: KanbanBoardProps) {
     const newColumn = destination.droppableId as KanbanColumn;
     const card = cards.find((c) => c.id === draggableId);
 
-    setCards((prevCards) =>
-      prevCards.map((card) => (card.id === draggableId ? { ...card, coluna: newColumn } : card))
-    );
+    setCards((prevCards) => prevCards.map((card) => (card.id === draggableId ? { ...card, coluna: newColumn } : card)));
+
+    if (card && onMoveLead) {
+      void Promise.resolve(onMoveLead(card.leadId, newColumn)).catch(() => {
+        toast.error('Nao foi possivel mover o lead. Atualize a pagina e tente novamente.');
+      });
+    }
 
     if (card) {
       addNotification({
         title: 'Card movido',
-        message: `${card.lead.nome} foi movido para ${columns.find(c => c.id === newColumn)?.title}`,
+        message: `${card.lead.nome} foi movido para ${columns.find((c) => c.id === newColumn)?.title}`,
         type: 'info',
       });
     }
@@ -62,10 +94,23 @@ export function KanbanBoard({ initialCards }: KanbanBoardProps) {
     setCards((prevCards) =>
       prevCards.map((card) =>
         card.id === cardId
-          ? { ...card, coluna: 'negociacao', vendedorId: 'current-user', vendedorNome: 'Você', tags: [...card.tags, { type: 'seller' as const, label: 'Você' }] }
-          : card
-      )
+          ? {
+              ...card,
+              coluna: 'negociacao',
+              vendedorId: 'current-user',
+              vendedorNome: 'Você',
+              tags: [...card.tags, { type: 'seller' as const, label: 'Você' }],
+            }
+          : card,
+      ),
     );
+
+    if (card && onMoveLead) {
+      void Promise.resolve(onMoveLead(card.leadId, 'negociacao')).catch(() => {
+        toast.error('Nao foi possivel assumir o lead agora.');
+      });
+    }
+
     if (card) {
       addNotification({ title: 'Lead assumido', message: `Você assumiu o lead de ${card.lead.nome}`, type: 'success' });
     }
@@ -80,8 +125,19 @@ export function KanbanBoard({ initialCards }: KanbanBoardProps) {
     const nextColumn = columnOrder[currentIndex + 1];
     if (nextColumn) {
       setCards((prevCards) => prevCards.map((c) => (c.id === cardId ? { ...c, coluna: nextColumn } : c)));
+
+      if (onMoveLead) {
+        void Promise.resolve(onMoveLead(card.leadId, nextColumn)).catch(() => {
+          toast.error('Nao foi possivel avancar o lead agora.');
+        });
+      }
+
       if (nextColumn === 'concluido') {
-        addNotification({ title: 'Venda concluída!', message: `Lead de ${card.lead.nome} foi finalizado com sucesso`, type: 'success' });
+        addNotification({
+          title: 'Venda concluída!',
+          message: `Lead de ${card.lead.nome} foi finalizado com sucesso`,
+          type: 'success',
+        });
       }
       toast.success('Card avançado!');
     }
@@ -89,6 +145,13 @@ export function KanbanBoard({ initialCards }: KanbanBoardProps) {
 
   const handleArchive = (cardId: string) => {
     const card = cards.find((c) => c.id === cardId);
+
+    if (card && onArchiveLead) {
+      void Promise.resolve(onArchiveLead(card.leadId)).catch(() => {
+        toast.error('Nao foi possivel arquivar o lead agora.');
+      });
+    }
+
     setCards((prevCards) => prevCards.filter((card) => card.id !== cardId));
     if (card) {
       addNotification({ title: 'Card arquivado', message: `Lead de ${card.lead.nome} foi arquivado`, type: 'info' });

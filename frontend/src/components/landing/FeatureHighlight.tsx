@@ -11,11 +11,7 @@ const bullets = [
 const kanbanColumns = [
   {
     title: 'Novo',
-    cards: [
-      { variant: 'blue' },
-      { variant: 'default' },
-      { variant: 'default' },
-    ],
+    cards: [{ variant: 'blue' }, { variant: 'default' }, { variant: 'default' }],
   },
   {
     title: 'Qualificado',
@@ -32,9 +28,7 @@ export function FeatureHighlight() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const prefersReducedMotion = window.matchMedia(
-      '(prefers-reduced-motion: reduce)'
-    ).matches;
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) {
       setIsVisible(true);
       return;
@@ -46,7 +40,7 @@ export function FeatureHighlight() {
           observer.disconnect();
         }
       },
-      { threshold: 0.1, rootMargin: '0px 0px -64px 0px' }
+      { threshold: 0.1, rootMargin: '0px 0px -64px 0px' },
     );
     if (sectionRef.current) observer.observe(sectionRef.current);
     return () => observer.disconnect();
@@ -57,16 +51,14 @@ export function FeatureHighlight() {
       ref={sectionRef}
       className={cn(
         'bg-slate-50 py-16 md:py-24 transition-all duration-700 ease-out',
-        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8',
       )}
     >
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Copy */}
           <div>
-            <p className="text-sm font-bold text-primary uppercase tracking-widest">
-              Pipeline Kanban
-            </p>
+            <p className="text-sm font-bold text-primary uppercase tracking-widest">Pipeline Kanban</p>
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mt-3">
               Arraste leads entre etapas. Sem planilhas. Sem confusao.
             </h2>
@@ -91,17 +83,13 @@ export function FeatureHighlight() {
               <div className="grid grid-cols-3 gap-3">
                 {kanbanColumns.map((col) => (
                   <div key={col.title} className="flex flex-col gap-2">
-                    <p className="text-xs font-bold text-slate-500 uppercase mb-2 text-center">
-                      {col.title}
-                    </p>
+                    <p className="text-xs font-bold text-slate-500 uppercase mb-2 text-center">{col.title}</p>
                     {col.cards.map((card, i) => (
                       <div
                         key={i}
                         className={cn(
                           'h-12 rounded-lg border',
-                          card.variant === 'blue'
-                            ? 'bg-blue-50 border-blue-200'
-                            : 'bg-slate-100 border-slate-200'
+                          card.variant === 'blue' ? 'bg-blue-50 border-blue-200' : 'bg-slate-100 border-slate-200',
                         )}
                       />
                     ))}

@@ -1,31 +1,25 @@
 import api from '@/lib/api';
-import { KPIData, MonthlySalesData, CategorySalesData, RecentSale } from '@/types';
+import { CategorySalesPointDTO, KpiResponseDTO, MonthlySalesPointDTO } from '@/types/api/analytics';
 
 export interface DashboardData {
-  kpis: KPIData;
-  monthlySales: MonthlySalesData[];
-  categorySales: CategorySalesData[];
-  recentSales: RecentSale[];
+  kpis: KpiResponseDTO;
+  monthlySales: MonthlySalesPointDTO[];
+  categorySales: CategorySalesPointDTO[];
 }
 
 export const dashboardService = {
-  async getKPIs(): Promise<KPIData> {
-    const response = await api.get<KPIData>('/dashboard/kpis');
+  async getKPIs(): Promise<KpiResponseDTO> {
+    const response = await api.get<KpiResponseDTO>('/analytics/kpis');
     return response.data;
   },
 
-  async getMonthlySales(): Promise<MonthlySalesData[]> {
-    const response = await api.get<MonthlySalesData[]>('/dashboard/monthly-sales');
+  async getMonthlySales(): Promise<MonthlySalesPointDTO[]> {
+    const response = await api.get<MonthlySalesPointDTO[]>('/analytics/charts/monthly-sales');
     return response.data;
   },
 
-  async getCategorySales(): Promise<CategorySalesData[]> {
-    const response = await api.get<CategorySalesData[]>('/dashboard/category-sales');
-    return response.data;
-  },
-
-  async getRecentSales(): Promise<RecentSale[]> {
-    const response = await api.get<RecentSale[]>('/dashboard/recent-sales');
+  async getCategorySales(): Promise<CategorySalesPointDTO[]> {
+    const response = await api.get<CategorySalesPointDTO[]>('/analytics/charts/sales-by-category');
     return response.data;
   },
 };

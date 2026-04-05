@@ -1,12 +1,25 @@
 import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { MainLayout } from '@/components/layout/MainLayout';
 import { AddUserModal } from '@/components/modals/AddUserModal';
 import { EditUserModal } from '@/components/modals/EditUserModal';
 import {
-  Settings, Bell, Shield, CreditCard, UserPlus, Users, Trash2,
-  Sun, Moon, Monitor, Camera, Mail, Phone, Smartphone, Lock, Eye, EyeOff,
-  Check, X, FileText, Download,
+  Settings,
+  Bell,
+  Shield,
+  CreditCard,
+  UserPlus,
+  Users,
+  Trash2,
+  Sun,
+  Moon,
+  Monitor,
+  Camera,
+  Mail,
+  Phone,
+  Smartphone,
+  Check,
+  X,
+  Download,
 } from 'lucide-react';
 import { Seller, ThemeMode, AccentColor } from '@/types';
 import { cn } from '@/lib/utils';
@@ -18,6 +31,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { formatTimeAgo } from '@/lib/formatters';
 
 const initialUsers: Seller[] = [
   { id: '1', nome: 'Carlos Mendes', email: 'carlos@v3motors.com', role: 'ADMIN' },
@@ -49,12 +63,18 @@ export default function Configuracoes() {
 
   // Notification preferences
   const [notifPrefs, setNotifPrefs] = useState({
-    newLead: true, leadWaiting: true, saleCompleted: true, cardMoved: false, email: false, push: true,
+    newLead: true,
+    leadWaiting: true,
+    saleCompleted: true,
+    cardMoved: false,
+    email: false,
+    push: true,
   });
 
   // Security
   const [securitySettings, setSecuritySettings] = useState({
-    emailMfa: false, smsMfa: false,
+    emailMfa: false,
+    smsMfa: false,
   });
 
   const handleAddUser = (userData: Omit<Seller, 'id'>) => {
@@ -75,17 +95,6 @@ export default function Configuracoes() {
     toast.success('Usuário removido com sucesso!');
   };
 
-  const formatTimeAgo = (date: Date) => {
-    const now = new Date();
-    const diffMs = now.getTime() - new Date(date).getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMins / 60);
-    if (diffMins < 1) return 'Agora';
-    if (diffMins < 60) return `${diffMins}m atrás`;
-    if (diffHours < 24) return `${diffHours}h atrás`;
-    return `${Math.floor(diffHours / 24)}d atrás`;
-  };
-
   const tabs = [
     { id: 'general', label: 'Geral', icon: Settings },
     { id: 'notifications', label: 'Notificações', icon: Bell },
@@ -94,7 +103,7 @@ export default function Configuracoes() {
   ];
 
   return (
-    <MainLayout>
+    <>
       <Helmet>
         <title>Configuracoes — Astro LeadFlow</title>
         <meta name="description" content="Gerencie perfil, equipe e preferencias do sistema." />
@@ -115,7 +124,7 @@ export default function Configuracoes() {
                 'flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px',
                 activeSection === tab.id
                   ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
+                  : 'border-transparent text-muted-foreground hover:text-foreground',
               )}
             >
               <tab.icon className="h-4 w-4" />
@@ -145,7 +154,9 @@ export default function Configuracoes() {
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-foreground">Carlos Mendes</p>
                   <p className="text-xs text-muted-foreground">carlos@v3motors.com</p>
-                  <Button variant="outline" size="sm" className="mt-2 text-xs">Alterar foto</Button>
+                  <Button variant="outline" size="sm" className="mt-2 text-xs">
+                    Alterar foto
+                  </Button>
                 </div>
               </div>
             </div>
@@ -165,7 +176,13 @@ export default function Configuracoes() {
                     <Label className="text-sm font-medium">E-mail</Label>
                     <p className="text-sm text-muted-foreground">carlos@v3motors.com</p>
                   </div>
-                  <Button variant="outline" size="sm" onClick={() => toast.info('Código de verificação enviado para o novo e-mail')}>Alterar</Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => toast.info('Código de verificação enviado para o novo e-mail')}
+                  >
+                    Alterar
+                  </Button>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-kanban-completed/10">
@@ -175,7 +192,9 @@ export default function Configuracoes() {
                     <Label className="text-sm font-medium">Telefone</Label>
                     <p className="text-sm text-muted-foreground">(11) 99999-9999</p>
                   </div>
-                  <Button variant="outline" size="sm" onClick={() => toast.info('SMS de verificação enviado')}>Alterar</Button>
+                  <Button variant="outline" size="sm" onClick={() => toast.info('SMS de verificação enviado')}>
+                    Alterar
+                  </Button>
                 </div>
               </div>
             </div>
@@ -193,12 +212,15 @@ export default function Configuracoes() {
                     {themeOptions.map((option) => (
                       <button
                         key={option.value}
-                        onClick={() => { setTheme(option.value); toast.success(`Tema alterado para ${option.label}`); }}
+                        onClick={() => {
+                          setTheme(option.value);
+                          toast.success(`Tema alterado para ${option.label}`);
+                        }}
                         className={cn(
                           'flex items-center gap-2 rounded-lg border px-4 py-3 transition-all',
                           theme === option.value
                             ? 'border-primary bg-primary/10 text-primary'
-                            : 'border-border/50 hover:border-foreground/20 text-muted-foreground hover:text-foreground'
+                            : 'border-border/50 hover:border-foreground/20 text-muted-foreground hover:text-foreground',
                         )}
                       >
                         {option.icon}
@@ -213,16 +235,24 @@ export default function Configuracoes() {
                     {accentColors.map((color) => (
                       <button
                         key={color.value}
-                        onClick={() => { setAccentColor(color.value); toast.success(`Cor alterada para ${color.label}`); }}
+                        onClick={() => {
+                          setAccentColor(color.value);
+                          toast.success(`Cor alterada para ${color.label}`);
+                        }}
                         className={cn(
                           'flex items-center gap-2 rounded-lg border px-4 py-3 transition-all',
                           accentColor === color.value
                             ? 'border-primary bg-primary/10'
-                            : 'border-border/50 hover:border-foreground/20'
+                            : 'border-border/50 hover:border-foreground/20',
                         )}
                       >
                         <div className={cn('h-4 w-4 rounded-full', color.color)} />
-                        <span className={cn('font-medium', accentColor === color.value ? 'text-foreground' : 'text-muted-foreground')}>
+                        <span
+                          className={cn(
+                            'font-medium',
+                            accentColor === color.value ? 'text-foreground' : 'text-muted-foreground',
+                          )}
+                        >
                           {color.label}
                         </span>
                       </button>
@@ -261,10 +291,18 @@ export default function Configuracoes() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-border/50 bg-muted/30">
-                      <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Nome</th>
-                      <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">E-mail</th>
-                      <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Permissão</th>
-                      <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Ações</th>
+                      <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                        Nome
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                        E-mail
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                        Permissão
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                        Ações
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/50">
@@ -273,18 +311,35 @@ export default function Configuracoes() {
                         <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-foreground">{user.nome}</td>
                         <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">{user.email}</td>
                         <td className="whitespace-nowrap px-6 py-4">
-                          <span className={cn(
-                            'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium',
-                            user.role === 'ADMIN' ? 'bg-kanban-negotiation/10 text-kanban-negotiation' : 'bg-kanban-completed/10 text-kanban-completed'
-                          )}>
-                            <div className={cn('h-1.5 w-1.5 rounded-full', user.role === 'ADMIN' ? 'bg-kanban-negotiation' : 'bg-kanban-completed')} />
+                          <span
+                            className={cn(
+                              'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium',
+                              user.role === 'ADMIN'
+                                ? 'bg-kanban-negotiation/10 text-kanban-negotiation'
+                                : 'bg-kanban-completed/10 text-kanban-completed',
+                            )}
+                          >
+                            <div
+                              className={cn(
+                                'h-1.5 w-1.5 rounded-full',
+                                user.role === 'ADMIN' ? 'bg-kanban-negotiation' : 'bg-kanban-completed',
+                              )}
+                            />
                             {user.role === 'ADMIN' ? 'Administrador' : 'Vendedor'}
                           </span>
                         </td>
                         <td className="whitespace-nowrap px-6 py-4">
                           <div className="flex items-center gap-2">
-                            <button onClick={() => handleEditUser(user)} className="text-sm font-medium text-primary hover:text-primary/80 transition-colors">Editar</button>
-                            <button onClick={() => handleDeleteUser(user.id)} className="text-sm font-medium text-destructive hover:text-destructive/80 transition-colors">
+                            <button
+                              onClick={() => handleEditUser(user)}
+                              className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+                            >
+                              Editar
+                            </button>
+                            <button
+                              onClick={() => handleDeleteUser(user.id)}
+                              className="text-sm font-medium text-destructive hover:text-destructive/80 transition-colors"
+                            >
                               <Trash2 className="h-4 w-4" />
                             </button>
                           </div>
@@ -310,16 +365,30 @@ export default function Configuracoes() {
               <div className="p-6 space-y-4">
                 {[
                   { key: 'newLead' as const, label: 'Novo lead', desc: 'Quando um novo lead entra no chatbot' },
-                  { key: 'leadWaiting' as const, label: 'Lead aguardando', desc: 'Quando um lead está aguardando atendimento há mais de 10 minutos' },
-                  { key: 'saleCompleted' as const, label: 'Venda concluída', desc: 'Quando uma venda é finalizada com sucesso' },
+                  {
+                    key: 'leadWaiting' as const,
+                    label: 'Lead aguardando',
+                    desc: 'Quando um lead está aguardando atendimento há mais de 10 minutos',
+                  },
+                  {
+                    key: 'saleCompleted' as const,
+                    label: 'Venda concluída',
+                    desc: 'Quando uma venda é finalizada com sucesso',
+                  },
                   { key: 'cardMoved' as const, label: 'Card movido', desc: 'Quando um card é movido entre colunas' },
                 ].map((item) => (
-                  <div key={item.key} className="flex items-center justify-between rounded-lg border border-border/50 p-4">
+                  <div
+                    key={item.key}
+                    className="flex items-center justify-between rounded-lg border border-border/50 p-4"
+                  >
                     <div>
                       <Label className="text-sm font-medium">{item.label}</Label>
                       <p className="text-xs text-muted-foreground">{item.desc}</p>
                     </div>
-                    <Switch checked={notifPrefs[item.key]} onCheckedChange={(v) => setNotifPrefs((p) => ({ ...p, [item.key]: v }))} />
+                    <Switch
+                      checked={notifPrefs[item.key]}
+                      onCheckedChange={(v) => setNotifPrefs((p) => ({ ...p, [item.key]: v }))}
+                    />
                   </div>
                 ))}
               </div>
@@ -334,16 +403,28 @@ export default function Configuracoes() {
                 <div className="flex items-center justify-between rounded-lg border border-border/50 p-4">
                   <div className="flex items-center gap-3">
                     <Mail className="h-5 w-5 text-muted-foreground" />
-                    <div><Label className="text-sm font-medium">E-mail</Label><p className="text-xs text-muted-foreground">Receber notificações por e-mail</p></div>
+                    <div>
+                      <Label className="text-sm font-medium">E-mail</Label>
+                      <p className="text-xs text-muted-foreground">Receber notificações por e-mail</p>
+                    </div>
                   </div>
-                  <Switch checked={notifPrefs.email} onCheckedChange={(v) => setNotifPrefs((p) => ({ ...p, email: v }))} />
+                  <Switch
+                    checked={notifPrefs.email}
+                    onCheckedChange={(v) => setNotifPrefs((p) => ({ ...p, email: v }))}
+                  />
                 </div>
                 <div className="flex items-center justify-between rounded-lg border border-border/50 p-4">
                   <div className="flex items-center gap-3">
                     <Bell className="h-5 w-5 text-muted-foreground" />
-                    <div><Label className="text-sm font-medium">Push no navegador</Label><p className="text-xs text-muted-foreground">Notificações em tempo real</p></div>
+                    <div>
+                      <Label className="text-sm font-medium">Push no navegador</Label>
+                      <p className="text-xs text-muted-foreground">Notificações em tempo real</p>
+                    </div>
                   </div>
-                  <Switch checked={notifPrefs.push} onCheckedChange={(v) => setNotifPrefs((p) => ({ ...p, push: v }))} />
+                  <Switch
+                    checked={notifPrefs.push}
+                    onCheckedChange={(v) => setNotifPrefs((p) => ({ ...p, push: v }))}
+                  />
                 </div>
               </div>
             </div>
@@ -370,14 +451,25 @@ export default function Configuracoes() {
                 ) : (
                   <div className="divide-y divide-border/50">
                     {notifications.map((n) => (
-                      <div key={n.id} className={cn('flex items-start gap-3 px-6 py-4 hover:bg-muted/30 transition-colors', !n.read && 'bg-primary/5')}>
-                        <div className={cn(
-                          'flex h-8 w-8 shrink-0 items-center justify-center rounded-full mt-0.5',
-                          n.type === 'success' ? 'bg-kanban-completed/10 text-kanban-completed' :
-                          n.type === 'warning' ? 'bg-kanban-waiting/10 text-kanban-waiting' :
-                          n.type === 'error' ? 'bg-destructive/10 text-destructive' :
-                          'bg-primary/10 text-primary'
-                        )}>
+                      <div
+                        key={n.id}
+                        className={cn(
+                          'flex items-start gap-3 px-6 py-4 hover:bg-muted/30 transition-colors',
+                          !n.read && 'bg-primary/5',
+                        )}
+                      >
+                        <div
+                          className={cn(
+                            'flex h-8 w-8 shrink-0 items-center justify-center rounded-full mt-0.5',
+                            n.type === 'success'
+                              ? 'bg-kanban-completed/10 text-kanban-completed'
+                              : n.type === 'warning'
+                                ? 'bg-kanban-waiting/10 text-kanban-waiting'
+                                : n.type === 'error'
+                                  ? 'bg-destructive/10 text-destructive'
+                                  : 'bg-primary/10 text-primary',
+                          )}
+                        >
                           <Bell className="h-4 w-4" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -387,11 +479,19 @@ export default function Configuracoes() {
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
                           {!n.read && (
-                            <button onClick={() => markAsRead(n.id)} className="p-1 rounded hover:bg-muted" title="Marcar como lida">
+                            <button
+                              onClick={() => markAsRead(n.id)}
+                              className="p-1 rounded hover:bg-muted"
+                              title="Marcar como lida"
+                            >
                               <Check className="h-3.5 w-3.5 text-muted-foreground" />
                             </button>
                           )}
-                          <button onClick={() => removeNotification(n.id)} className="p-1 rounded hover:bg-muted" title="Remover">
+                          <button
+                            onClick={() => removeNotification(n.id)}
+                            className="p-1 rounded hover:bg-muted"
+                            title="Remover"
+                          >
                             <X className="h-3.5 w-3.5 text-muted-foreground" />
                           </button>
                         </div>
@@ -442,7 +542,9 @@ export default function Configuracoes() {
                     </div>
                     <div>
                       <Label className="text-sm font-medium">Verificação por E-mail</Label>
-                      <p className="text-xs text-muted-foreground">Receba um código de verificação no seu e-mail ao fazer login</p>
+                      <p className="text-xs text-muted-foreground">
+                        Receba um código de verificação no seu e-mail ao fazer login
+                      </p>
                     </div>
                   </div>
                   <Switch
@@ -460,7 +562,9 @@ export default function Configuracoes() {
                     </div>
                     <div>
                       <Label className="text-sm font-medium">Verificação por SMS</Label>
-                      <p className="text-xs text-muted-foreground">Receba um código via SMS no seu celular ao fazer login</p>
+                      <p className="text-xs text-muted-foreground">
+                        Receba um código via SMS no seu celular ao fazer login
+                      </p>
                     </div>
                   </div>
                   <Switch
@@ -509,13 +613,19 @@ export default function Configuracoes() {
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary mb-2">
                       Plano Profissional
                     </span>
-                    <p className="text-2xl font-bold text-foreground">R$ 299<span className="text-sm font-normal text-muted-foreground">/mês</span></p>
+                    <p className="text-2xl font-bold text-foreground">
+                      R$ 299<span className="text-sm font-normal text-muted-foreground">/mês</span>
+                    </p>
                     <p className="text-sm text-muted-foreground mt-1">Renovação automática em 15/03/2026</p>
                   </div>
                   <div className="space-y-2">
-                    <Button variant="outline" size="sm">Alterar plano</Button>
+                    <Button variant="outline" size="sm">
+                      Alterar plano
+                    </Button>
                     <br />
-                    <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">Cancelar</Button>
+                    <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                      Cancelar
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -530,11 +640,21 @@ export default function Configuracoes() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-border/50 bg-muted/30">
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Data</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Descrição</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Valor</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">NF</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                        Data
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                        Descrição
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                        Valor
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                        NF
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/50">
@@ -578,7 +698,9 @@ export default function Configuracoes() {
                       <p className="text-xs text-muted-foreground">Expira em 12/2027</p>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm">Alterar</Button>
+                  <Button variant="outline" size="sm">
+                    Alterar
+                  </Button>
                 </div>
               </div>
             </div>
@@ -587,7 +709,12 @@ export default function Configuracoes() {
       </div>
 
       <AddUserModal open={isUserModalOpen} onOpenChange={setIsUserModalOpen} onSubmit={handleAddUser} />
-      <EditUserModal open={isEditModalOpen} onOpenChange={setIsEditModalOpen} user={editingUser} onSubmit={handleUpdateUser} />
-    </MainLayout>
+      <EditUserModal
+        open={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
+        user={editingUser}
+        onSubmit={handleUpdateUser}
+      />
+    </>
   );
 }

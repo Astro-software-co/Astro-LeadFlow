@@ -12,9 +12,7 @@ function makeWrapper() {
     },
   });
   return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 }
 
@@ -66,7 +64,7 @@ describe('AuthContext', () => {
       expect(screen.getByTestId('auth-status')).toHaveTextContent('authenticated');
     });
     expect(screen.getByTestId('user-name')).toHaveTextContent('Usuário Demo');
-    // Tokens are now in-memory (not localStorage) per SEC-001
+    // Tokens are in-memory per SEC-001
     expect(tokenStore.accessToken).toBe('mock-token');
   });
 
@@ -93,7 +91,7 @@ describe('AuthContext', () => {
 
   it('stays anonymous after page refresh (in-memory tokens are not persisted)', () => {
     // SEC-001: tokens are in-memory only — lost on page reload, user must re-login
-    // Previously this test checked localStorage restoration; that behavior is removed.
+    // Previous persistence behavior was removed.
     const Wrapper = makeWrapper();
     render(
       <Wrapper>

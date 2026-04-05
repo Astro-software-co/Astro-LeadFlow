@@ -16,37 +16,30 @@ export function SalesLineChart({ data }: SalesLineChartProps) {
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis 
-              dataKey="month" 
-              stroke="hsl(var(--muted-foreground))"
-              fontSize={12}
-            />
-            <YAxis 
-              stroke="hsl(var(--muted-foreground))"
-              fontSize={12}
-            />
-            <Tooltip 
-              contentStyle={{ 
+            <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+            <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+            <Tooltip
+              contentStyle={{
                 backgroundColor: 'hsl(var(--card))',
                 border: '1px solid hsl(var(--border))',
                 borderRadius: '8px',
               }}
             />
             <Legend />
-            <Line 
-              type="monotone" 
-              dataKey="vendas" 
+            <Line
+              type="monotone"
+              dataKey="vendas"
               name="Vendas"
-              stroke="hsl(var(--chart-primary))" 
+              stroke="hsl(var(--chart-primary))"
               strokeWidth={2}
               dot={{ fill: 'hsl(var(--chart-primary))', strokeWidth: 2 }}
               activeDot={{ r: 6 }}
             />
-            <Line 
-              type="monotone" 
-              dataKey="receita" 
+            <Line
+              type="monotone"
+              dataKey="receita"
               name="Receita (K)"
-              stroke="hsl(var(--chart-secondary))" 
+              stroke="hsl(var(--chart-secondary))"
               strokeWidth={2}
               dot={{ fill: 'hsl(var(--chart-secondary))', strokeWidth: 2 }}
               activeDot={{ r: 6 }}

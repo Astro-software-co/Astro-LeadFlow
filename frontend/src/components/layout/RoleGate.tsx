@@ -15,9 +15,7 @@ function DefaultFallback() {
       </div>
       <div>
         <h2 className="text-xl font-semibold text-foreground">Acesso restrito</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Voce nao tem permissao para acessar esta pagina.
-        </p>
+        <p className="mt-1 text-sm text-muted-foreground">Voce nao tem permissao para acessar esta pagina.</p>
       </div>
     </div>
   );

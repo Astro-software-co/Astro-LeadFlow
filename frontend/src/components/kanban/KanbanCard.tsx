@@ -1,6 +1,7 @@
 import { Car, User, Archive, ChevronRight } from 'lucide-react';
 import { KanbanCard as KanbanCardType, CardTag } from '@/types';
 import { cn } from '@/lib/utils';
+import { formatCurrency } from '@/lib/formatters';
 
 interface KanbanCardProps {
   card: KanbanCardType;
@@ -23,14 +24,6 @@ const statusVariantStyles: Record<string, string> = {
   waiting: 'bg-kanban-waiting/10 text-kanban-waiting border-kanban-waiting/20',
 };
 
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-    minimumFractionDigits: 0,
-  }).format(value);
-}
-
 export function KanbanCardComponent({ card, onAssume, onAdvance, onArchive, isDragging }: KanbanCardProps) {
   const showAssumeButton = card.coluna === 'aguardando' && !card.vendedorId;
   const showAdvanceButton = card.coluna !== 'concluido';
@@ -40,7 +33,7 @@ export function KanbanCardComponent({ card, onAssume, onAdvance, onArchive, isDr
     <div
       className={cn(
         'rounded-xl border bg-card p-4 shadow-sm transition-all',
-        isDragging ? 'rotate-2 scale-105 shadow-lg' : 'hover:shadow-md'
+        isDragging ? 'rotate-2 scale-105 shadow-lg' : 'hover:shadow-md',
       )}
     >
       <div className="space-y-3">
@@ -62,7 +55,7 @@ export function KanbanCardComponent({ card, onAssume, onAdvance, onArchive, isDr
                 key={index}
                 className={cn(
                   'inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium',
-                  style
+                  style,
                 )}
               >
                 {tag.type === 'vehicle' && <Car className="h-3 w-3" />}
@@ -74,24 +67,19 @@ export function KanbanCardComponent({ card, onAssume, onAdvance, onArchive, isDr
         </div>
 
         {/* Interest */}
-        {card.interesse && (
-          <p className="text-sm text-muted-foreground">
-            Interesse: {card.interesse}
-          </p>
-        )}
+        {card.interesse && <p className="text-sm text-muted-foreground">Interesse: {card.interesse}</p>}
 
         {/* Budget */}
-        {card.orcamento && (
-          <p className="text-sm text-muted-foreground">
-            Orçamento: {formatCurrency(card.orcamento)}
-          </p>
-        )}
+        {card.orcamento && <p className="text-sm text-muted-foreground">Orçamento: {formatCurrency(card.orcamento)}</p>}
 
         {/* Actions */}
         <div className="flex flex-wrap gap-2 pt-2">
           {showAssumeButton && (
             <button
-              onClick={(e) => { e.stopPropagation(); onAssume?.(); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onAssume?.();
+              }}
               className="inline-flex items-center gap-1 rounded-lg bg-primary px-2 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
             >
               <User className="h-3 w-3" />
@@ -100,7 +88,10 @@ export function KanbanCardComponent({ card, onAssume, onAdvance, onArchive, isDr
           )}
           {showArchiveButton && (
             <button
-              onClick={(e) => { e.stopPropagation(); onArchive?.(); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onArchive?.();
+              }}
               className="inline-flex items-center gap-1 rounded-lg border bg-card px-2 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted transition-colors"
             >
               <Archive className="h-3 w-3" />
@@ -109,7 +100,10 @@ export function KanbanCardComponent({ card, onAssume, onAdvance, onArchive, isDr
           )}
           {showAdvanceButton && (
             <button
-              onClick={(e) => { e.stopPropagation(); onAdvance?.(); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onAdvance?.();
+              }}
               className="inline-flex items-center gap-1 rounded-lg bg-kanban-completed px-2 py-1.5 text-xs font-medium text-white hover:bg-kanban-completed/90 transition-colors"
             >
               Avançar

@@ -1,4 +1,11 @@
 import api from '@/lib/api';
+import {
+  AuthResponseDTO,
+  LoginRequestDTO,
+  RefreshTokenRequestDTO,
+  RegisterOrganizationRequestDTO,
+  UserProfileResponseDTO,
+} from '@/types/api/auth';
 
 export interface LoginRequest {
   email: string;
@@ -6,16 +13,17 @@ export interface LoginRequest {
 }
 
 export interface RegisterRequest {
-  name: string;
-  email: string;
-  phone?: string;
+  organizationName: string;
+  slug: string;
+  adminName: string;
+  adminEmail: string;
   password: string;
 }
 
 export interface AuthResponse {
   accessToken: string;
   refreshToken: string;
-  expiresIn: number;
+  pendingTwoFactor: boolean;
 }
 
 export interface UserProfile {
@@ -26,30 +34,64 @@ export interface UserProfile {
   organizationId: string;
 }
 
+function mapTokenResponse(dto: AuthResponseDTO): AuthResponse {
+  if (!dto.accessToken || !dto.refreshToken) {
+    throw new Error('Resposta de autenticacao incompleta: tokens ausentes');
+  }
+
+  return {
+    accessToken: dto.accessToken,
+    refreshToken: dto.refreshToken,
+    pendingTwoFactor: dto.pendingTwoFactor,
+  };
+}
+
+function mapUserProfile(dto: UserProfileResponseDTO): UserProfile {
+  return {
+    id: dto.id,
+    name: dto.name,
+    email: dto.email,
+    role: dto.role,
+    organizationId: dto.organizationId ?? 'unknown',
+  };
+}
+
 export const authService = {
   async login(data: LoginRequest): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse>('/auth/login', data);
-    return response.data;
+    const payload: LoginRequestDTO = {
+      email: data.email,
+      password: data.password,
+    };
+
+    const response = await api.post<AuthResponseDTO>('/auth/login', payload);
+    return mapTokenResponse(response.data);
   },
 
   async register(data: RegisterRequest): Promise<AuthResponse> {
-    // Backend expects org onboarding fields — registration is private-only, handled in Plan 02
-    const response = await api.post<AuthResponse>('/auth/register', data);
-    return response.data;
+    const payload: RegisterOrganizationRequestDTO = {
+      organizationName: data.organizationName,
+      slug: data.slug,
+      adminName: data.adminName,
+      adminEmail: data.adminEmail,
+      password: data.password,
+    };
+
+    const response = await api.post<AuthResponseDTO>('/auth/register', payload);
+    return mapTokenResponse(response.data);
   },
 
   async refreshToken(refreshToken: string): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse>('/auth/refresh', { refreshToken });
-    return response.data;
+    const payload: RefreshTokenRequestDTO = { refreshToken };
+    const response = await api.post<AuthResponseDTO>('/auth/refresh', payload);
+    return mapTokenResponse(response.data);
   },
 
-  async logout(refreshToken: string): Promise<void> {
-    await api.post('/auth/logout', { refreshToken });
+  async logout(): Promise<void> {
+    return Promise.resolve();
   },
 
   async getProfile(): Promise<UserProfile> {
-    // TODO: verify backend profile endpoint path — may be /users/me
-    const response = await api.get<UserProfile>('/auth/me');
-    return response.data;
+    const response = await api.get<UserProfileResponseDTO>('/users/me');
+    return mapUserProfile(response.data);
   },
 };

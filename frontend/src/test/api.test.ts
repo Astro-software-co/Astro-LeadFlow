@@ -1,5 +1,21 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+import { AxiosRequestHeaders, InternalAxiosRequestConfig } from 'axios';
 import api, { tokenStore } from '@/lib/api';
+
+function buildConfig(): InternalAxiosRequestConfig {
+  return {
+    headers: {} as AxiosRequestHeaders,
+  } as InternalAxiosRequestConfig;
+}
+
+async function runRequestInterceptor(config: InternalAxiosRequestConfig) {
+  const interceptor = api.interceptors.request.handlers[0];
+  if (!interceptor?.fulfilled) {
+    throw new Error('Request interceptor not configured');
+  }
+
+  return interceptor.fulfilled(config);
+}
 
 describe('API client', () => {
   beforeEach(() => {
@@ -14,31 +30,18 @@ describe('API client', () => {
     expect(api.defaults.headers['Content-Type']).toBe('application/json');
   });
 
-  it('attaches Authorization header when token exists', () => {
+  it('attaches Authorization header when token exists', async () => {
     tokenStore.set('test-jwt-token', 'test-refresh-token');
-    const config = {
-      headers: {} as Record<string, string>,
-    };
+    const config = buildConfig();
 
-    // Manually invoke the request interceptor logic
-    const interceptor = api.interceptors.request.handlers[0];
-    if (interceptor?.fulfilled) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = interceptor.fulfilled(config as any);
-      expect(result.headers.Authorization).toBe('Bearer test-jwt-token');
-    }
+    const result = await runRequestInterceptor(config);
+    expect(result.headers.Authorization).toBe('Bearer test-jwt-token');
   });
 
-  it('does not attach Authorization header without token', () => {
-    const config = {
-      headers: {} as Record<string, string>,
-    };
+  it('does not attach Authorization header without token', async () => {
+    const config = buildConfig();
 
-    const interceptor = api.interceptors.request.handlers[0];
-    if (interceptor?.fulfilled) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = interceptor.fulfilled(config as any);
-      expect(result.headers.Authorization).toBeUndefined();
-    }
+    const result = await runRequestInterceptor(config);
+    expect(result.headers.Authorization).toBeUndefined();
   });
 });

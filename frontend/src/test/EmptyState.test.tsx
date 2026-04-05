@@ -12,9 +12,7 @@ describe('EmptyState', () => {
 
   it('renders action button when provided', () => {
     const onAction = vi.fn();
-    render(
-      <EmptyState icon={Car} title="Vazio" description="Desc" actionLabel="Adicionar" onAction={onAction} />,
-    );
+    render(<EmptyState icon={Car} title="Vazio" description="Desc" actionLabel="Adicionar" onAction={onAction} />);
     const button = screen.getByRole('button', { name: 'Adicionar' });
     expect(button).toBeInTheDocument();
     fireEvent.click(button);

@@ -5,8 +5,12 @@ import axios from 'axios';
 export const tokenStore = {
   _accessToken: null as string | null,
   _refreshToken: null as string | null,
-  get accessToken() { return this._accessToken; },
-  get refreshToken() { return this._refreshToken; },
+  get accessToken() {
+    return this._accessToken;
+  },
+  get refreshToken() {
+    return this._refreshToken;
+  },
   set(access: string, refresh: string) {
     this._accessToken = access;
     this._refreshToken = refresh;
@@ -66,10 +70,12 @@ api.interceptors.response.use(
         // Queue subsequent 401s while refresh is in progress
         return new Promise<string>((resolve, reject) => {
           failedQueue.push({ resolve, reject });
-        }).then((newToken) => {
-          originalRequest.headers.Authorization = `Bearer ${newToken}`;
-          return api(originalRequest);
-        }).catch((err) => Promise.reject(err));
+        })
+          .then((newToken) => {
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+            return api(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
       }
 
       originalRequest._retry = true;
@@ -94,7 +100,7 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

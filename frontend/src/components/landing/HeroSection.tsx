@@ -10,24 +10,17 @@ export function HeroSection() {
           {/* Copy column */}
           <div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight text-slate-50">
-              Pare de perder leads.{' '}
-              <span className="text-primary">Comece a vender.</span>
+              Pare de perder leads. <span className="text-primary">Comece a vender.</span>
             </h1>
             <p className="text-lg md:text-xl text-slate-400 max-w-xl mt-6">
-              O Astro LeadFlow centraliza leads de Webmotors, Mercado Livre e
-              WhatsApp, organiza seu pipeline de vendas e automatiza o primeiro
-              contato.
+              O Astro LeadFlow centraliza leads de Webmotors, Mercado Livre e WhatsApp, organiza seu pipeline de vendas
+              e automatiza o primeiro contato.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mt-8">
               <Button variant="default" size="lg" asChild>
                 <Link to="/app/login">Comece gratis</Link>
               </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                asChild
-                className="border-white/30 text-white hover:bg-white/10"
-              >
+              <Button variant="outline" size="lg" asChild className="border-white/30 text-white hover:bg-white/10">
                 <a href="#contato">Agendar demonstracao</a>
               </Button>
             </div>

@@ -3,11 +3,7 @@ import { HelpCircle } from 'lucide-react';
 import { KanbanCard as KanbanCardType, KanbanColumn as KanbanColumnType } from '@/types';
 import { KanbanCardComponent } from './KanbanCard';
 import { cn } from '@/lib/utils';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface KanbanColumnProps {
   id: KanbanColumnType;
@@ -44,7 +40,7 @@ export function KanbanColumnComponent({
       <div
         className={cn(
           'rounded-xl px-4 py-3 font-semibold text-white mb-4 flex items-center justify-between',
-          columnStyles[id]
+          columnStyles[id],
         )}
       >
         <span className="text-sm">{title}</span>
@@ -68,13 +64,11 @@ export function KanbanColumnComponent({
             {...provided.droppableProps}
             className={cn(
               'flex-1 space-y-3 rounded-xl p-2 transition-colors min-h-[200px]',
-              snapshot.isDraggingOver ? 'bg-muted/50' : 'bg-transparent'
+              snapshot.isDraggingOver ? 'bg-muted/50' : 'bg-transparent',
             )}
           >
             {cards.length === 0 && !snapshot.isDraggingOver && (
-              <p className="py-8 text-center text-xs text-muted-foreground">
-                Nenhum lead nesta etapa
-              </p>
+              <p className="py-8 text-center text-xs text-muted-foreground">Nenhum lead nesta etapa</p>
             )}
             {cards.map((card, index) => (
               <Draggable key={card.id} draggableId={card.id} index={index}>

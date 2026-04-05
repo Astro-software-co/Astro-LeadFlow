@@ -9,9 +9,7 @@ export function ProblemSolutionSection() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const prefersReducedMotion = window.matchMedia(
-      '(prefers-reduced-motion: reduce)'
-    ).matches;
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) {
       setIsVisible(true);
       return;
@@ -23,7 +21,7 @@ export function ProblemSolutionSection() {
           observer.disconnect();
         }
       },
-      { threshold: 0.1, rootMargin: '0px 0px -64px 0px' }
+      { threshold: 0.1, rootMargin: '0px 0px -64px 0px' },
     );
     if (sectionRef.current) observer.observe(sectionRef.current);
     return () => observer.disconnect();
@@ -34,23 +32,17 @@ export function ProblemSolutionSection() {
       ref={sectionRef}
       className={cn(
         'bg-slate-50 py-16 md:py-24 transition-all duration-700 ease-out',
-        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8',
       )}
     >
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center">
-          <p className="text-sm font-bold text-primary uppercase tracking-widest">
-            O problema
-          </p>
+          <p className="text-sm font-bold text-primary uppercase tracking-widest">O problema</p>
           <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mt-4">
             Leads chegam por WhatsApp, e-mail, marketplaces...
           </h2>
-          <p className="text-xl text-slate-600 italic mt-4">
-            ...e voce perde metade deles.
-          </p>
-          <p className="text-lg text-slate-600 mt-6">
-            O Astro LeadFlow centraliza tudo em um so lugar.
-          </p>
+          <p className="text-xl text-slate-600 italic mt-4">...e voce perde metade deles.</p>
+          <p className="text-lg text-slate-600 mt-6">O Astro LeadFlow centraliza tudo em um so lugar.</p>
 
           {/* Before/After diagram */}
           <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8 mt-12">
@@ -72,9 +64,7 @@ export function ProblemSolutionSection() {
             {/* Astro box */}
             <div className="bg-primary/10 border border-primary/30 rounded-xl px-6 py-4 text-center">
               <p className="text-sm font-bold text-primary">Astro LeadFlow</p>
-              <p className="text-xs text-slate-500 mt-1">
-                Todos os leads. Um lugar.
-              </p>
+              <p className="text-xs text-slate-500 mt-1">Todos os leads. Um lugar.</p>
             </div>
           </div>
         </div>

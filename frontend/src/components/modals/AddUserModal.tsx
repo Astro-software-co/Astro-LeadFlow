@@ -2,45 +2,36 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { User, Shield } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Seller } from '@/types';
 
-const userSchema = z.object({
-  nome: z.string()
-    .min(3, 'Nome deve ter pelo menos 3 caracteres')
-    .max(100, 'Nome deve ter no máximo 100 caracteres')
-    .regex(/^[a-zA-ZÀ-ÿ\s]+$/, 'Nome deve conter apenas letras'),
-  email: z.string()
-    .email('E-mail inválido')
-    .max(255, 'E-mail deve ter no máximo 255 caracteres'),
-  senha: z.string()
-    .min(8, 'Senha deve ter pelo menos 8 caracteres')
-    .max(50, 'Senha deve ter no máximo 50 caracteres')
-    .regex(/[A-Z]/, 'Senha deve conter pelo menos uma letra maiúscula')
-    .regex(/[a-z]/, 'Senha deve conter pelo menos uma letra minúscula')
-    .regex(/[0-9]/, 'Senha deve conter pelo menos um número'),
-  confirmarSenha: z.string(),
-  role: z.enum(['ADMIN', 'VENDEDOR'] as const),
-}).refine((data) => data.senha === data.confirmarSenha, {
-  message: 'As senhas não coincidem',
-  path: ['confirmarSenha'],
-});
+const userSchema = z
+  .object({
+    nome: z
+      .string()
+      .min(3, 'Nome deve ter pelo menos 3 caracteres')
+      .max(100, 'Nome deve ter no máximo 100 caracteres')
+      .regex(/^[a-zA-ZÀ-ÿ\s]+$/, 'Nome deve conter apenas letras'),
+    email: z.string().email('E-mail inválido').max(255, 'E-mail deve ter no máximo 255 caracteres'),
+    senha: z
+      .string()
+      .min(8, 'Senha deve ter pelo menos 8 caracteres')
+      .max(50, 'Senha deve ter no máximo 50 caracteres')
+      .regex(/[A-Z]/, 'Senha deve conter pelo menos uma letra maiúscula')
+      .regex(/[a-z]/, 'Senha deve conter pelo menos uma letra minúscula')
+      .regex(/[0-9]/, 'Senha deve conter pelo menos um número'),
+    confirmarSenha: z.string(),
+    role: z.enum(['ADMIN', 'VENDEDOR'] as const),
+  })
+  .refine((data) => data.senha === data.confirmarSenha, {
+    message: 'As senhas não coincidem',
+    path: ['confirmarSenha'],
+  });
 
 type UserFormData = z.infer<typeof userSchema>;
 
@@ -109,9 +100,7 @@ export function AddUserModal({ open, onOpenChange, onSubmit }: AddUserModalProps
               {...register('nome')}
               className={errors.nome ? 'border-destructive' : ''}
             />
-            {errors.nome && (
-              <p className="text-xs text-destructive">{errors.nome.message}</p>
-            )}
+            {errors.nome && <p className="text-xs text-destructive">{errors.nome.message}</p>}
           </div>
 
           {/* Email */}
@@ -124,9 +113,7 @@ export function AddUserModal({ open, onOpenChange, onSubmit }: AddUserModalProps
               {...register('email')}
               className={errors.email ? 'border-destructive' : ''}
             />
-            {errors.email && (
-              <p className="text-xs text-destructive">{errors.email.message}</p>
-            )}
+            {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -140,9 +127,7 @@ export function AddUserModal({ open, onOpenChange, onSubmit }: AddUserModalProps
                 {...register('senha')}
                 className={errors.senha ? 'border-destructive' : ''}
               />
-              {errors.senha && (
-                <p className="text-xs text-destructive">{errors.senha.message}</p>
-              )}
+              {errors.senha && <p className="text-xs text-destructive">{errors.senha.message}</p>}
             </div>
 
             {/* Confirmar Senha */}
@@ -155,9 +140,7 @@ export function AddUserModal({ open, onOpenChange, onSubmit }: AddUserModalProps
                 {...register('confirmarSenha')}
                 className={errors.confirmarSenha ? 'border-destructive' : ''}
               />
-              {errors.confirmarSenha && (
-                <p className="text-xs text-destructive">{errors.confirmarSenha.message}</p>
-              )}
+              {errors.confirmarSenha && <p className="text-xs text-destructive">{errors.confirmarSenha.message}</p>}
             </div>
           </div>
 
@@ -167,10 +150,7 @@ export function AddUserModal({ open, onOpenChange, onSubmit }: AddUserModalProps
               <Shield className="h-4 w-4" />
               Permissão *
             </Label>
-            <Select
-              value={role}
-              onValueChange={(value: 'ADMIN' | 'VENDEDOR') => setValue('role', value)}
-            >
+            <Select value={role} onValueChange={(value: 'ADMIN' | 'VENDEDOR') => setValue('role', value)}>
               <SelectTrigger className={errors.role ? 'border-destructive' : ''}>
                 <SelectValue placeholder="Selecione a permissão" />
               </SelectTrigger>
@@ -189,9 +169,7 @@ export function AddUserModal({ open, onOpenChange, onSubmit }: AddUserModalProps
                 </SelectItem>
               </SelectContent>
             </Select>
-            {errors.role && (
-              <p className="text-xs text-destructive">{errors.role.message}</p>
-            )}
+            {errors.role && <p className="text-xs text-destructive">{errors.role.message}</p>}
           </div>
 
           {/* Permission Description */}

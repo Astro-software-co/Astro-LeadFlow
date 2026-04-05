@@ -26,9 +26,7 @@ export class ErrorBoundary extends Component<Props, State> {
         <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 p-8 text-center">
           <AlertCircle className="h-12 w-12 text-destructive" />
           <h2 className="text-xl font-semibold text-foreground">Algo deu errado</h2>
-          <p className="max-w-md text-muted-foreground">
-            Ocorreu um erro inesperado. Tente recarregar a pagina.
-          </p>
+          <p className="max-w-md text-muted-foreground">Ocorreu um erro inesperado. Tente recarregar a pagina.</p>
           <Button onClick={() => window.location.reload()}>Recarregar pagina</Button>
         </div>
       );

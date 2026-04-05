@@ -3,27 +3,19 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { User, Shield } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Seller } from '@/types';
 
 const editUserSchema = z.object({
-  nome: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres').regex(/^[a-zA-ZÀ-ÿ\s]+$/, 'Nome deve conter apenas letras'),
+  nome: z
+    .string()
+    .min(3, 'Nome deve ter pelo menos 3 caracteres')
+    .regex(/^[a-zA-ZÀ-ÿ\s]+$/, 'Nome deve conter apenas letras'),
   email: z.string().email('E-mail inválido'),
   role: z.enum(['ADMIN', 'VENDEDOR'] as const),
 });
@@ -85,7 +77,12 @@ export function EditUserModal({ open, onOpenChange, user, onSubmit }: EditUserMo
 
           <div className="space-y-2">
             <Label htmlFor="edit-email">E-mail *</Label>
-            <Input id="edit-email" type="email" {...register('email')} className={errors.email ? 'border-destructive' : ''} />
+            <Input
+              id="edit-email"
+              type="email"
+              {...register('email')}
+              className={errors.email ? 'border-destructive' : ''}
+            />
             {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
           </div>
 
@@ -116,7 +113,9 @@ export function EditUserModal({ open, onOpenChange, user, onSubmit }: EditUserMo
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
             <Button type="submit">Salvar Alterações</Button>
           </div>
         </form>

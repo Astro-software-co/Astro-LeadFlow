@@ -1,34 +1,31 @@
 import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Plus, Search, Filter, Car } from 'lucide-react';
-import { MainLayout } from '@/components/layout/MainLayout';
+import { Plus, Search, Filter, Car, Loader2 } from 'lucide-react';
 import { AddVehicleModal } from '@/components/modals/AddVehicleModal';
 import { Vehicle, VehicleStatus } from '@/types';
-import { mockVehicles } from '@/data/mockData';
 import { cn } from '@/lib/utils';
 import { EmptyState } from '@/components/shared/EmptyState';
+import { useCreateVehicle, useVehicles } from '@/hooks/api/useVehicles';
+import { Button } from '@/components/ui/button';
+import { formatCurrency } from '@/lib/formatters';
 
 const statusConfig: Record<VehicleStatus, { label: string; className: string }> = {
-  disponivel: { label: 'Disponível', className: 'bg-status-available/10 text-status-available' },
+  disponivel: { label: 'Disponivel', className: 'bg-status-available/10 text-status-available' },
   reservado: { label: 'Reservado', className: 'bg-status-reserved/10 text-status-reserved' },
-  manutencao: { label: 'Em Manutenção', className: 'bg-status-maintenance/10 text-status-maintenance' },
+  manutencao: { label: 'Em Manutencao', className: 'bg-status-maintenance/10 text-status-maintenance' },
   vendido: { label: 'Vendido', className: 'bg-status-sold/10 text-status-sold' },
   aguardando_documentacao: { label: 'Aguardando Doc.', className: 'bg-kanban-waiting/10 text-kanban-waiting' },
 };
 
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-    minimumFractionDigits: 0,
-  }).format(value);
-}
-
 export default function Estoque() {
-  const [vehicles, setVehicles] = useState<Vehicle[]>(mockVehicles);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<VehicleStatus | 'all'>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const { data, isLoading, error, refetch } = useVehicles();
+  const createVehicle = useCreateVehicle();
+
+  const vehicles = data?.content ?? [];
 
   const filteredVehicles = vehicles.filter((vehicle) => {
     const matchesSearch =
@@ -38,37 +35,51 @@ export default function Estoque() {
     return matchesSearch && matchesStatus;
   });
 
-  const handleAddVehicle = (vehicleData: Omit<Vehicle, 'id'>) => {
-    const newVehicle: Vehicle = {
-      ...vehicleData,
-      id: crypto.randomUUID(),
-    };
-    setVehicles((prev) => [newVehicle, ...prev]);
+  const handleAddVehicle = async (vehicleData: Omit<Vehicle, 'id'>) => {
+    await createVehicle.mutateAsync(vehicleData);
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-xl border bg-card p-6 shadow-sm">
+        <h2 className="text-lg font-semibold text-foreground">Nao foi possivel carregar o estoque</h2>
+        <p className="mt-2 text-sm text-muted-foreground">Verifique sua conexao e tente novamente.</p>
+        <Button className="mt-4" onClick={() => void refetch()}>
+          Tentar novamente
+        </Button>
+      </div>
+    );
+  }
+
   return (
-    <MainLayout>
+    <>
       <Helmet>
         <title>Estoque — Astro LeadFlow</title>
         <meta name="description" content="Catalogo de veiculos da concessionaria." />
       </Helmet>
       <div className="space-y-6">
-        {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Gestão de Estoque</h1>
-            <p className="text-muted-foreground">Gerencie os veículos disponíveis</p>
+            <h1 className="text-2xl font-bold text-foreground">Gestao de Estoque</h1>
+            <p className="text-muted-foreground">Gerencie os veiculos disponiveis</p>
           </div>
           <button
             onClick={() => setIsModalOpen(true)}
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
           >
             <Plus className="h-4 w-4" />
-            Adicionar Veículo
+            Adicionar Veiculo
           </button>
         </div>
 
-        {/* Filters */}
         <div className="flex flex-col gap-4 sm:flex-row">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -88,16 +99,15 @@ export default function Estoque() {
               className="appearance-none rounded-lg border bg-card pl-10 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="all">Todos os status</option>
-              <option value="disponivel">Disponível</option>
+              <option value="disponivel">Disponivel</option>
               <option value="reservado">Reservado</option>
-              <option value="manutencao">Em Manutenção</option>
+              <option value="manutencao">Em Manutencao</option>
               <option value="vendido">Vendido</option>
-              <option value="aguardando_documentacao">Aguardando Documentação</option>
+              <option value="aguardando_documentacao">Aguardando Documentacao</option>
             </select>
           </div>
         </div>
 
-        {/* Table */}
         <div className="rounded-xl border bg-card shadow-sm animate-fade-in overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -116,13 +126,13 @@ export default function Estoque() {
                     Categoria
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    Preço
+                    Preco
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                     Status
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    Ações
+                    Acoes
                   </th>
                 </tr>
               </thead>
@@ -132,62 +142,67 @@ export default function Estoque() {
                     <td colSpan={7} className="px-6 py-4">
                       <EmptyState
                         icon={Car}
-                        title={searchQuery || statusFilter !== 'all' ? 'Nenhum resultado encontrado' : 'Nenhum veiculo cadastrado'}
-                        description={searchQuery || statusFilter !== 'all' ? 'Tente alterar os filtros de busca.' : 'Adicione seu primeiro veiculo ao estoque.'}
+                        title={
+                          searchQuery || statusFilter !== 'all'
+                            ? 'Nenhum resultado encontrado'
+                            : 'Nenhum veiculo cadastrado'
+                        }
+                        description={
+                          searchQuery || statusFilter !== 'all'
+                            ? 'Tente alterar os filtros de busca.'
+                            : 'Adicione seu primeiro veiculo ao estoque.'
+                        }
                         actionLabel={!searchQuery && statusFilter === 'all' ? 'Adicionar veiculo' : undefined}
                         onAction={!searchQuery && statusFilter === 'all' ? () => setIsModalOpen(true) : undefined}
                       />
                     </td>
                   </tr>
-                ) : filteredVehicles.map((vehicle) => {
-                  const status = statusConfig[vehicle.status];
-                  return (
-                    <tr key={vehicle.id} className="hover:bg-muted/20 transition-colors">
-                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-foreground">
-                        {vehicle.marca}
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">
-                        {vehicle.modelo}
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">
-                        {vehicle.ano}
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">
-                        {vehicle.categoria}
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-foreground">
-                        {formatCurrency(vehicle.preco)}
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-4">
-                        <span
-                          className={cn(
-                            'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
-                            status.className
-                          )}
-                        >
-                          {status.label}
-                        </span>
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-4">
-                        <button className="text-sm font-medium text-primary hover:text-primary/80 transition-colors">
-                          Editar
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
+                ) : (
+                  filteredVehicles.map((vehicle) => {
+                    const status = statusConfig[vehicle.status];
+                    return (
+                      <tr key={vehicle.id} className="hover:bg-muted/20 transition-colors">
+                        <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-foreground">
+                          {vehicle.marca}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">{vehicle.modelo}</td>
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">{vehicle.ano}</td>
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">
+                          {vehicle.categoria}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-foreground">
+                          {formatCurrency(vehicle.preco)}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4">
+                          <span
+                            className={cn(
+                              'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
+                              status.className,
+                            )}
+                          >
+                            {status.label}
+                          </span>
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4">
+                          <button className="text-sm font-medium text-primary hover:text-primary/80 transition-colors">
+                            Editar
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>
         </div>
 
-        {/* Summary */}
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <div className="rounded-xl border bg-card p-4 text-center">
             <p className="text-2xl font-bold text-foreground">
               {vehicles.filter((v) => v.status === 'disponivel').length}
             </p>
-            <p className="text-sm text-muted-foreground">Disponíveis</p>
+            <p className="text-sm text-muted-foreground">Disponiveis</p>
           </div>
           <div className="rounded-xl border bg-card p-4 text-center">
             <p className="text-2xl font-bold text-foreground">
@@ -199,7 +214,7 @@ export default function Estoque() {
             <p className="text-2xl font-bold text-foreground">
               {vehicles.filter((v) => v.status === 'manutencao').length}
             </p>
-            <p className="text-sm text-muted-foreground">Em Manutenção</p>
+            <p className="text-sm text-muted-foreground">Em Manutencao</p>
           </div>
           <div className="rounded-xl border bg-card p-4 text-center">
             <p className="text-2xl font-bold text-foreground">
@@ -210,12 +225,7 @@ export default function Estoque() {
         </div>
       </div>
 
-      {/* Add Vehicle Modal */}
-      <AddVehicleModal
-        open={isModalOpen}
-        onOpenChange={setIsModalOpen}
-        onSubmit={handleAddVehicle}
-      />
-    </MainLayout>
+      <AddVehicleModal open={isModalOpen} onOpenChange={setIsModalOpen} onSubmit={handleAddVehicle} />
+    </>
   );
 }

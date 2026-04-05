@@ -1,18 +1,18 @@
 import { Suspense, lazy } from 'react';
 import { HelmetProvider } from 'react-helmet-async';
-import { Toaster } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ThemeProvider } from "./contexts/ThemeContext";
-import { NotificationProvider } from "./contexts/NotificationContext";
-import { AuthProvider } from "./contexts/AuthContext";
+import { Toaster } from '@/components/ui/sonner';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { NotificationProvider } from './contexts/NotificationContext';
+import { AuthProvider } from './contexts/AuthContext';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { RoleGate } from '@/components/layout/RoleGate';
 import { LandingLayout } from '@/components/landing/LandingLayout';
 import { AppLayout } from '@/components/layout/AppLayout';
 import LandingPage from '@/pages/LandingPage';
-import NotFound from "./pages/NotFound";
+import NotFound from './pages/NotFound';
 import { ErrorBoundary } from '@/components/layout/ErrorBoundary';
 import { Loader2 } from 'lucide-react';
 
@@ -39,29 +39,61 @@ const App = () => (
             <TooltipProvider>
               <Toaster />
               <ErrorBoundary>
-              <BrowserRouter>
-                <Routes>
-                  <Route element={<LandingLayout />}>
-                    <Route path="/" element={<LandingPage />} />
-                  </Route>
-                  <Route element={<AuthGuard />}>
-                    <Route path="/app" element={<AppLayout />}>
-                      <Route path="dashboard" element={<Suspense fallback={<PageLoader />}><Dashboard /></Suspense>} />
-                      <Route path="kanban" element={<Suspense fallback={<PageLoader />}><Kanban /></Suspense>} />
-                      <Route path="estoque" element={<Suspense fallback={<PageLoader />}><Estoque /></Suspense>} />
-                      <Route path="configuracoes" element={
-                        <Suspense fallback={<PageLoader />}>
-                          <RoleGate allowedRoles={['ADMIN', 'MANAGER']}>
-                            <Configuracoes />
-                          </RoleGate>
-                        </Suspense>
-                      } />
+                <BrowserRouter>
+                  <Routes>
+                    <Route element={<LandingLayout />}>
+                      <Route path="/" element={<LandingPage />} />
                     </Route>
-                  </Route>
-                  <Route path="/app/login" element={<Suspense fallback={<PageLoader />}><Login /></Suspense>} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </BrowserRouter>
+                    <Route element={<AuthGuard />}>
+                      <Route path="/app" element={<AppLayout />}>
+                        <Route index element={<Navigate to="/app/dashboard" replace />} />
+                        <Route
+                          path="dashboard"
+                          element={
+                            <Suspense fallback={<PageLoader />}>
+                              <Dashboard />
+                            </Suspense>
+                          }
+                        />
+                        <Route
+                          path="kanban"
+                          element={
+                            <Suspense fallback={<PageLoader />}>
+                              <Kanban />
+                            </Suspense>
+                          }
+                        />
+                        <Route
+                          path="estoque"
+                          element={
+                            <Suspense fallback={<PageLoader />}>
+                              <Estoque />
+                            </Suspense>
+                          }
+                        />
+                        <Route
+                          path="configuracoes"
+                          element={
+                            <Suspense fallback={<PageLoader />}>
+                              <RoleGate allowedRoles={['ADMIN', 'MANAGER']}>
+                                <Configuracoes />
+                              </RoleGate>
+                            </Suspense>
+                          }
+                        />
+                      </Route>
+                    </Route>
+                    <Route
+                      path="/app/login"
+                      element={
+                        <Suspense fallback={<PageLoader />}>
+                          <Login />
+                        </Suspense>
+                      }
+                    />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </BrowserRouter>
               </ErrorBoundary>
             </TooltipProvider>
           </NotificationProvider>

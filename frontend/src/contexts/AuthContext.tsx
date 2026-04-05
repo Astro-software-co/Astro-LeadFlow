@@ -51,49 +51,67 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .finally(() => setIsLoading(false));
   }, [useMocks]);
 
-  const login = useCallback(async (email: string, password: string) => {
-    if (useMocks) {
-      tokenStore.set('mock-token', 'mock-refresh');
-      setUser({
-        id: 'mock-user-1',
-        name: 'Usuário Demo',
-        email,
-        role: 'ADMIN',
-        organizationId: 'org-1',
+  const login = useCallback(
+    async (email: string, password: string) => {
+      if (useMocks) {
+        tokenStore.set('mock-token', 'mock-refresh');
+        setUser({
+          id: 'mock-user-1',
+          name: 'Usuário Demo',
+          email,
+          role: 'ADMIN',
+          organizationId: 'org-1',
+        });
+        return;
+      }
+
+      const auth: AuthResponse = await authService.login({ email, password });
+      tokenStore.set(auth.accessToken, auth.refreshToken);
+      const profile = await authService.getProfile();
+      setUser(profile);
+    },
+    [useMocks],
+  );
+
+  const register = useCallback(
+    async (name: string, email: string, password: string, _phone?: string) => {
+      if (useMocks) {
+        tokenStore.set('mock-token', 'mock-refresh');
+        setUser({
+          id: 'mock-user-1',
+          name,
+          email,
+          role: 'VENDEDOR',
+          organizationId: 'org-1',
+        });
+        return;
+      }
+
+      const normalizedSlug = email
+        .split('@')[0]
+        .toLowerCase()
+        .replace(/[^a-z0-9-]/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+
+      const auth: AuthResponse = await authService.register({
+        organizationName: `${name} Organizacao`,
+        slug: normalizedSlug || 'organizacao',
+        adminName: name,
+        adminEmail: email,
+        password,
       });
-      return;
-    }
-
-    const auth: AuthResponse = await authService.login({ email, password });
-    tokenStore.set(auth.accessToken, auth.refreshToken);
-    const profile = await authService.getProfile();
-    setUser(profile);
-  }, [useMocks]);
-
-  const register = useCallback(async (name: string, email: string, password: string, phone?: string) => {
-    if (useMocks) {
-      tokenStore.set('mock-token', 'mock-refresh');
-      setUser({
-        id: 'mock-user-1',
-        name,
-        email,
-        role: 'VENDEDOR',
-        organizationId: 'org-1',
-      });
-      return;
-    }
-
-    const auth: AuthResponse = await authService.register({ name, email, password, phone });
-    tokenStore.set(auth.accessToken, auth.refreshToken);
-    const profile = await authService.getProfile();
-    setUser(profile);
-  }, [useMocks]);
+      tokenStore.set(auth.accessToken, auth.refreshToken);
+      const profile = await authService.getProfile();
+      setUser(profile);
+    },
+    [useMocks],
+  );
 
   const logout = useCallback(() => {
-    // Logout sequence: call backend first (needs refreshToken), then clear state
-    const refreshToken = tokenStore.refreshToken;
-    if (!useMocks && refreshToken) {
-      authService.logout(refreshToken).catch(() => {});
+    // Backend currently has no dedicated logout endpoint.
+    if (!useMocks) {
+      authService.logout().catch(() => {});
     }
     tokenStore.clear();
     queryClient.clear(); // Wipe ALL React Query cache — prevents multi-tenant data leak
