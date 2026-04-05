@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import api from '@/lib/api';
+import api, { tokenStore } from '@/lib/api';
 
 describe('API client', () => {
   beforeEach(() => {
-    localStorage.clear();
+    tokenStore.clear();
   });
 
   it('has correct baseURL', () => {
@@ -15,7 +15,7 @@ describe('API client', () => {
   });
 
   it('attaches Authorization header when token exists', () => {
-    localStorage.setItem('access_token', 'test-jwt-token');
+    tokenStore.set('test-jwt-token', 'test-refresh-token');
     const config = {
       headers: {} as Record<string, string>,
     };

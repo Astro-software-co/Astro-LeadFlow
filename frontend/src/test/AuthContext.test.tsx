@@ -1,6 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { tokenStore } from '@/lib/api';
+
+function makeWrapper() {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+  return ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>
+      {children}
+    </QueryClientProvider>
+  );
+}
 
 function TestConsumer() {
   const { isAuthenticated, isLoading, user, login, logout } = useAuth();
@@ -19,24 +35,30 @@ function TestConsumer() {
 
 describe('AuthContext', () => {
   beforeEach(() => {
-    localStorage.clear();
+    tokenStore.clear();
     vi.stubEnv('VITE_USE_MOCKS', 'true');
   });
 
   it('starts as anonymous when no token stored', () => {
+    const Wrapper = makeWrapper();
     render(
-      <AuthProvider>
-        <TestConsumer />
-      </AuthProvider>,
+      <Wrapper>
+        <AuthProvider>
+          <TestConsumer />
+        </AuthProvider>
+      </Wrapper>,
     );
     expect(screen.getByTestId('auth-status')).toHaveTextContent('anonymous');
   });
 
   it('login sets user and stores token (mock mode)', async () => {
+    const Wrapper = makeWrapper();
     render(
-      <AuthProvider>
-        <TestConsumer />
-      </AuthProvider>,
+      <Wrapper>
+        <AuthProvider>
+          <TestConsumer />
+        </AuthProvider>
+      </Wrapper>,
     );
 
     fireEvent.click(screen.getByText('Login'));
@@ -44,14 +66,18 @@ describe('AuthContext', () => {
       expect(screen.getByTestId('auth-status')).toHaveTextContent('authenticated');
     });
     expect(screen.getByTestId('user-name')).toHaveTextContent('Usuário Demo');
-    expect(localStorage.getItem('access_token')).toBe('mock-token');
+    // Tokens are now in-memory (not localStorage) per SEC-001
+    expect(tokenStore.accessToken).toBe('mock-token');
   });
 
   it('logout clears user and tokens', async () => {
+    const Wrapper = makeWrapper();
     render(
-      <AuthProvider>
-        <TestConsumer />
-      </AuthProvider>,
+      <Wrapper>
+        <AuthProvider>
+          <TestConsumer />
+        </AuthProvider>
+      </Wrapper>,
     );
 
     fireEvent.click(screen.getByText('Login'));
@@ -61,17 +87,23 @@ describe('AuthContext', () => {
 
     fireEvent.click(screen.getByText('Logout'));
     expect(screen.getByTestId('auth-status')).toHaveTextContent('anonymous');
-    expect(localStorage.getItem('access_token')).toBeNull();
+    // Tokens cleared from in-memory store per SEC-001
+    expect(tokenStore.accessToken).toBeNull();
   });
 
-  it('restores auth from stored token on mount (mock mode)', () => {
-    localStorage.setItem('access_token', 'mock-token');
+  it('stays anonymous after page refresh (in-memory tokens are not persisted)', () => {
+    // SEC-001: tokens are in-memory only — lost on page reload, user must re-login
+    // Previously this test checked localStorage restoration; that behavior is removed.
+    const Wrapper = makeWrapper();
     render(
-      <AuthProvider>
-        <TestConsumer />
-      </AuthProvider>,
+      <Wrapper>
+        <AuthProvider>
+          <TestConsumer />
+        </AuthProvider>
+      </Wrapper>,
     );
-    expect(screen.getByTestId('auth-status')).toHaveTextContent('authenticated');
+    // Without calling login(), user is always anonymous (no persistent storage)
+    expect(screen.getByTestId('auth-status')).toHaveTextContent('anonymous');
   });
 
   it('throws when useAuth is used outside provider', () => {
