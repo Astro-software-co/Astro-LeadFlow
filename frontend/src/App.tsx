@@ -17,6 +17,7 @@ import { ErrorBoundary } from '@/components/layout/ErrorBoundary';
 import { Loader2 } from 'lucide-react';
 
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
+const Leads = lazy(() => import('@/pages/Leads'));
 const Kanban = lazy(() => import('@/pages/Kanban'));
 const Estoque = lazy(() => import('@/pages/Estoque'));
 const Configuracoes = lazy(() => import('@/pages/Configuracoes'));
@@ -52,6 +53,14 @@ const App = () => (
                           element={
                             <Suspense fallback={<PageLoader />}>
                               <Dashboard />
+                            </Suspense>
+                          }
+                        />
+                        <Route
+                          path="leads"
+                          element={
+                            <Suspense fallback={<PageLoader />}>
+                              <Leads />
                             </Suspense>
                           }
                         />

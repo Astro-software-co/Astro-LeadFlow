@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Plus, Search, Filter, Car, Loader2 } from 'lucide-react';
 import { AddVehicleModal } from '@/components/modals/AddVehicleModal';
@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/shared/EmptyState';
 import { useCreateVehicle, useVehicles } from '@/hooks/api/useVehicles';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/formatters';
+import { VehicleStatusDTO } from '@/types/api/vehicles';
 
 const statusConfig: Record<VehicleStatus, { label: string; className: string }> = {
   disponivel: { label: 'Disponivel', className: 'bg-status-available/10 text-status-available' },
@@ -17,23 +18,44 @@ const statusConfig: Record<VehicleStatus, { label: string; className: string }> 
   aguardando_documentacao: { label: 'Aguardando Doc.', className: 'bg-kanban-waiting/10 text-kanban-waiting' },
 };
 
+const statusToDTOMap: Record<VehicleStatus, VehicleStatusDTO> = {
+  disponivel: 'AVAILABLE',
+  reservado: 'RESERVED',
+  manutencao: 'MAINTENANCE',
+  vendido: 'SOLD',
+  aguardando_documentacao: 'RESERVED',
+};
+
 export default function Estoque() {
+  const pageSize = 10;
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<VehicleStatus | 'all'>('all');
+  const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { data, isLoading, error, refetch } = useVehicles();
+  const filters = useMemo(
+    () => ({
+      search: searchQuery.trim() || undefined,
+      status: statusFilter === 'all' ? undefined : statusToDTOMap[statusFilter],
+      page: page - 1,
+      size: pageSize,
+    }),
+    [searchQuery, statusFilter, page],
+  );
+
+  const { data, isLoading, error, refetch } = useVehicles(filters);
   const createVehicle = useCreateVehicle();
 
   const vehicles = data?.content ?? [];
+  const totalElements = data?.totalElements ?? 0;
+  const totalPages = Math.max(1, data?.totalPages ?? 1);
+  const safePage = Math.min(page, totalPages);
 
-  const filteredVehicles = vehicles.filter((vehicle) => {
-    const matchesSearch =
-      vehicle.marca.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      vehicle.modelo.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || vehicle.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
 
   const handleAddVehicle = async (vehicleData: Omit<Vehicle, 'id'>) => {
     await createVehicle.mutateAsync(vehicleData);
@@ -87,7 +109,10 @@ export default function Estoque() {
               type="text"
               placeholder="Buscar por marca ou modelo..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setPage(1);
+              }}
               className="w-full rounded-lg border bg-card pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
@@ -95,7 +120,10 @@ export default function Estoque() {
             <Filter className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as VehicleStatus | 'all')}
+              onChange={(e) => {
+                setStatusFilter(e.target.value as VehicleStatus | 'all');
+                setPage(1);
+              }}
               className="appearance-none rounded-lg border bg-card pl-10 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="all">Todos os status</option>
@@ -137,7 +165,7 @@ export default function Estoque() {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {filteredVehicles.length === 0 ? (
+                {vehicles.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-6 py-4">
                       <EmptyState
@@ -158,7 +186,7 @@ export default function Estoque() {
                     </td>
                   </tr>
                 ) : (
-                  filteredVehicles.map((vehicle) => {
+                  vehicles.map((vehicle) => {
                     const status = statusConfig[vehicle.status];
                     return (
                       <tr key={vehicle.id} className="hover:bg-muted/20 transition-colors">
@@ -197,30 +225,53 @@ export default function Estoque() {
           </div>
         </div>
 
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-muted-foreground">
+            Mostrando {totalElements === 0 ? 0 : (safePage - 1) * pageSize + 1} a{' '}
+            {totalElements === 0 ? 0 : (safePage - 1) * pageSize + vehicles.length} de {totalElements} veiculos
+          </p>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" disabled={safePage <= 1} onClick={() => setPage((p) => p - 1)}>
+              Anterior
+            </Button>
+            <span className="text-xs text-muted-foreground">
+              Pagina {safePage} de {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={safePage >= totalPages}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Proxima
+            </Button>
+          </div>
+        </div>
+
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <div className="rounded-xl border bg-card p-4 text-center">
             <p className="text-2xl font-bold text-foreground">
               {vehicles.filter((v) => v.status === 'disponivel').length}
             </p>
-            <p className="text-sm text-muted-foreground">Disponiveis</p>
+            <p className="text-sm text-muted-foreground">Disponiveis (pagina)</p>
           </div>
           <div className="rounded-xl border bg-card p-4 text-center">
             <p className="text-2xl font-bold text-foreground">
               {vehicles.filter((v) => v.status === 'reservado').length}
             </p>
-            <p className="text-sm text-muted-foreground">Reservados</p>
+            <p className="text-sm text-muted-foreground">Reservados (pagina)</p>
           </div>
           <div className="rounded-xl border bg-card p-4 text-center">
             <p className="text-2xl font-bold text-foreground">
               {vehicles.filter((v) => v.status === 'manutencao').length}
             </p>
-            <p className="text-sm text-muted-foreground">Em Manutencao</p>
+            <p className="text-sm text-muted-foreground">Em Manutencao (pagina)</p>
           </div>
           <div className="rounded-xl border bg-card p-4 text-center">
             <p className="text-2xl font-bold text-foreground">
               {vehicles.filter((v) => v.status === 'vendido').length}
             </p>
-            <p className="text-sm text-muted-foreground">Vendidos</p>
+            <p className="text-sm text-muted-foreground">Vendidos (pagina)</p>
           </div>
         </div>
       </div>

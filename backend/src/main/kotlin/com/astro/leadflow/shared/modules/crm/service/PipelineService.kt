@@ -4,6 +4,7 @@ import com.astro.leadflow.shared.modules.crm.api.requests.AssignLeadRequest
 import com.astro.leadflow.shared.modules.crm.api.requests.MoveLeadRequest
 import com.astro.leadflow.shared.modules.crm.api.responses.KanbanBoardResponse
 import com.astro.leadflow.shared.modules.crm.api.responses.LeadResponse
+import com.astro.leadflow.shared.modules.crm.api.responses.StageHistoryResponse
 import com.astro.leadflow.shared.modules.crm.domain.LeadRepository
 import com.astro.leadflow.shared.modules.crm.domain.LeadStageHistory
 import com.astro.leadflow.shared.modules.crm.domain.LeadStageHistoryRepository
@@ -123,5 +124,15 @@ class PipelineService(
         val orgId = SecurityUtils.getCurrentOrganizationId()
         return leadRepository.findAllByOrganizationIdAndPipelineStage(orgId, stage)
             .map { lead -> leadMapper.toResponse(lead) }
+    }
+
+    @Transactional(readOnly = true)
+    fun getLeadActivities(leadId: UUID): List<StageHistoryResponse> {
+        val orgId = SecurityUtils.getCurrentOrganizationId()
+        val lead = leadRepository.findByOrganizationIdAndId(orgId, leadId)
+            .orElseThrow { ResourceNotFoundException("Lead", leadId) }
+
+        return leadStageHistoryRepository.findAllByLeadIdOrderByMovedAtAsc(lead.id)
+            .map { history -> leadMapper.toHistory(history) }
     }
 }

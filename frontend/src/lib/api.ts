@@ -1,4 +1,5 @@
 import axios from 'axios';
+import type { AuthResponseDTO, RefreshTokenRequestDTO } from '@/types/api/auth';
 
 // In-memory token store — tokens are kept in module-level closure only.
 // This prevents XSS attacks from accessing tokens via JavaScript.
@@ -25,6 +26,29 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1',
   headers: { 'Content-Type': 'application/json' },
 });
+
+// Dedicated client for refresh requests to avoid interceptor recursion/cycles.
+const refreshApi = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1',
+  headers: { 'Content-Type': 'application/json' },
+});
+
+async function refreshAuthToken(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
+  const payload: RefreshTokenRequestDTO = { refreshToken };
+  const response = await refreshApi.post<AuthResponseDTO>('/auth/refresh', payload);
+
+  const nextAccessToken = response.data.accessToken;
+  const nextRefreshToken = response.data.refreshToken;
+
+  if (!nextAccessToken || !nextRefreshToken) {
+    throw new Error('Resposta de autenticacao incompleta: tokens ausentes');
+  }
+
+  return {
+    accessToken: nextAccessToken,
+    refreshToken: nextRefreshToken,
+  };
+}
 
 // Refresh queue mechanism — prevents concurrent refresh attempts
 let isRefreshing = false;
@@ -82,9 +106,7 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        // Lazy import to avoid circular dependency
-        const { authService } = await import('@/services/auth.service');
-        const newAuth = await authService.refreshToken(refresh);
+        const newAuth = await refreshAuthToken(refresh);
         tokenStore.set(newAuth.accessToken, newAuth.refreshToken);
         processQueue(null, newAuth.accessToken);
         originalRequest.headers.Authorization = `Bearer ${newAuth.accessToken}`;

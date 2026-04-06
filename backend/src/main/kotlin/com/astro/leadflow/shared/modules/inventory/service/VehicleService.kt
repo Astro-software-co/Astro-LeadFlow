@@ -12,6 +12,8 @@ import com.astro.leadflow.shared.modules.iam.domain.OrganizationRepository
 import com.astro.leadflow.shared.exception.InvalidOperationException
 import com.astro.leadflow.shared.exception.ResourceNotFoundException
 import com.astro.leadflow.shared.util.SecurityUtils
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
@@ -89,6 +91,19 @@ class VehicleService(
             else -> vehicleRepository.findAllByOrganizationId(orgId)
         }
         return vehicles.map { vehicleMapper.toResponse(it) }
+    }
+
+    @Transactional(readOnly = true)
+    fun findAll(
+        search: String?,
+        status: VehicleStatus?,
+        pageable: Pageable
+    ): Page<VehicleResponse> {
+        val orgId = SecurityUtils.getCurrentOrganizationId()
+        val normalizedSearch = search?.trim()?.takeIf { it.isNotBlank() }
+
+        return vehicleRepository.findPageByOrganization(orgId, normalizedSearch, status, pageable)
+            .map { vehicle -> vehicleMapper.toResponse(vehicle) }
     }
 
     @Transactional(readOnly = true)

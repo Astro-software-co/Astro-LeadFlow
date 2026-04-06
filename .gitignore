@@ -67,7 +67,7 @@ out/
 
 # GSD planning and AI context artifacts
 .planning/
-
-# Loose context/scratch files in repo root
-arquivo.md
-contextoGeral.md
+.planning/ROADMAP.md
+.codex
+CLAUDE.md
+.claude

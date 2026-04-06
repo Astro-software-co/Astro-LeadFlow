@@ -20,6 +20,7 @@ import { formatTimeAgo } from '@/lib/formatters';
 
 const navItems = [
   { label: 'Dashboard', path: '/app/dashboard' },
+  { label: 'Leads', path: '/app/leads' },
   { label: 'Painel de controle', path: '/app/kanban' },
   { label: 'Estoque', path: '/app/estoque' },
   { label: 'Configurações', path: '/app/configuracoes' },

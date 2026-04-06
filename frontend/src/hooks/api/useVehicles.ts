@@ -4,10 +4,11 @@ import { Vehicle } from '@/types';
 import { mockVehicles } from '@/data/mockData';
 import { useAuth } from '@/contexts/AuthContext';
 import {
-  mapVehicleResponseToVehicle,
   mapVehicleToCreateRequest,
   mapVehicleToUpdateRequest,
+  mapVehicleResponseToVehicle,
 } from '@/mappers/vehicles.mapper';
+import { VehicleStatusDTO } from '@/types/api/vehicles';
 
 const useMocks = import.meta.env.VITE_USE_MOCKS === 'true';
 
@@ -22,29 +23,50 @@ interface VehiclesQueryResult {
 export function useVehicles(filters?: VehicleFilters) {
   const { user } = useAuth();
   const orgId = user?.organizationId ?? 'unknown';
+  const page = Math.max(0, filters?.page ?? 0);
+  const size = Math.max(1, filters?.size ?? 10);
 
   return useQuery({
     queryKey: [orgId, 'vehicles', filters],
     queryFn: async (): Promise<VehiclesQueryResult> => {
       if (useMocks) {
+        const normalizedSearch = filters?.search?.trim().toLowerCase();
+        const statusMap: Record<VehicleStatusDTO, Vehicle['status']> = {
+          AVAILABLE: 'disponivel',
+          RESERVED: 'reservado',
+          MAINTENANCE: 'manutencao',
+          SOLD: 'vendido',
+        };
+
+        const filtered = mockVehicles.filter((vehicle) => {
+          const matchesSearch =
+            !normalizedSearch ||
+            vehicle.marca.toLowerCase().includes(normalizedSearch) ||
+            vehicle.modelo.toLowerCase().includes(normalizedSearch);
+          const matchesStatus = !filters?.status || vehicle.status === statusMap[filters.status];
+          return matchesSearch && matchesStatus;
+        });
+
+        const start = page * size;
+        const content = filtered.slice(start, start + size);
         return {
-          content: mockVehicles,
-          totalElements: mockVehicles.length,
-          totalPages: 1,
-          page: 0,
-          size: mockVehicles.length,
+          content,
+          totalElements: filtered.length,
+          totalPages: Math.max(1, Math.ceil(filtered.length / size)),
+          page,
+          size,
         };
       }
 
-      const vehicles = await vehiclesService.list(filters);
-      const mapped = vehicles.map(mapVehicleResponseToVehicle);
+      const response = await vehiclesService.list(filters);
+      const mapped = response.content.map(mapVehicleResponseToVehicle);
 
       return {
         content: mapped,
-        totalElements: mapped.length,
-        totalPages: 1,
-        page: 0,
-        size: mapped.length,
+        totalElements: response.totalElements,
+        totalPages: response.totalPages,
+        page: response.page,
+        size: response.size,
       };
     },
     staleTime: 30_000,

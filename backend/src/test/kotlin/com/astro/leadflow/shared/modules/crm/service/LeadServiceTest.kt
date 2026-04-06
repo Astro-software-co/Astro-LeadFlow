@@ -16,6 +16,9 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.PageRequest
+import java.time.LocalDate
 import java.util.Optional
 import java.util.UUID
 
@@ -135,6 +138,43 @@ class LeadServiceTest {
         Assertions.assertEquals("João Silva", lead.name)
         Assertions.assertEquals("Cliente VIP", lead.notes)
         verify(exactly = 1) { leadRepository.save(lead) }
+    }
+
+    @Test
+    fun `findAll should delegate filters with inclusive date range bounds`() {
+        val lead = buildLead()
+        val pageable = PageRequest.of(0, 20)
+        val assignedTo = UUID.randomUUID()
+        val dateFrom = LocalDate.of(2026, 4, 1)
+        val dateTo = LocalDate.of(2026, 4, 5)
+
+        every {
+            leadRepository.findPageByOrganization(any(), any(), any(), any(), any(), any(), any(), any())
+        } returns PageImpl(listOf(lead), pageable, 1)
+        every { leadMapper.toResponse(lead) } returns mockk(relaxed = true)
+
+        leadService.findAll(
+            search = "  joao  ",
+            origin = "  WebMotors  ",
+            stage = PipelineStage.WAITING_ATTENDANCE,
+            assignedTo = assignedTo,
+            dateFrom = dateFrom,
+            dateTo = dateTo,
+            pageable = pageable
+        )
+
+        verify(exactly = 1) {
+            leadRepository.findPageByOrganization(
+                orgId = orgId,
+                search = "joao",
+                origin = "WebMotors",
+                stage = PipelineStage.WAITING_ATTENDANCE,
+                assignedTo = assignedTo,
+                createdFrom = dateFrom.atStartOfDay(),
+                createdTo = dateTo.plusDays(1).atStartOfDay(),
+                pageable = pageable
+            )
+        }
     }
 
     private fun buildLead(

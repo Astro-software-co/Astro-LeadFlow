@@ -70,3 +70,10 @@ export interface LeadUpdateRequestDTO {
 export interface MoveLeadRequestDTO {
   toStage: PipelineStageDTO;
 }
+
+export interface LeadActivityResponseDTO {
+  fromStage?: PipelineStageDTO | null;
+  toStage: PipelineStageDTO;
+  movedBy?: SellerSummaryDTO | null;
+  movedAt: string;
+}

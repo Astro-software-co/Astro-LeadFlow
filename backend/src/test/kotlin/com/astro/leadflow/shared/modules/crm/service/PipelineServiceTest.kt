@@ -1,8 +1,10 @@
 package com.astro.leadflow.shared.modules.crm.service
 
 import com.astro.leadflow.shared.exception.InvalidOperationException
+import com.astro.leadflow.shared.modules.crm.api.responses.StageHistoryResponse
 import com.astro.leadflow.shared.modules.crm.domain.Lead
 import com.astro.leadflow.shared.modules.crm.domain.LeadRepository
+import com.astro.leadflow.shared.modules.crm.domain.LeadStageHistory
 import com.astro.leadflow.shared.modules.crm.domain.LeadStageHistoryRepository
 import com.astro.leadflow.shared.modules.crm.domain.PipelineStage
 import com.astro.leadflow.shared.modules.crm.mapper.LeadMapper
@@ -15,6 +17,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.time.LocalDateTime
 import java.util.Optional
 import java.util.UUID
 
@@ -99,6 +102,28 @@ class PipelineServiceTest {
         assertThrows<InvalidOperationException> {
             pipelineService.advanceLead(lead.id)
         }
+    }
+
+    @Test
+    fun `getLeadActivities should return mapped timeline`() {
+        val lead = buildLead(PipelineStage.WAITING_ATTENDANCE)
+        val history = LeadStageHistory(
+            lead = lead,
+            fromStage = PipelineStage.TALKING_TO_BOT,
+            toStage = PipelineStage.WAITING_ATTENDANCE,
+            movedAt = LocalDateTime.now()
+        )
+        val mapped = mockk<StageHistoryResponse>()
+
+        every { leadRepository.findByOrganizationIdAndId(orgId, lead.id) } returns Optional.of(lead)
+        every { historyRepository.findAllByLeadIdOrderByMovedAtAsc(lead.id) } returns listOf(history)
+        every { leadMapper.toHistory(history) } returns mapped
+
+        val result = pipelineService.getLeadActivities(lead.id)
+
+        Assertions.assertEquals(1, result.size)
+        Assertions.assertEquals(mapped, result.first())
+        verify(exactly = 1) { historyRepository.findAllByLeadIdOrderByMovedAtAsc(lead.id) }
     }
 
     private fun buildLead(stage: PipelineStage) = Lead(

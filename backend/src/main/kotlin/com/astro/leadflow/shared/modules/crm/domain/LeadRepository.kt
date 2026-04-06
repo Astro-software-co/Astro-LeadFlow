@@ -2,7 +2,10 @@ package com.astro.leadflow.shared.modules.crm.domain
 
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.query.Param
+import java.time.LocalDateTime
 import java.util.Optional
 import java.util.UUID
 
@@ -38,6 +41,57 @@ interface LeadRepository : JpaRepository<Lead, UUID> {
         ORDER BY l.pipelineStage, l.createdAt DESC
     """)
     fun findBoardByOrganization(@Param("orgId") orgId: UUID): List<Lead>
+
+    @Query(
+        value = """
+            SELECT l FROM Lead l
+            LEFT JOIN FETCH l.assignedTo
+            LEFT JOIN FETCH l.vehicle
+            WHERE l.organization.id = :orgId
+            AND (
+              :search IS NULL
+              OR LOWER(COALESCE(l.name, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+              OR LOWER(l.phoneNumber) LIKE LOWER(CONCAT('%', :search, '%'))
+              OR LOWER(COALESCE(l.email, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+            )
+            AND (
+              :origin IS NULL
+              OR LOWER(REPLACE(l.origin, '_', ' ')) = LOWER(REPLACE(:origin, '_', ' '))
+            )
+            AND (:stage IS NULL OR l.pipelineStage = :stage)
+            AND (:assignedTo IS NULL OR l.assignedTo.id = :assignedTo)
+            AND (:createdFrom IS NULL OR l.createdAt >= :createdFrom)
+            AND (:createdTo IS NULL OR l.createdAt < :createdTo)
+        """,
+        countQuery = """
+            SELECT COUNT(l) FROM Lead l
+            WHERE l.organization.id = :orgId
+            AND (
+              :search IS NULL
+              OR LOWER(COALESCE(l.name, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+              OR LOWER(l.phoneNumber) LIKE LOWER(CONCAT('%', :search, '%'))
+              OR LOWER(COALESCE(l.email, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+            )
+            AND (
+              :origin IS NULL
+              OR LOWER(REPLACE(l.origin, '_', ' ')) = LOWER(REPLACE(:origin, '_', ' '))
+            )
+            AND (:stage IS NULL OR l.pipelineStage = :stage)
+            AND (:assignedTo IS NULL OR l.assignedTo.id = :assignedTo)
+            AND (:createdFrom IS NULL OR l.createdAt >= :createdFrom)
+            AND (:createdTo IS NULL OR l.createdAt < :createdTo)
+        """
+    )
+    fun findPageByOrganization(
+        @Param("orgId") orgId: UUID,
+        @Param("search") search: String?,
+        @Param("origin") origin: String?,
+        @Param("stage") stage: PipelineStage?,
+        @Param("assignedTo") assignedTo: UUID?,
+        @Param("createdFrom") createdFrom: LocalDateTime?,
+        @Param("createdTo") createdTo: LocalDateTime?,
+        pageable: Pageable
+    ): Page<Lead>
 
     // Leads de um vendedor específico
     @Query("""

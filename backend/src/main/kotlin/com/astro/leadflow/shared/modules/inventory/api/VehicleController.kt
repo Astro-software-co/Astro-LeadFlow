@@ -12,6 +12,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -30,6 +33,11 @@ import java.util.UUID
 @RequestMapping("/api/v1/vehicles")
 @Tag(name = "Inventory — Veículos", description = "Gestão de estoque de veículos")
 class VehicleController(private val vehicleService: VehicleService) {
+    companion object {
+        private const val DEFAULT_PAGE = 0
+        private const val DEFAULT_SIZE = 20
+        private const val MAX_SIZE = 100
+    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -46,15 +54,25 @@ class VehicleController(private val vehicleService: VehicleService) {
     @GetMapping
     @Operation(
         summary = "Lista veículos do estoque",
-        description = "Suporta filtro por texto (marca/modelo) e por status"
+        description = "Suporta filtro por texto (marca/modelo), status e paginação"
     )
     @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
     fun findAll(
         @Parameter(description = "Termo de busca por marca ou modelo")
         @RequestParam(required = false) search: String?,
         @Parameter(description = "Filtrar por status")
-        @RequestParam(required = false) status: VehicleStatus?
-    ): List<VehicleResponse> = vehicleService.findAll(search, status)
+        @RequestParam(required = false) status: VehicleStatus?,
+        @Parameter(description = "Página (inicia em 0)")
+        @RequestParam(required = false, defaultValue = "$DEFAULT_PAGE") page: Int,
+        @Parameter(description = "Itens por página (máx. 100)")
+        @RequestParam(required = false, defaultValue = "$DEFAULT_SIZE") size: Int
+    ): Page<VehicleResponse> {
+        val safePage = page.coerceAtLeast(0)
+        val safeSize = size.coerceIn(1, MAX_SIZE)
+        val pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "updatedAt"))
+
+        return vehicleService.findAll(search, status, pageable)
+    }
 
     @GetMapping("/{id}")
     @Operation(summary = "Busca veículo por ID")

@@ -13,8 +13,11 @@ import com.astro.leadflow.shared.modules.inventory.domain.VehicleRepository
 import com.astro.leadflow.shared.exception.InvalidOperationException
 import com.astro.leadflow.shared.exception.ResourceNotFoundException
 import com.astro.leadflow.shared.util.SecurityUtils
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
 import java.util.UUID
 
 @Service
@@ -91,6 +94,35 @@ class LeadService(
     fun findAll(): List<LeadResponse> {
         val orgId = SecurityUtils.getCurrentOrganizationId()
         return leadRepository.findAllByOrganizationId(orgId)
+            .map { lead -> leadMapper.toResponse(lead) }
+    }
+
+    @Transactional(readOnly = true)
+    fun findAll(
+        search: String?,
+        origin: String?,
+        stage: PipelineStage?,
+        assignedTo: UUID?,
+        dateFrom: LocalDate?,
+        dateTo: LocalDate?,
+        pageable: Pageable
+    ): Page<LeadResponse> {
+        val orgId = SecurityUtils.getCurrentOrganizationId()
+        val normalizedSearch = search?.trim()?.takeIf { it.isNotBlank() }
+        val normalizedOrigin = origin?.trim()?.takeIf { it.isNotBlank() }
+        val createdFrom = dateFrom?.atStartOfDay()
+        val createdTo = dateTo?.plusDays(1)?.atStartOfDay()
+
+        return leadRepository.findPageByOrganization(
+            orgId = orgId,
+            search = normalizedSearch,
+            origin = normalizedOrigin,
+            stage = stage,
+            assignedTo = assignedTo,
+            createdFrom = createdFrom,
+            createdTo = createdTo,
+            pageable = pageable
+        )
             .map { lead -> leadMapper.toResponse(lead) }
     }
 

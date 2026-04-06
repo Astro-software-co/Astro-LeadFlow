@@ -62,10 +62,12 @@ export function KanbanBoard({ initialCards, onMoveLead, onArchiveLead }: KanbanB
     const newColumn = destination.droppableId as KanbanColumn;
     const card = cards.find((c) => c.id === draggableId);
 
-    setCards((prevCards) => prevCards.map((card) => (card.id === draggableId ? { ...card, coluna: newColumn } : card)));
+    const previousCards = cards;
+    setCards((prevCards) => prevCards.map((item) => (item.id === draggableId ? { ...item, coluna: newColumn } : item)));
 
     if (card && onMoveLead) {
       void Promise.resolve(onMoveLead(card.leadId, newColumn)).catch(() => {
+        setCards(previousCards);
         toast.error('Nao foi possivel mover o lead. Atualize a pagina e tente novamente.');
       });
     }
@@ -91,22 +93,24 @@ export function KanbanBoard({ initialCards, onMoveLead, onArchiveLead }: KanbanB
 
   const handleAssume = (cardId: string) => {
     const card = cards.find((c) => c.id === cardId);
+    const previousCards = cards;
     setCards((prevCards) =>
-      prevCards.map((card) =>
-        card.id === cardId
+      prevCards.map((item) =>
+        item.id === cardId
           ? {
-              ...card,
+              ...item,
               coluna: 'negociacao',
               vendedorId: 'current-user',
               vendedorNome: 'Você',
-              tags: [...card.tags, { type: 'seller' as const, label: 'Você' }],
+              tags: [...item.tags, { type: 'seller' as const, label: 'Você' }],
             }
-          : card,
+          : item,
       ),
     );
 
     if (card && onMoveLead) {
       void Promise.resolve(onMoveLead(card.leadId, 'negociacao')).catch(() => {
+        setCards(previousCards);
         toast.error('Nao foi possivel assumir o lead agora.');
       });
     }
@@ -124,10 +128,12 @@ export function KanbanBoard({ initialCards, onMoveLead, onArchiveLead }: KanbanB
     const currentIndex = columnOrder.indexOf(card.coluna);
     const nextColumn = columnOrder[currentIndex + 1];
     if (nextColumn) {
-      setCards((prevCards) => prevCards.map((c) => (c.id === cardId ? { ...c, coluna: nextColumn } : c)));
+      const previousCards = cards;
+      setCards((prevCards) => prevCards.map((item) => (item.id === cardId ? { ...item, coluna: nextColumn } : item)));
 
       if (onMoveLead) {
         void Promise.resolve(onMoveLead(card.leadId, nextColumn)).catch(() => {
+          setCards(previousCards);
           toast.error('Nao foi possivel avancar o lead agora.');
         });
       }
@@ -145,9 +151,11 @@ export function KanbanBoard({ initialCards, onMoveLead, onArchiveLead }: KanbanB
 
   const handleArchive = (cardId: string) => {
     const card = cards.find((c) => c.id === cardId);
+    const previousCards = cards;
 
     if (card && onArchiveLead) {
       void Promise.resolve(onArchiveLead(card.leadId)).catch(() => {
+        setCards(previousCards);
         toast.error('Nao foi possivel arquivar o lead agora.');
       });
     }

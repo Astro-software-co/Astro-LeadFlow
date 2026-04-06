@@ -2,6 +2,8 @@ package com.astro.leadflow.shared.modules.inventory.domain
 
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.query.Param
 import java.util.Optional
 import java.util.UUID
@@ -27,6 +29,35 @@ interface VehicleRepository : JpaRepository<Vehicle, UUID> {
         @Param("orgId") orgId: UUID,
         @Param("term") term: String
     ): List<Vehicle>
+
+    @Query(
+        value = """
+            SELECT v FROM Vehicle v
+            WHERE v.organization.id = :orgId
+            AND (
+              :search IS NULL
+              OR LOWER(v.brand) LIKE LOWER(CONCAT('%', :search, '%'))
+              OR LOWER(v.model) LIKE LOWER(CONCAT('%', :search, '%'))
+            )
+            AND (:status IS NULL OR v.status = :status)
+        """,
+        countQuery = """
+            SELECT COUNT(v) FROM Vehicle v
+            WHERE v.organization.id = :orgId
+            AND (
+              :search IS NULL
+              OR LOWER(v.brand) LIKE LOWER(CONCAT('%', :search, '%'))
+              OR LOWER(v.model) LIKE LOWER(CONCAT('%', :search, '%'))
+            )
+            AND (:status IS NULL OR v.status = :status)
+        """
+    )
+    fun findPageByOrganization(
+        @Param("orgId") orgId: UUID,
+        @Param("search") search: String?,
+        @Param("status") status: VehicleStatus?,
+        pageable: Pageable
+    ): Page<Vehicle>
 
     @Query("""
         SELECT v.status, COUNT(v)
