@@ -20,6 +20,7 @@ import {
   Check,
   X,
   Download,
+  PackageCheck,
 } from 'lucide-react';
 import { Seller, ThemeMode, AccentColor } from '@/types';
 import { cn } from '@/lib/utils';
@@ -32,6 +33,11 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { formatTimeAgo } from '@/lib/formatters';
+import { RoleGate } from '@/components/layout/RoleGate';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useSubscription, useUsage, usePlans } from '@/hooks/api/useSaas';
 
 const initialUsers: Seller[] = [
   { id: '1', nome: 'Carlos Mendes', email: 'carlos@v3motors.com', role: 'ADMIN' },
@@ -100,6 +106,7 @@ export default function Configuracoes() {
     { id: 'notifications', label: 'Notificações', icon: Bell },
     { id: 'security', label: 'Segurança', icon: Shield },
     { id: 'payments', label: 'Pagamentos', icon: CreditCard },
+    { id: 'assinatura', label: 'Assinatura', icon: PackageCheck },
   ];
 
   return (
@@ -706,6 +713,23 @@ export default function Configuracoes() {
             </div>
           </div>
         )}
+
+        {/* ============ ASSINATURA TAB ============ */}
+        {activeSection === 'assinatura' && (
+          <RoleGate
+            allowedRoles={['ADMIN']}
+            fallback={
+              <div className="flex flex-col items-center justify-center py-16 gap-3 text-center animate-fade-in">
+                <PackageCheck className="h-12 w-12 text-muted-foreground/30" />
+                <p className="text-sm text-muted-foreground">
+                  Apenas administradores podem ver as informações de assinatura.
+                </p>
+              </div>
+            }
+          >
+            <AssinaturaContent />
+          </RoleGate>
+        )}
       </div>
 
       <AddUserModal open={isUserModalOpen} onOpenChange={setIsUserModalOpen} onSubmit={handleAddUser} />
@@ -716,5 +740,246 @@ export default function Configuracoes() {
         onSubmit={handleUpdateUser}
       />
     </>
+  );
+}
+
+// ─── Assinatura helpers ────────────────────────────────────────────────────
+
+function usageColorClass(used: number, limit: number): string {
+  const pct = limit > 0 ? (used / limit) * 100 : 0;
+  if (pct < 70) return 'text-emerald-600';
+  if (pct < 90) return 'text-amber-600';
+  return 'text-red-600';
+}
+
+function usageProgressClass(used: number, limit: number): string {
+  const pct = limit > 0 ? (used / limit) * 100 : 0;
+  if (pct < 70) return '';
+  if (pct < 90) return '[&>div]:bg-amber-500';
+  return '[&>div]:bg-red-500';
+}
+
+function statusBadgeClass(status: string): string {
+  switch (status) {
+    case 'ACTIVE': return 'bg-emerald-100 text-emerald-700';
+    case 'SUSPENDED': return 'bg-red-100 text-red-700';
+    case 'TRIAL': return 'bg-amber-100 text-amber-700';
+    default: return 'bg-slate-100 text-slate-600';
+  }
+}
+
+function statusLabel(status: string): string {
+  switch (status) {
+    case 'ACTIVE': return 'Ativo';
+    case 'SUSPENDED': return 'Suspenso';
+    case 'TRIAL': return 'Avaliação';
+    default: return status;
+  }
+}
+
+function AssinaturaContent() {
+  const { data: subscription, isLoading: subLoading, error: subError, refetch: subRefetch } = useSubscription();
+  const { data: usage, isLoading: usageLoading, error: usageError, refetch: usageRefetch } = useUsage();
+  const { data: plans, isLoading: plansLoading } = usePlans();
+
+  const isLoading = subLoading || usageLoading;
+  const hasError = subError || usageError;
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 animate-fade-in">
+        <Skeleton className="h-32 rounded-xl" />
+        <Skeleton className="h-32 rounded-xl" />
+        <Skeleton className="h-48 rounded-xl" />
+      </div>
+    );
+  }
+
+  if (hasError) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 gap-3 text-center animate-fade-in">
+        <p className="text-sm text-red-500">Não foi possível carregar os dados de assinatura.</p>
+        <Button variant="outline" size="sm" onClick={() => { subRefetch(); usageRefetch(); }}>
+          Tentar novamente
+        </Button>
+      </div>
+    );
+  }
+
+  const renewDate = subscription?.renewsAt
+    ? new Date(subscription.renewsAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
+    : '—';
+  const usageResetDate = usage?.renewsAt
+    ? new Date(usage.renewsAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
+    : '—';
+
+  return (
+    <div className="space-y-6 animate-fade-in">
+      {/* Card 1: Plano Atual */}
+      <div className="rounded-xl border border-border/50 bg-card shadow-sm">
+        <div className="p-6 border-b border-border/50">
+          <h3 className="text-lg font-semibold text-foreground">Plano Atual</h3>
+        </div>
+        <div className="p-6">
+          <div className="flex items-center justify-between rounded-xl border border-primary/30 bg-primary/5 p-6">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-semibold text-foreground">{subscription?.planName || '—'}</span>
+                <Badge className={cn('text-xs', statusBadgeClass(subscription?.status || ''))}>
+                  {statusLabel(subscription?.status || '')}
+                </Badge>
+              </div>
+              <p className="text-2xl font-bold text-foreground">
+                R$ {(subscription?.monthlyPriceBrl ?? 0).toFixed(2).replace('.', ',')}
+                <span className="text-sm font-normal text-muted-foreground">/mês</span>
+              </p>
+              <p className="text-sm text-muted-foreground">Renova em {renewDate}</p>
+            </div>
+            <Button variant="default" size="sm" asChild>
+              <a href="mailto:vendas@astrosoftware.com.br?subject=Upgrade de plano Astro LeadFlow">
+                Falar com vendas
+              </a>
+            </Button>
+          </div>
+          {subscription?.status === 'SUSPENDED' && (
+            <p className="text-sm text-red-600 mt-3">
+              Sua assinatura está suspensa. Fale com nossa equipe para reativar.
+            </p>
+          )}
+          {subscription?.status === 'TRIAL' && (
+            <p className="text-sm text-amber-600 mt-3">
+              Plano de avaliação — expira em {renewDate}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Card 2: Uso de Mensagens */}
+      <div className="rounded-xl border border-border/50 bg-card shadow-sm">
+        <div className="p-6 border-b border-border/50">
+          <h3 className="text-lg font-semibold text-foreground">Uso de Mensagens</h3>
+        </div>
+        <div className="p-6 space-y-3">
+          <Progress
+            value={usage ? (usage.globalUsed / Math.max(1, usage.globalLimit)) * 100 : 0}
+            className={cn('h-3', usageProgressClass(usage?.globalUsed ?? 0, usage?.globalLimit ?? 1))}
+            aria-label={`${usage?.globalUsed ?? 0} de ${usage?.globalLimit ?? 0} mensagens usadas`}
+          />
+          <div className="flex items-center justify-between">
+            <p className={cn('text-sm font-medium', usageColorClass(usage?.globalUsed ?? 0, usage?.globalLimit ?? 1))}>
+              {usage?.globalUsed ?? 0} de {usage?.globalLimit ?? 0} mensagens usadas
+            </p>
+            <p className="text-xs text-muted-foreground">Redefine em {usageResetDate}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Card 3: Integrações de Marketplace */}
+      <div className="rounded-xl border border-border/50 bg-card shadow-sm">
+        <div className="p-6 border-b border-border/50">
+          <h3 className="text-lg font-semibold text-foreground">Integrações de Marketplace</h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-border/50 bg-muted/30">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Marketplace</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Usadas</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Limite</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground min-w-[120px]">Uso</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/50">
+              {(usage?.marketplaces ?? []).map((mkt) => (
+                <tr key={mkt.marketplaceName} className="hover:bg-muted/20 transition-colors">
+                  <td className="px-6 py-4 text-sm font-medium text-foreground">{mkt.marketplaceName}</td>
+                  <td className="px-6 py-4">
+                    <Badge className={cn('text-xs', mkt.enabled ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500')}>
+                      {mkt.enabled ? 'Ativo' : 'Inativo'}
+                    </Badge>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-foreground">{mkt.used}</td>
+                  <td className="px-6 py-4 text-sm text-muted-foreground">{mkt.limit}</td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2">
+                      <Progress
+                        value={mkt.limit > 0 ? (mkt.used / mkt.limit) * 100 : 0}
+                        className={cn('h-2 flex-1', usageProgressClass(mkt.used, mkt.limit))}
+                      />
+                      <span className={cn('text-xs font-medium min-w-[32px] text-right', usageColorClass(mkt.used, mkt.limit))}>
+                        {mkt.limit > 0 ? Math.round((mkt.used / mkt.limit) * 100) : 0}%
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {(usage?.marketplaces ?? []).length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-6 py-8 text-center text-sm text-muted-foreground">
+                    Nenhuma integração de marketplace configurada.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Card 4: Planos Disponíveis */}
+      <div className="rounded-xl border border-border/50 bg-card shadow-sm">
+        <div className="p-6 border-b border-border/50">
+          <h3 className="text-lg font-semibold text-foreground">Planos Disponíveis</h3>
+        </div>
+        <div className="p-6">
+          {plansLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+              {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-40 rounded-xl" />)}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+              {(plans ?? []).map((plan) => {
+                const isCurrent = plan.id === subscription?.planId;
+                return (
+                  <div
+                    key={plan.id}
+                    className={cn(
+                      'rounded-xl border p-4 space-y-3 transition-colors',
+                      isCurrent
+                        ? 'border-primary ring-2 ring-primary/20 bg-primary/5'
+                        : 'border-border/50 hover:border-foreground/20',
+                    )}
+                  >
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-semibold text-foreground">{plan.name}</h4>
+                      {isCurrent && <Badge className="bg-primary/10 text-primary text-xs">Atual</Badge>}
+                    </div>
+                    <p className="text-xl font-bold text-foreground">
+                      {plan.monthlyPriceBrl > 0
+                        ? `R$ ${plan.monthlyPriceBrl.toFixed(2).replace('.', ',')}`
+                        : 'Personalizado'}
+                      {plan.monthlyPriceBrl > 0 && (
+                        <span className="text-xs font-normal text-muted-foreground">/mês</span>
+                      )}
+                    </p>
+                    <div className="space-y-1 text-xs text-muted-foreground">
+                      <p>{plan.messageLimit.toLocaleString('pt-BR')} mensagens/mês</p>
+                      <p>{plan.marketplaceLimit} marketplaces</p>
+                    </div>
+                    {!isCurrent && (
+                      <Button variant="outline" size="sm" className="w-full" asChild>
+                        <a href={`mailto:vendas@astrosoftware.com.br?subject=Interesse no plano ${plan.name} — Astro LeadFlow`}>
+                          Falar com vendas
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
