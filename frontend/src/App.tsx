@@ -21,6 +21,7 @@ const Leads = lazy(() => import('@/pages/Leads'));
 const Kanban = lazy(() => import('@/pages/Kanban'));
 const Estoque = lazy(() => import('@/pages/Estoque'));
 const Configuracoes = lazy(() => import('@/pages/Configuracoes'));
+const Comunicacao = lazy(() => import('@/pages/Comunicacao'));
 const Login = lazy(() => import('@/pages/Login'));
 
 const queryClient = new QueryClient();
@@ -77,6 +78,14 @@ const App = () => (
                           element={
                             <Suspense fallback={<PageLoader />}>
                               <Estoque />
+                            </Suspense>
+                          }
+                        />
+                        <Route
+                          path="comunicacao"
+                          element={
+                            <Suspense fallback={<PageLoader />}>
+                              <Comunicacao />
                             </Suspense>
                           }
                         />

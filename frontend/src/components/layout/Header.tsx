@@ -23,6 +23,7 @@ const navItems = [
   { label: 'Leads', path: '/app/leads' },
   { label: 'Painel de controle', path: '/app/kanban' },
   { label: 'Estoque', path: '/app/estoque' },
+  { label: 'Comunicacao', path: '/app/comunicacao' },
   { label: 'Configurações', path: '/app/configuracoes' },
 ];
 
