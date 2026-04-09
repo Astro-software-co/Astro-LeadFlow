@@ -36,7 +36,7 @@ class JwtAuthenticationFilter(
         }
 
         val userId = tokenService.extractUserId(token)
-        val user = userRepository.findById(userId).orElse(null)
+        val user = userRepository.findByIdWithOrganization(userId).orElse(null)
 
         if (user != null && user.isEnabled) {
             val auth = UsernamePasswordAuthenticationToken(

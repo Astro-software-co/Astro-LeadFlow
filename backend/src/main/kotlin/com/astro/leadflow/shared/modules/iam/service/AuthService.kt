@@ -49,6 +49,7 @@ class AuthService(
         return buildTokenResponse(admin)
     }
 
+    @Transactional(readOnly = true)
     fun login(request: LoginRequest): TokenResponse {
         val user = userRepository.findByEmail(request.email)
             .orElseThrow { BusinessException("Credenciais inválidas.") }
@@ -87,6 +88,7 @@ class AuthService(
         return buildTokenResponse(user)
     }
 
+    @Transactional(readOnly = true)
     fun refreshToken(refreshToken: String): TokenResponse {
         if (!tokenService.isTokenValid(refreshToken) || !tokenService.isRefreshToken(refreshToken))
             throw BusinessException("Refresh token inválido ou expirado.")

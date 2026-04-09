@@ -34,8 +34,12 @@ class UserService(
 ) {
 
     @Transactional(readOnly = true)
-    fun getMe(): UserResponse =
-        userMapper.toResponse(SecurityUtils.getCurrentUser())
+    fun getMe(): UserResponse {
+        val userId = SecurityUtils.getCurrentUser().id
+        val user = userRepository.findById(userId)
+            .orElseThrow { ResourceNotFoundException("User", userId) }
+        return userMapper.toResponse(user)
+    }
 
     @Transactional
     fun updateMe(request: UpdateUserRequest): UserResponse {

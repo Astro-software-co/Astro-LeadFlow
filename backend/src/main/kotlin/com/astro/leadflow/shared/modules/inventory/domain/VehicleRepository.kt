@@ -35,9 +35,9 @@ interface VehicleRepository : JpaRepository<Vehicle, UUID> {
             SELECT v FROM Vehicle v
             WHERE v.organization.id = :orgId
             AND (
-              :search IS NULL
-              OR LOWER(v.brand) LIKE LOWER(CONCAT('%', :search, '%'))
-              OR LOWER(v.model) LIKE LOWER(CONCAT('%', :search, '%'))
+              CAST(:search AS string) IS NULL
+              OR LOWER(v.brand) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%'))
+              OR LOWER(v.model) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%'))
             )
             AND (:status IS NULL OR v.status = :status)
         """,
@@ -45,9 +45,9 @@ interface VehicleRepository : JpaRepository<Vehicle, UUID> {
             SELECT COUNT(v) FROM Vehicle v
             WHERE v.organization.id = :orgId
             AND (
-              :search IS NULL
-              OR LOWER(v.brand) LIKE LOWER(CONCAT('%', :search, '%'))
-              OR LOWER(v.model) LIKE LOWER(CONCAT('%', :search, '%'))
+              CAST(:search AS string) IS NULL
+              OR LOWER(v.brand) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%'))
+              OR LOWER(v.model) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%'))
             )
             AND (:status IS NULL OR v.status = :status)
         """

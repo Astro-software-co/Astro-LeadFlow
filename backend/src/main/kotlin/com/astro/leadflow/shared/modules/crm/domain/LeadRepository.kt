@@ -34,6 +34,7 @@ interface LeadRepository : JpaRepository<Lead, UUID> {
     // Kanban board completo agrupado por stage
     @Query("""
         SELECT l FROM Lead l
+        LEFT JOIN FETCH l.organization
         LEFT JOIN FETCH l.assignedTo
         LEFT JOIN FETCH l.vehicle
         WHERE l.organization.id = :orgId
@@ -45,41 +46,33 @@ interface LeadRepository : JpaRepository<Lead, UUID> {
     @Query(
         value = """
             SELECT l FROM Lead l
-            LEFT JOIN FETCH l.assignedTo
-            LEFT JOIN FETCH l.vehicle
             WHERE l.organization.id = :orgId
             AND (
-              :search IS NULL
-              OR LOWER(COALESCE(l.name, '')) LIKE LOWER(CONCAT('%', :search, '%'))
-              OR LOWER(l.phoneNumber) LIKE LOWER(CONCAT('%', :search, '%'))
-              OR LOWER(COALESCE(l.email, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+              CAST(:search AS string) IS NULL
+              OR LOWER(COALESCE(l.name, '')) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%'))
+              OR LOWER(l.phoneNumber) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%'))
+              OR LOWER(COALESCE(l.email, '')) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%'))
             )
-            AND (
-              :origin IS NULL
-              OR LOWER(REPLACE(l.origin, '_', ' ')) = LOWER(REPLACE(:origin, '_', ' '))
-            )
-            AND (:stage IS NULL OR l.pipelineStage = :stage)
-            AND (:assignedTo IS NULL OR l.assignedTo.id = :assignedTo)
-            AND (:createdFrom IS NULL OR l.createdAt >= :createdFrom)
-            AND (:createdTo IS NULL OR l.createdAt < :createdTo)
+            AND (CAST(:origin AS string) IS NULL OR l.origin = :origin)
+            AND (CAST(:stage AS string) IS NULL OR l.pipelineStage = :stage)
+            AND (CAST(:assignedTo AS string) IS NULL OR l.assignedTo.id = :assignedTo)
+            AND (CAST(:createdFrom AS LocalDateTime) IS NULL OR l.createdAt >= :createdFrom)
+            AND (CAST(:createdTo AS LocalDateTime) IS NULL OR l.createdAt < :createdTo)
         """,
         countQuery = """
             SELECT COUNT(l) FROM Lead l
             WHERE l.organization.id = :orgId
             AND (
-              :search IS NULL
-              OR LOWER(COALESCE(l.name, '')) LIKE LOWER(CONCAT('%', :search, '%'))
-              OR LOWER(l.phoneNumber) LIKE LOWER(CONCAT('%', :search, '%'))
-              OR LOWER(COALESCE(l.email, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+              CAST(:search AS string) IS NULL
+              OR LOWER(COALESCE(l.name, '')) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%'))
+              OR LOWER(l.phoneNumber) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%'))
+              OR LOWER(COALESCE(l.email, '')) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%'))
             )
-            AND (
-              :origin IS NULL
-              OR LOWER(REPLACE(l.origin, '_', ' ')) = LOWER(REPLACE(:origin, '_', ' '))
-            )
-            AND (:stage IS NULL OR l.pipelineStage = :stage)
-            AND (:assignedTo IS NULL OR l.assignedTo.id = :assignedTo)
-            AND (:createdFrom IS NULL OR l.createdAt >= :createdFrom)
-            AND (:createdTo IS NULL OR l.createdAt < :createdTo)
+            AND (CAST(:origin AS string) IS NULL OR l.origin = :origin)
+            AND (CAST(:stage AS string) IS NULL OR l.pipelineStage = :stage)
+            AND (CAST(:assignedTo AS string) IS NULL OR l.assignedTo.id = :assignedTo)
+            AND (CAST(:createdFrom AS LocalDateTime) IS NULL OR l.createdAt >= :createdFrom)
+            AND (CAST(:createdTo AS LocalDateTime) IS NULL OR l.createdAt < :createdTo)
         """
     )
     fun findPageByOrganization(
@@ -122,11 +115,11 @@ interface LeadRepository : JpaRepository<Lead, UUID> {
 
     // Contagem de leads por mês/ano
     @Query("""
-        SELECT COUNT(l) FROM Lead l
-        WHERE l.organization.id = :orgId
-        AND MONTH(l.createdAt) = :month
-        AND YEAR(l.createdAt) = :year
-    """)
+        SELECT COUNT(*) FROM leads
+        WHERE organization_id = :orgId
+        AND EXTRACT(MONTH FROM created_at) = :month
+        AND EXTRACT(YEAR FROM created_at) = :year
+    """, nativeQuery = true)
     fun countByOrganizationIdAndPeriod(
         @Param("orgId") orgId: UUID,
         @Param("month") month: Int,
@@ -146,12 +139,12 @@ interface LeadRepository : JpaRepository<Lead, UUID> {
 
     // Contagem de leads por estágio e período
     @Query("""
-        SELECT COUNT(l) FROM Lead l
-        WHERE l.organization.id = :orgId
-        AND l.pipelineStage = :stage
-        AND MONTH(l.createdAt) = :month
-        AND YEAR(l.createdAt) = :year
-    """)
+        SELECT COUNT(*) FROM leads
+        WHERE organization_id = :orgId
+        AND pipeline_stage = :#{#stage.name()}
+        AND EXTRACT(MONTH FROM created_at) = :month
+        AND EXTRACT(YEAR FROM created_at) = :year
+    """, nativeQuery = true)
     fun countByOrganizationIdAndStageAndPeriod(
         @Param("orgId") orgId: UUID,
         @Param("stage") stage: PipelineStage,
@@ -161,13 +154,13 @@ interface LeadRepository : JpaRepository<Lead, UUID> {
 
     // Vendas concluídas por período (leads em COMPLETED com vehicle vinculado)
     @Query("""
-        SELECT COUNT(l) FROM Lead l
-        WHERE l.organization.id = :orgId
-        AND l.pipelineStage = 'COMPLETED'
-        AND l.vehicle IS NOT NULL
-        AND MONTH(l.updatedAt) = :month
-        AND YEAR(l.updatedAt) = :year
-    """)
+        SELECT COUNT(*) FROM leads
+        WHERE organization_id = :orgId
+        AND pipeline_stage = 'COMPLETED'
+        AND vehicle_id IS NOT NULL
+        AND EXTRACT(MONTH FROM updated_at) = :month
+        AND EXTRACT(YEAR FROM updated_at) = :year
+    """, nativeQuery = true)
     fun countSalesByOrganizationAndPeriod(
         @Param("orgId") orgId: UUID,
         @Param("month") month: Int,
@@ -176,14 +169,15 @@ interface LeadRepository : JpaRepository<Lead, UUID> {
 
     // Soma de receita por período (salePrice dos veículos vendidos)
     @Query("""
-        SELECT SUM(l.vehicle.salePrice)
-        FROM Lead l
-        WHERE l.organization.id = :orgId
-        AND l.pipelineStage = 'COMPLETED'
-        AND l.vehicle IS NOT NULL
-        AND MONTH(l.updatedAt) = :month
-        AND YEAR(l.updatedAt) = :year
-    """)
+        SELECT SUM(v.sale_price)
+        FROM leads l
+        JOIN vehicles v ON v.id = l.vehicle_id
+        WHERE l.organization_id = :orgId
+        AND l.pipeline_stage = 'COMPLETED'
+        AND l.vehicle_id IS NOT NULL
+        AND EXTRACT(MONTH FROM l.updated_at) = :month
+        AND EXTRACT(YEAR FROM l.updated_at) = :year
+    """, nativeQuery = true)
     fun sumRevenueByOrganizationAndPeriod(
         @Param("orgId") orgId: UUID,
         @Param("month") month: Int,
