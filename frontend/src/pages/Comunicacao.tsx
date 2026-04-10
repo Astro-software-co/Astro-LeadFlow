@@ -1,32 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { useLeads } from '@/hooks/api/useLeads';
-import { useChat, useSendMessage } from '@/hooks/api/useChat';
+import { useChat } from '@/hooks/api/useChat';
 import { ChatMessageDTO } from '@/types/api/chat';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Send, MessageCircle, User, Phone, Loader2, Search } from 'lucide-react';
+import { ExternalLink, MessageCircle, User, Phone, Loader2, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const WHATSAPP_TEMPLATES = [
-  'Ola! Vi seu interesse no veiculo. Posso ajudar com mais informacoes?',
-  'Boa tarde! Temos condicoes especiais esta semana. Gostaria de saber mais?',
-  'Ola! Seu veiculo de interesse esta disponivel. Vamos agendar uma visita?',
-  'Oi! Passando para confirmar seu interesse e verificar disponibilidade.',
-  'Bom dia! Posso te ajudar a encontrar o veiculo ideal dentro do seu orcamento?',
-] as const;
-
-const messageSchema = z.object({
-  message: z.string().min(1, 'Digite uma mensagem'),
-});
-type MessageFormData = z.infer<typeof messageSchema>;
 
 function StatusBadge({ status }: { status: ChatMessageDTO['status'] }) {
   const config = {
@@ -49,12 +32,6 @@ export default function Comunicacao() {
 
   const leadsQuery = useLeads({ size: 50 });
   const chatQuery = useChat(selectedLeadId);
-  const sendMutation = useSendMessage(selectedLeadId);
-
-  const form = useForm<MessageFormData>({
-    resolver: zodResolver(messageSchema),
-    defaultValues: { message: '' },
-  });
 
   const leads = leadsQuery.data?.content ?? [];
   const filteredLeads = leadSearch.trim()
@@ -73,22 +50,6 @@ export default function Comunicacao() {
       if (viewport) viewport.scrollTop = viewport.scrollHeight;
     }
   }, [chatQuery.data]);
-
-  // Reset form after successful send
-  useEffect(() => {
-    if (sendMutation.isSuccess) {
-      form.reset();
-    }
-  }, [sendMutation.isSuccess, form]);
-
-  const onSend = (data: MessageFormData) => {
-    if (!selectedLead?.telefone || !selectedLeadId) return;
-    const phoneNumber = selectedLead.telefone.replace(/\D/g, '');
-    sendMutation.mutate(
-      { phoneNumber, message: data.message, leadId: selectedLeadId },
-      { onSuccess: () => form.reset() },
-    );
-  };
 
   function renderMessage(msg: ChatMessageDTO) {
     const isOutbound = msg.direction === 'OUTBOUND';
@@ -124,7 +85,7 @@ export default function Comunicacao() {
       <div>
         <h1 className="text-2xl font-semibold text-foreground">Comunicacao</h1>
         <p className="text-sm text-muted-foreground">
-          Selecione um lead para visualizar o historico e enviar mensagens via WhatsApp.
+          Selecione um lead para visualizar o historico de conversa.
         </p>
       </div>
 
@@ -194,7 +155,7 @@ export default function Comunicacao() {
               <div>
                 <p className="text-lg font-semibold text-foreground">Selecione um lead</p>
                 <p className="text-sm text-muted-foreground">
-                  Escolha um lead na lista ao lado para ver o historico de conversa e enviar mensagens.
+                  Escolha um lead na lista ao lado para ver o historico de conversa.
                 </p>
               </div>
             </div>
@@ -211,6 +172,24 @@ export default function Comunicacao() {
                     <Phone className="h-3 w-3" /> {selectedLead?.telefone || 'Sem telefone'}
                   </p>
                 </div>
+                {selectedLead?.telefone ? (
+                  <a
+                    href={`https://wa.me/${selectedLead.telefone.replace(/\D/g, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Abrir conversa no WhatsApp"
+                  >
+                    <Button variant="outline" size="sm" className="shrink-0 gap-1.5">
+                      <ExternalLink className="h-3.5 w-3.5" />
+                      Abrir no WhatsApp
+                    </Button>
+                  </a>
+                ) : (
+                  <Button variant="outline" size="sm" className="shrink-0 gap-1.5" disabled>
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    Sem telefone
+                  </Button>
+                )}
               </div>
 
               {/* Chat messages */}
@@ -238,68 +217,13 @@ export default function Comunicacao() {
                   <div className="flex flex-col items-center justify-center py-8 gap-2 text-center">
                     <MessageCircle className="h-8 w-8 text-muted-foreground/30" />
                     <p className="text-sm text-muted-foreground">
-                      Nenhuma mensagem ainda. Envie a primeira mensagem abaixo.
+                      Nenhuma mensagem neste historico ainda.
                     </p>
                   </div>
                 ) : (
                   <div className="space-y-3">{chatQuery.data?.map(renderMessage)}</div>
                 )}
               </ScrollArea>
-
-              {/* Template suggestions */}
-              <div className="px-4 pb-2">
-                <p className="text-xs text-muted-foreground mb-2">Sugestoes de mensagem</p>
-                <div className="flex flex-wrap gap-2">
-                  {WHATSAPP_TEMPLATES.map((template, i) => (
-                    <Button
-                      key={i}
-                      variant="ghost"
-                      size="sm"
-                      className="text-xs h-auto py-1.5 px-3 max-w-[200px] truncate"
-                      aria-label={`Usar template: ${template.slice(0, 40)}`}
-                      onClick={() => {
-                        form.setValue('message', template);
-                        document.getElementById('message')?.focus();
-                      }}
-                    >
-                      {template.length > 40 ? template.slice(0, 40) + '...' : template}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Compose area */}
-              <form onSubmit={form.handleSubmit(onSend)} className="p-4 border-t border-border/50 flex gap-2">
-                <Textarea
-                  id="message"
-                  placeholder="Digite uma mensagem..."
-                  rows={2}
-                  className="flex-1 min-h-[44px] resize-none"
-                  {...form.register('message')}
-                  disabled={!selectedLead?.telefone}
-                />
-                <Button
-                  type="submit"
-                  disabled={!selectedLead?.telefone || sendMutation.isPending || !form.watch('message')?.trim()}
-                  className="self-end min-h-[44px]"
-                  aria-label="Enviar mensagem"
-                >
-                  {sendMutation.isPending ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Send className="h-4 w-4" />
-                  )}
-                </Button>
-              </form>
-
-              {/* No-phone warning */}
-              {selectedLead && !selectedLead.telefone && (
-                <div className="px-4 pb-4">
-                  <p className="text-xs text-amber-600">
-                    Este lead nao tem telefone cadastrado. Edite o lead para adicionar um numero.
-                  </p>
-                </div>
-              )}
             </>
           )}
         </div>
