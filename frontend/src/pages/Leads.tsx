@@ -1,21 +1,26 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
+import type { DateRange } from 'react-day-picker';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Plus, Search, Filter, Users, Pencil, Archive, History } from 'lucide-react';
+import { Calendar as CalendarIcon, Loader2, Plus, Search, Filter, Users, Pencil, Archive, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Calendar } from '@/components/ui/calendar';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { useArchiveLead, useCreateLead, useLeadActivities, useLeads, useUpdateLead } from '@/hooks/api/useLeads';
 import { Lead, KanbanColumn } from '@/types';
 import { cn } from '@/lib/utils';
 import { mapKanbanColumnToPipelineStage } from '@/mappers/leads.mapper';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { formatDateTime } from '@/lib/formatters';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const leadSchema = z.object({
   nome: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
@@ -62,6 +67,30 @@ function stageLabel(stage: KanbanColumn | null | undefined): string {
   return stageOptions.find((option) => option.value === stage)?.label ?? 'Aguardando atendimento';
 }
 
+function toISODate(value?: Date): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, '0');
+  const day = String(value.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function formatDateRange(range?: DateRange): string {
+  if (!range?.from) {
+    return 'Filtrar por periodo';
+  }
+
+  const from = range.from.toLocaleDateString('pt-BR');
+  if (!range.to) {
+    return `${from} - ...`;
+  }
+
+  return `${from} - ${range.to.toLocaleDateString('pt-BR')}`;
+}
+
 function LeadFormModal({
   open,
   onOpenChange,
@@ -99,92 +128,112 @@ function LeadFormModal({
           observacoes: '',
         },
   });
+        const urgencyEmptyValue = 'none';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{lead ? 'Editar lead' : 'Novo lead'}</DialogTitle>
         </DialogHeader>
 
         <form
-          className="grid gap-4 sm:grid-cols-2"
+          className="mt-4 space-y-4"
           onSubmit={form.handleSubmit(async (values) => {
             await onSubmit(values);
           })}
         >
-          <div className="space-y-2">
-            <Label htmlFor="nome">Nome</Label>
-            <Input id="nome" {...form.register('nome')} />
-            {form.formState.errors.nome && <p className="text-xs text-destructive">{form.formState.errors.nome.message}</p>}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="nome">Nome</Label>
+              <Input id="nome" {...form.register('nome')} />
+              {form.formState.errors.nome && <p className="text-xs text-destructive">{form.formState.errors.nome.message}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="telefone">Telefone</Label>
+              <Input id="telefone" {...form.register('telefone')} />
+              {form.formState.errors.telefone && (
+                <p className="text-xs text-destructive">{form.formState.errors.telefone.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email">E-mail</Label>
+              <Input id="email" type="email" {...form.register('email')} />
+              {form.formState.errors.email && (
+                <p className="text-xs text-destructive">{form.formState.errors.email.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="origem">Origem</Label>
+              <Controller
+                control={form.control}
+                name="origem"
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger id="origem">
+                      <SelectValue placeholder="Selecione a origem" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {originOptions
+                        .filter((option) => option.value !== 'all')
+                        .map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="interesse">Interesse</Label>
+              <Input id="interesse" {...form.register('interesse')} />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="orcamento">Orcamento (R$)</Label>
+              <Input id="orcamento" {...form.register('orcamento')} />
+              {form.formState.errors.orcamento && (
+                <p className="text-xs text-destructive">{form.formState.errors.orcamento.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="urgencia">Urgencia</Label>
+              <Controller
+                control={form.control}
+                name="urgencia"
+                render={({ field }) => (
+                  <Select
+                    value={field.value || urgencyEmptyValue}
+                    onValueChange={(value) => field.onChange(value === urgencyEmptyValue ? '' : value)}
+                  >
+                    <SelectTrigger id="urgencia">
+                      <SelectValue placeholder="Nao informada" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={urgencyEmptyValue}>Nao informada</SelectItem>
+                      <SelectItem value="baixa">Baixa</SelectItem>
+                      <SelectItem value="media">Media</SelectItem>
+                      <SelectItem value="alta">Alta</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
+
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="observacoes">Observacoes</Label>
+              <Textarea id="observacoes" rows={3} {...form.register('observacoes')} />
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="telefone">Telefone</Label>
-            <Input id="telefone" {...form.register('telefone')} />
-            {form.formState.errors.telefone && (
-              <p className="text-xs text-destructive">{form.formState.errors.telefone.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="email">E-mail</Label>
-            <Input id="email" type="email" {...form.register('email')} />
-            {form.formState.errors.email && (
-              <p className="text-xs text-destructive">{form.formState.errors.email.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="origem">Origem</Label>
-            <select
-              id="origem"
-              className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-              {...form.register('origem')}
-            >
-              {originOptions
-                .filter((option) => option.value !== 'all')
-                .map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-            </select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="interesse">Interesse</Label>
-            <Input id="interesse" {...form.register('interesse')} />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="orcamento">Orcamento (R$)</Label>
-            <Input id="orcamento" {...form.register('orcamento')} />
-            {form.formState.errors.orcamento && (
-              <p className="text-xs text-destructive">{form.formState.errors.orcamento.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-2 sm:col-span-2">
-            <Label htmlFor="urgencia">Urgencia</Label>
-            <select
-              id="urgencia"
-              className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-              {...form.register('urgencia')}
-            >
-              <option value="">Nao informada</option>
-              <option value="baixa">Baixa</option>
-              <option value="media">Media</option>
-              <option value="alta">Alta</option>
-            </select>
-          </div>
-
-          <div className="space-y-2 sm:col-span-2">
-            <Label htmlFor="observacoes">Observacoes</Label>
-            <Textarea id="observacoes" rows={3} {...form.register('observacoes')} />
-          </div>
-
-          <div className="flex justify-end gap-2 sm:col-span-2">
+          <div className="flex justify-end gap-2 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
               Cancelar
             </Button>
@@ -205,8 +254,8 @@ export default function Leads() {
   const [origin, setOrigin] = useState<'all' | Lead['origem']>('all');
   const [stage, setStage] = useState<'all' | KanbanColumn>('all');
   const [assignedTo, setAssignedTo] = useState<'all' | string>('all');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [isDateRangeOpen, setIsDateRangeOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -214,19 +263,22 @@ export default function Leads() {
 
   const filters = useMemo(() => {
     const trimmed = search.trim();
+    const dateFrom = toISODate(dateRange?.from);
+    const dateTo = toISODate(dateRange?.to);
+
     return {
       search: trimmed || undefined,
       origin: origin === 'all' ? undefined : origin,
       stage: stage === 'all' ? undefined : mapKanbanColumnToPipelineStage(stage),
       assignedTo: assignedTo === 'all' ? undefined : assignedTo,
-      dateFrom: dateFrom || undefined,
-      dateTo: dateTo || undefined,
+      dateFrom,
+      dateTo,
       page: page - 1,
       size: pageSize,
     };
-  }, [search, origin, stage, assignedTo, dateFrom, dateTo, page]);
+  }, [search, origin, stage, assignedTo, dateRange, page]);
 
-  const { data, isLoading, error, refetch } = useLeads(filters);
+  const { data, isLoading, isFetching, error, refetch } = useLeads(filters);
   const { data: activities, isLoading: isLoadingActivities } = useLeadActivities(historyLead?.id);
   const createLead = useCreateLead();
   const updateLead = useUpdateLead();
@@ -248,9 +300,10 @@ export default function Leads() {
   const totalPages = Math.max(1, data?.totalPages ?? 1);
   const safePage = Math.min(page, totalPages);
   const pagedLeads = leads;
+  const dateRangeLabel = useMemo(() => formatDateRange(dateRange), [dateRange]);
 
   const hasAnyFilter =
-    !!search.trim() || origin !== 'all' || stage !== 'all' || assignedTo !== 'all' || !!dateFrom || !!dateTo;
+    !!search.trim() || origin !== 'all' || stage !== 'all' || assignedTo !== 'all' || !!dateRange?.from;
 
   useEffect(() => {
     if (page > totalPages) {
@@ -299,10 +352,56 @@ export default function Leads() {
     toast.success('Lead arquivado com sucesso');
   };
 
-  if (isLoading) {
+  if (isLoading && !data) {
     return (
-      <div className="flex min-h-[50vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="space-y-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <Skeleton className="h-8 w-32" />
+            <Skeleton className="mt-2 h-4 w-48" />
+          </div>
+          <Skeleton className="h-10 w-32" />
+        </div>
+        <div data-testid="leads-skeleton" className="rounded-xl border bg-card shadow-sm overflow-hidden">
+          <table className="hidden md:table w-full min-w-[880px]">
+            <thead>
+              <tr className="border-b bg-muted/30">
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Lead</th>
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Contato</th>
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Origem</th>
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Estagio</th>
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Interesse</th>
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Atualizado</th>
+                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">Acoes</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <tr key={i} data-testid="skeleton-row">
+                  <td className="px-4 py-4"><Skeleton className="h-4 w-40" /></td>
+                  <td className="px-4 py-4"><Skeleton className="h-4 w-24" /></td>
+                  <td className="px-4 py-4"><Skeleton className="h-4 w-24" /></td>
+                  <td className="px-4 py-4"><Skeleton className="h-4 w-32" /></td>
+                  <td className="px-4 py-4"><Skeleton className="h-4 w-20" /></td>
+                  <td className="px-4 py-4"><Skeleton className="h-4 w-20" /></td>
+                  <td className="px-4 py-4"><Skeleton className="h-4 w-16 ml-auto" /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="block md:hidden space-y-4 p-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="rounded-xl border bg-card p-4 shadow-sm space-y-3">
+                <div className="flex items-start justify-between">
+                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-5 w-20 rounded-full" />
+                </div>
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-40" />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -343,92 +442,134 @@ export default function Leads() {
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Buscar por nome, telefone ou email"
-              className="pl-10"
+              className="pl-10 pr-10"
               value={search}
               onChange={(event) => {
                 setSearch(event.target.value);
                 setPage(1);
               }}
             />
+            {isFetching ? (
+              <Loader2 className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+            ) : null}
           </div>
 
           <div className="relative">
             <Filter className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <select
-              className="w-full rounded-md border bg-background py-2 pl-10 pr-3 text-sm"
+            <Select
               value={origin}
-              onChange={(event) => {
-                setOrigin(event.target.value as 'all' | Lead['origem']);
+              onValueChange={(value) => {
+                setOrigin(value as 'all' | Lead['origem']);
                 setPage(1);
               }}
             >
-              {originOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="pl-10">
+                <SelectValue placeholder="Todas as origens" />
+              </SelectTrigger>
+              <SelectContent>
+                {originOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="relative">
             <Filter className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <select
-              className="w-full rounded-md border bg-background py-2 pl-10 pr-3 text-sm"
+            <Select
               value={stage}
-              onChange={(event) => {
-                setStage(event.target.value as 'all' | KanbanColumn);
+              onValueChange={(value) => {
+                setStage(value as 'all' | KanbanColumn);
                 setPage(1);
               }}
             >
-              {stageOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="pl-10">
+                <SelectValue placeholder="Todos os estagios" />
+              </SelectTrigger>
+              <SelectContent>
+                {stageOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="relative">
             <Filter className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <select
-              className="w-full rounded-md border bg-background py-2 pl-10 pr-3 text-sm"
+            <Select
               value={assignedTo}
-              onChange={(event) => {
-                setAssignedTo(event.target.value);
+              onValueChange={(value) => {
+                setAssignedTo(value);
                 setPage(1);
               }}
             >
-              <option value="all">Todos os responsaveis</option>
-              {assignedUsers.map((seller) => (
-                <option key={seller.id} value={seller.id}>
-                  {seller.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="pl-10">
+                <SelectValue placeholder="Todos os responsaveis" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os responsaveis</SelectItem>
+                {assignedUsers.map((seller) => (
+                  <SelectItem key={seller.id} value={seller.id}>
+                    {seller.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          <Input
-            type="date"
-            value={dateFrom}
-            onChange={(event) => {
-              setDateFrom(event.target.value);
-              setPage(1);
-            }}
-          />
+          <Popover open={isDateRangeOpen} onOpenChange={setIsDateRangeOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                className={cn('h-10 w-full justify-start text-left font-normal', !dateRange?.from && 'text-muted-foreground')}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                <span className="truncate">{dateRangeLabel}</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="range"
+                selected={dateRange}
+                defaultMonth={dateRange?.from}
+                onSelect={(nextRange) => {
+                  setDateRange(nextRange);
+                  setPage(1);
 
-          <Input
-            type="date"
-            value={dateTo}
-            onChange={(event) => {
-              setDateTo(event.target.value);
-              setPage(1);
-            }}
-          />
+                  if (nextRange?.from && nextRange.to) {
+                    setIsDateRangeOpen(false);
+                  }
+                }}
+                numberOfMonths={1}
+              />
+              {dateRange?.from ? (
+                <div className="border-t p-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-center"
+                    onClick={() => {
+                      setDateRange(undefined);
+                      setPage(1);
+                    }}
+                  >
+                    Limpar periodo
+                  </Button>
+                </div>
+              ) : null}
+            </PopoverContent>
+          </Popover>
         </div>
 
         <div className="rounded-xl border bg-card shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[880px]">
+          <div className="hidden md:block overflow-x-auto">
+            <table className="hidden md:table w-full min-w-[880px]">
               <thead>
                 <tr className="border-b bg-muted/30">
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
@@ -527,6 +668,52 @@ export default function Leads() {
                 )}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile card view */}
+          <div className="block md:hidden divide-y">
+            {pagedLeads.length === 0 ? (
+              <div className="p-4">
+                <EmptyState
+                  icon={hasAnyFilter ? Search : Users}
+                  title={!hasAnyFilter ? 'Nenhum lead encontrado' : 'Nenhum resultado'}
+                  description={
+                    !hasAnyFilter
+                      ? 'Crie o primeiro lead para iniciar o funil comercial.'
+                      : 'Nenhum lead corresponde aos filtros aplicados. Tente outras combinacoes.'
+                  }
+                  actionLabel={!hasAnyFilter ? 'Criar lead' : undefined}
+                  onAction={!hasAnyFilter ? openCreateModal : undefined}
+                />
+              </div>
+            ) : (
+              pagedLeads.map((lead) => (
+                <div key={lead.id} className="p-4 space-y-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-base font-semibold text-foreground truncate">{lead.nome}</p>
+                    <span
+                      className={cn(
+                        'inline-flex shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium',
+                        lead.estagio === 'concluido'
+                          ? 'bg-kanban-completed/10 text-kanban-completed'
+                          : lead.estagio === 'negociacao'
+                            ? 'bg-kanban-negotiation/10 text-kanban-negotiation'
+                            : 'bg-muted text-muted-foreground',
+                      )}
+                    >
+                      {stageLabel(lead.estagio)}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{lead.origem}</p>
+                  <p className="text-sm text-muted-foreground">{lead.interesse ?? '\u2014'}</p>
+                  <div className="flex justify-end pt-2">
+                    <Button variant="ghost" size="sm" className="py-2" onClick={() => openEditModal(lead)}>
+                      Ver lead
+                    </Button>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
 
           <div className="flex items-center justify-between border-t px-4 py-3">
