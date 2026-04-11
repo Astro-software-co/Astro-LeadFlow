@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Car, User, Bell, LogOut, Check, X, Settings } from 'lucide-react';
+import { Car, User, Bell, LogOut, Check, X, Settings, Menu } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { useNotifications } from '@/contexts/NotificationContext';
 import {
   DropdownMenu,
@@ -32,6 +33,7 @@ export function Header() {
   const { logout } = useAuth();
   const { notifications, unreadCount, markAsRead, markAllAsRead, removeNotification } = useNotifications();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const handleSignOut = () => {
     logout();
@@ -53,6 +55,7 @@ export function Header() {
   };
 
   return (
+    <>
     <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
       <div className="flex h-16 items-center justify-between px-6">
         <div className="flex items-center gap-3">
@@ -62,7 +65,7 @@ export function Header() {
           <span className="text-xl font-bold text-foreground">Astro LeadFlow</span>
         </div>
 
-        <nav className="flex items-center gap-1">
+        <nav className="hidden md:flex items-center gap-1">
           {navItems.map((item) => (
             <NavLink
               key={item.path}
@@ -70,7 +73,7 @@ export function Header() {
               end={false}
               className={({ isActive }) =>
                 cn(
-                  'px-4 py-2 text-sm font-medium rounded-md transition-colors',
+                  'px-4 py-2 text-sm font-medium rounded-md transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
                   isActive ? 'text-primary bg-primary/5' : 'text-muted-foreground hover:text-foreground hover:bg-muted',
                 )
               }
@@ -81,10 +84,21 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
+          {/* Hamburger — mobile only */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            onClick={() => setSheetOpen(true)}
+            aria-label="Abrir menu de navegacao"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+
           {/* Notifications */}
           <Popover open={notificationsOpen} onOpenChange={setNotificationsOpen}>
             <PopoverTrigger asChild>
-              <button className="relative flex h-9 w-9 items-center justify-center rounded-full hover:bg-muted transition-colors">
+              <button className="relative flex h-9 w-9 items-center justify-center rounded-full hover:bg-muted transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
                 <Bell className="h-5 w-5 text-muted-foreground" />
                 {unreadCount > 0 && (
                   <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
@@ -160,7 +174,7 @@ export function Header() {
           {/* Profile Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-muted transition-colors">
+              <button className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-muted transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
                 <User className="h-5 w-5 text-muted-foreground" />
               </button>
             </DropdownMenuTrigger>
@@ -181,5 +195,34 @@ export function Header() {
         </div>
       </div>
     </header>
+
+    <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+      <SheetContent side="left" className="w-[280px] p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
+            <Car className="h-5 w-5 text-primary-foreground" />
+          </div>
+          <span className="text-lg font-semibold">Astro LeadFlow</span>
+        </div>
+        <nav className="flex flex-col gap-1">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              onClick={() => setSheetOpen(false)}
+              className={({ isActive }) =>
+                cn(
+                  'w-full px-4 py-3 text-base font-medium rounded-md transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
+                  isActive ? 'text-primary bg-primary/5' : 'text-muted-foreground hover:text-foreground hover:bg-muted',
+                )
+              }
+            >
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
+      </SheetContent>
+    </Sheet>
+    </>
   );
 }
