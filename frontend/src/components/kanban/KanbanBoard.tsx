@@ -5,6 +5,7 @@ import { KanbanColumnComponent } from './KanbanColumn';
 import { CardDetailModal } from '@/components/modals/CardDetailModal';
 import { toast } from 'sonner';
 import { useNotifications } from '@/contexts/NotificationContext';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 interface KanbanBoardProps {
   initialCards: KanbanCard[];
@@ -170,21 +171,26 @@ export function KanbanBoard({ initialCards, onMoveLead, onArchiveLead }: KanbanB
   return (
     <>
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="flex gap-4 overflow-x-auto pb-4">
-          {columns.map((column) => (
-            <KanbanColumnComponent
-              key={column.id}
-              id={column.id}
-              title={column.title}
-              description={column.description}
-              cards={getCardsByColumn(column.id)}
-              onAssume={handleAssume}
-              onAdvance={handleAdvance}
-              onArchive={handleArchive}
-              onCardClick={handleCardClick}
-            />
-          ))}
-        </div>
+        <TooltipProvider delayDuration={150}>
+          <div className="relative">
+            <div className="flex gap-4 overflow-x-auto pb-4">
+            {columns.map((column) => (
+              <KanbanColumnComponent
+                key={column.id}
+                id={column.id}
+                title={column.title}
+                description={column.description}
+                cards={getCardsByColumn(column.id)}
+                onAssume={handleAssume}
+                onAdvance={handleAdvance}
+                onArchive={handleArchive}
+                onCardClick={handleCardClick}
+              />
+            ))}
+            </div>
+            <div className="pointer-events-none absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-background to-transparent md:hidden" />
+          </div>
+        </TooltipProvider>
       </DragDropContext>
 
       {selectedCard && (

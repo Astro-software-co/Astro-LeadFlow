@@ -16,6 +16,14 @@ interface KanbanColumnProps {
   onCardClick?: (card: KanbanCardType) => void;
 }
 
+const columnHintTitle: Record<KanbanColumnType, string> = {
+  chatbot: 'Qual a funcao desta coluna?',
+  aguardando: 'Quando um lead entra aqui?',
+  aguardando_documentacao: 'O que validar nesta etapa?',
+  negociacao: 'O que acompanhar nesta fase?',
+  concluido: 'Quando marcar como concluido?',
+};
+
 const columnStyles: Record<KanbanColumnType, string> = {
   chatbot: 'bg-kanban-chatbot',
   aguardando: 'bg-kanban-waiting',
@@ -35,7 +43,7 @@ export function KanbanColumnComponent({
   onCardClick,
 }: KanbanColumnProps) {
   return (
-    <div className="flex w-[300px] flex-shrink-0 flex-col">
+    <div className="flex min-w-[260px] flex-shrink-0 flex-col">
       {/* Column Header */}
       <div
         className={cn(
@@ -46,12 +54,17 @@ export function KanbanColumnComponent({
         <span className="text-sm">{title}</span>
         <Tooltip>
           <TooltipTrigger asChild>
-            <button className="p-0.5 rounded-full hover:bg-white/20 transition-colors">
+            <button
+              type="button"
+              aria-label={`Ajuda sobre a coluna ${title}`}
+              className="rounded-full p-0.5 transition-colors hover:bg-white/20"
+            >
               <HelpCircle className="h-4 w-4 text-white/80" />
             </button>
           </TooltipTrigger>
-          <TooltipContent side="top" className="max-w-[250px] text-xs">
-            {description}
+          <TooltipContent side="top" className="max-w-[280px] space-y-1 text-xs">
+            <p className="font-semibold text-foreground">{columnHintTitle[id]}</p>
+            <p className="text-muted-foreground">{description}</p>
           </TooltipContent>
         </Tooltip>
       </div>
