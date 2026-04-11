@@ -1,14 +1,65 @@
 import { Helmet } from 'react-helmet-async';
-import { TrendingUp, DollarSign, Car, Receipt, Users, Clock, Activity, Loader2 } from 'lucide-react';
+import { TrendingUp, DollarSign, Car, Receipt, Users, Clock, Activity } from 'lucide-react';
 import { KPICard } from '@/components/dashboard/KPICard';
 import { SalesLineChart } from '@/components/dashboard/SalesLineChart';
 import { CategoryBarChart } from '@/components/dashboard/CategoryBarChart';
 import { StockTable } from '@/components/dashboard/StockTable';
 import { RecentSalesTable } from '@/components/dashboard/RecentSalesTable';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useDashboard } from '@/hooks/api/useDashboard';
 import { useVehicles } from '@/hooks/api/useVehicles';
 import { formatCurrency } from '@/lib/formatters';
+
+function DashboardSkeleton() {
+  return (
+    <div data-testid="dashboard-skeleton" className="space-y-6">
+      {/* KPI Row 1: 4 cards */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} data-testid="skeleton-kpi-card" className="rounded-xl border bg-card p-6 shadow-sm">
+            <div className="flex items-start justify-between">
+              <div className="space-y-3">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-8 w-32" />
+                <Skeleton className="h-4 w-40" />
+              </div>
+              <Skeleton className="h-12 w-12 rounded-xl" />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* KPI Row 2: 3 cards */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} data-testid="skeleton-kpi-card" className="rounded-xl border bg-card p-6 shadow-sm">
+            <div className="flex items-start justify-between">
+              <div className="space-y-3">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-8 w-32" />
+                <Skeleton className="h-4 w-40" />
+              </div>
+              <Skeleton className="h-12 w-12 rounded-xl" />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Chart placeholders */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Skeleton className="h-64 w-full rounded-xl" />
+        <Skeleton className="h-64 w-full rounded-xl" />
+      </div>
+
+      {/* Table placeholders */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Skeleton className="h-64 w-full rounded-xl" />
+        <Skeleton className="h-64 w-full rounded-xl" />
+      </div>
+    </div>
+  );
+}
 
 export default function Dashboard() {
   const {
@@ -33,11 +84,7 @@ export default function Dashboard() {
   const vehicles = vehiclesData?.content ?? [];
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-[50vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   if (error) {
