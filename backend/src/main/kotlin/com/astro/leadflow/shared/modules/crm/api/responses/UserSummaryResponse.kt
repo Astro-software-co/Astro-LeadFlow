@@ -1,4 +1,4 @@
-package com.astro.leadflow.shared.modules.iam.api.responses
+package com.astro.leadflow.shared.modules.crm.api.responses
 
 import com.astro.leadflow.shared.modules.iam.domain.Role
 import java.util.UUID

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -34,15 +34,31 @@ const vehicleSchema = z.object({
 
 type VehicleFormData = z.infer<typeof vehicleSchema>;
 
+const defaultVehicleFormValues: VehicleFormData = {
+  marca: '',
+  modelo: '',
+  ano: new Date().getFullYear(),
+  preco: 0,
+  precoCusto: undefined,
+  status: 'disponivel',
+  categoria: 'Sedan',
+  cor: '',
+  placa: '',
+  quilometragem: undefined,
+  ipvaPago: false,
+};
+
 interface AddVehicleModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (vehicle: Omit<Vehicle, 'id'>) => void;
+  onSubmit: (vehicle: Omit<Vehicle, 'id'>) => Promise<void> | void;
+  vehicle?: Vehicle | null;
 }
 
-export function AddVehicleModal({ open, onOpenChange, onSubmit }: AddVehicleModalProps) {
+export function AddVehicleModal({ open, onOpenChange, onSubmit, vehicle }: AddVehicleModalProps) {
   const [photos, setPhotos] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isEditing = Boolean(vehicle);
 
   const {
     register,
@@ -53,24 +69,39 @@ export function AddVehicleModal({ open, onOpenChange, onSubmit }: AddVehicleModa
     formState: { errors, isSubmitting },
   } = useForm<VehicleFormData>({
     resolver: zodResolver(vehicleSchema),
-    defaultValues: {
-      marca: '',
-      modelo: '',
-      ano: new Date().getFullYear(),
-      preco: 0,
-      precoCusto: undefined,
-      status: 'disponivel',
-      categoria: 'Sedan',
-      cor: '',
-      placa: '',
-      quilometragem: undefined,
-      ipvaPago: false,
-    },
+    defaultValues: defaultVehicleFormValues,
   });
 
   const status = watch('status');
   const categoria = watch('categoria');
   const ipvaPago = watch('ipvaPago');
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    if (!vehicle) {
+      reset(defaultVehicleFormValues);
+      setPhotos([]);
+      return;
+    }
+
+    reset({
+      marca: vehicle.marca,
+      modelo: vehicle.modelo,
+      ano: vehicle.ano,
+      preco: vehicle.preco,
+      precoCusto: vehicle.precoCusto,
+      status: vehicle.status,
+      categoria: vehicle.categoria,
+      cor: vehicle.cor ?? '',
+      placa: vehicle.placa ?? '',
+      quilometragem: vehicle.quilometragem,
+      ipvaPago: vehicle.ipvaPago ?? false,
+    });
+    setPhotos(vehicle.fotos ?? []);
+  }, [open, reset, vehicle]);
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -89,7 +120,7 @@ export function AddVehicleModal({ open, onOpenChange, onSubmit }: AddVehicleModa
     setPhotos((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleFormSubmit = (data: VehicleFormData) => {
+  const handleFormSubmit = async (data: VehicleFormData) => {
     const vehicleData: Omit<Vehicle, 'id'> = {
       marca: data.marca,
       modelo: data.modelo,
@@ -104,28 +135,40 @@ export function AddVehicleModal({ open, onOpenChange, onSubmit }: AddVehicleModa
       ipvaPago: data.ipvaPago,
       fotos: photos.length > 0 ? photos : undefined,
     };
-    onSubmit(vehicleData);
-    toast.success('Veículo cadastrado com sucesso!');
-    reset();
-    setPhotos([]);
-    onOpenChange(false);
+
+    try {
+      await Promise.resolve(onSubmit(vehicleData));
+      toast.success(isEditing ? 'Veículo atualizado com sucesso!' : 'Veículo cadastrado com sucesso!');
+      reset(defaultVehicleFormValues);
+      setPhotos([]);
+      onOpenChange(false);
+    } catch {
+      toast.error(isEditing ? 'Não foi possível atualizar o veículo.' : 'Não foi possível cadastrar o veículo.');
+    }
   };
 
   const handleClose = () => {
-    reset();
+    reset(defaultVehicleFormValues);
     setPhotos([]);
     onOpenChange(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) {
+          handleClose();
+        }
+      }}
+    >
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
               <Car className="h-5 w-5 text-primary" />
             </div>
-            Cadastrar Veículo
+            {isEditing ? 'Editar Veículo' : 'Cadastrar Veículo'}
           </DialogTitle>
         </DialogHeader>
 
@@ -307,7 +350,7 @@ export function AddVehicleModal({ open, onOpenChange, onSubmit }: AddVehicleModa
               Cancelar
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Salvando...' : 'Cadastrar Veículo'}
+              {isSubmitting ? 'Salvando...' : isEditing ? 'Salvar Alterações' : 'Cadastrar Veículo'}
             </Button>
           </div>
         </form>

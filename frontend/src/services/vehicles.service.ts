@@ -1,5 +1,6 @@
 import api from '@/lib/api';
 import {
+  VehicleCategoryDTO,
   VehicleCreateRequestDTO,
   VehicleResponseDTO,
   VehicleStatusDTO,
@@ -9,6 +10,10 @@ import {
 export interface VehicleFilters {
   search?: string;
   status?: VehicleStatusDTO;
+  category?: VehicleCategoryDTO;
+  year?: number;
+  minPrice?: number;
+  maxPrice?: number;
   page?: number;
   size?: number;
 }

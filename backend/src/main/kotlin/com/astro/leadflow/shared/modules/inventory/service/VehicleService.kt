@@ -5,6 +5,7 @@ import com.astro.leadflow.shared.modules.inventory.api.requests.VehicleUpdateReq
 import com.astro.leadflow.shared.modules.inventory.api.responses.VehicleResponse
 import com.astro.leadflow.shared.modules.inventory.api.responses.VehicleStockSummary
 import com.astro.leadflow.shared.modules.inventory.domain.Vehicle
+import com.astro.leadflow.shared.modules.inventory.domain.VehicleCategory
 import com.astro.leadflow.shared.modules.inventory.domain.VehicleRepository
 import com.astro.leadflow.shared.modules.inventory.domain.VehicleStatus
 import com.astro.leadflow.shared.modules.inventory.mapper.VehicleMapper
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.math.BigDecimal
 import java.util.UUID
 
 @Service
@@ -97,12 +99,25 @@ class VehicleService(
     fun findAll(
         search: String?,
         status: VehicleStatus?,
+        category: VehicleCategory?,
+        year: Int?,
+        minPrice: BigDecimal?,
+        maxPrice: BigDecimal?,
         pageable: Pageable
     ): Page<VehicleResponse> {
         val orgId = SecurityUtils.getCurrentOrganizationId()
         val normalizedSearch = search?.trim()?.takeIf { it.isNotBlank() }
 
-        return vehicleRepository.findPageByOrganization(orgId, normalizedSearch, status, pageable)
+        return vehicleRepository.findPageByOrganization(
+            orgId = orgId,
+            search = normalizedSearch,
+            status = status,
+            category = category,
+            year = year,
+            minPrice = minPrice,
+            maxPrice = maxPrice,
+            pageable = pageable
+        )
             .map { vehicle -> vehicleMapper.toResponse(vehicle) }
     }
 

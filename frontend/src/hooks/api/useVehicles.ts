@@ -8,7 +8,7 @@ import {
   mapVehicleToUpdateRequest,
   mapVehicleResponseToVehicle,
 } from '@/mappers/vehicles.mapper';
-import { VehicleStatusDTO } from '@/types/api/vehicles';
+import { VehicleCategoryDTO, VehicleStatusDTO } from '@/types/api/vehicles';
 
 const useMocks = import.meta.env.VITE_USE_MOCKS === 'true';
 
@@ -37,6 +37,15 @@ export function useVehicles(filters?: VehicleFilters) {
           MAINTENANCE: 'manutencao',
           SOLD: 'vendido',
         };
+        const categoryMap: Record<VehicleCategoryDTO, Vehicle['categoria']> = {
+          HATCH: 'Hatch',
+          SEDAN: 'Sedan',
+          SUV: 'SUV',
+          PICKUP: 'Pickup',
+          MINIVAN: 'Outros',
+          CONVERTIBLE: 'Outros',
+          COUPE: 'Outros',
+        };
 
         const filtered = mockVehicles.filter((vehicle) => {
           const matchesSearch =
@@ -44,7 +53,12 @@ export function useVehicles(filters?: VehicleFilters) {
             vehicle.marca.toLowerCase().includes(normalizedSearch) ||
             vehicle.modelo.toLowerCase().includes(normalizedSearch);
           const matchesStatus = !filters?.status || vehicle.status === statusMap[filters.status];
-          return matchesSearch && matchesStatus;
+          const matchesCategory = !filters?.category || vehicle.categoria === categoryMap[filters.category];
+          const matchesYear = !filters?.year || vehicle.ano === filters.year;
+          const matchesMinPrice = filters?.minPrice === undefined || vehicle.preco >= filters.minPrice;
+          const matchesMaxPrice = filters?.maxPrice === undefined || vehicle.preco <= filters.maxPrice;
+
+          return matchesSearch && matchesStatus && matchesCategory && matchesYear && matchesMinPrice && matchesMaxPrice;
         });
 
         const start = page * size;
@@ -70,6 +84,7 @@ export function useVehicles(filters?: VehicleFilters) {
       };
     },
     staleTime: 30_000,
+    placeholderData: (previous) => previous,
   });
 }
 

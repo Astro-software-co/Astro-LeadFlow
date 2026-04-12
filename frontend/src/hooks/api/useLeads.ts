@@ -79,6 +79,7 @@ export function useLeads(filters?: LeadFilters) {
       };
     },
     staleTime: 30_000,
+    placeholderData: (previous) => previous,
   });
 }
 
