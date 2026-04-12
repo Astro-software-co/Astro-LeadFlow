@@ -32,7 +32,7 @@ export function KanbanCardComponent({ card, onAssume, onAdvance, onArchive, isDr
   return (
     <div
       className={cn(
-        'rounded-xl border bg-card p-4 shadow-sm transition-all',
+        'rounded-xl border bg-card p-4 shadow-sm transition-all cursor-pointer',
         isDragging ? 'rotate-2 scale-105 shadow-lg' : 'hover:shadow-md',
       )}
     >

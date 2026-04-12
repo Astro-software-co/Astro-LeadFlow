@@ -797,9 +797,10 @@ function AssinaturaContent() {
 
   if (hasError) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 gap-3 text-center animate-fade-in">
-        <p className="text-sm text-red-500">Não foi possível carregar os dados de assinatura.</p>
-        <Button variant="outline" size="sm" onClick={() => { subRefetch(); usageRefetch(); }}>
+      <div className="rounded-xl border bg-card p-6 shadow-sm">
+        <h2 className="text-lg font-semibold text-foreground">Nao foi possivel carregar as configuracoes</h2>
+        <p className="mt-2 text-sm text-muted-foreground">Verifique sua conexao e tente novamente.</p>
+        <Button className="mt-4" onClick={() => { void subRefetch(); void usageRefetch(); }}>
           Tentar novamente
         </Button>
       </div>

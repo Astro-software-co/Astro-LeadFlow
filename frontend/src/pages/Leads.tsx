@@ -614,7 +614,7 @@ export default function Leads() {
                   </tr>
                 ) : (
                   pagedLeads.map((lead) => (
-                    <tr key={lead.id} className="hover:bg-muted/20">
+                    <tr key={lead.id} className="hover:bg-muted/20 transition-colors cursor-pointer" onClick={() => openEditModal(lead)}>
                       <td className="px-4 py-3">
                         <p className="font-medium text-foreground">{lead.nome}</p>
                         {lead.assignedToName ? (

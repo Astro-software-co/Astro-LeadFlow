@@ -207,11 +207,14 @@ export default function Comunicacao() {
                     </div>
                   </div>
                 ) : chatQuery.error ? (
-                  <div className="flex flex-col items-center justify-center py-8 gap-2">
-                    <p className="text-sm text-red-500">Nao foi possivel carregar as mensagens.</p>
-                    <Button variant="outline" size="sm" onClick={() => chatQuery.refetch()}>
-                      Tentar novamente
-                    </Button>
+                  <div className="flex items-center justify-center p-6">
+                    <div className="rounded-xl border bg-card p-6 shadow-sm w-full max-w-md">
+                      <h2 className="text-lg font-semibold text-foreground">Nao foi possivel carregar as mensagens</h2>
+                      <p className="mt-2 text-sm text-muted-foreground">Verifique sua conexao e tente novamente.</p>
+                      <Button className="mt-4" onClick={() => void chatQuery.refetch()}>
+                        Tentar novamente
+                      </Button>
+                    </div>
                   </div>
                 ) : chatQuery.data?.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-8 gap-2 text-center">

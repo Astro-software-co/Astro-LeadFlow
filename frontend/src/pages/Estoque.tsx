@@ -390,7 +390,7 @@ export default function Estoque() {
                   vehicles.map((vehicle) => {
                     const status = statusConfig[vehicle.status];
                     return (
-                      <tr key={vehicle.id} className="hover:bg-muted/20 transition-colors">
+                      <tr key={vehicle.id} className="hover:bg-muted/20 transition-colors cursor-pointer" onClick={() => openEditModal(vehicle)}>
                         <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-foreground">
                           {vehicle.marca}
                         </td>
