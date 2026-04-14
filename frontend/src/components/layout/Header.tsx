@@ -98,7 +98,10 @@ export function Header() {
           {/* Notifications */}
           <Popover open={notificationsOpen} onOpenChange={setNotificationsOpen}>
             <PopoverTrigger asChild>
-              <button className="relative flex h-9 w-9 items-center justify-center rounded-full hover:bg-muted transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
+              <button
+                aria-label={unreadCount > 0 ? `Notificacoes (${unreadCount} nao lidas)` : 'Notificacoes'}
+                className="relative flex h-9 w-9 items-center justify-center rounded-full hover:bg-muted transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+              >
                 <Bell className="h-5 w-5 text-muted-foreground" />
                 {unreadCount > 0 && (
                   <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
@@ -155,6 +158,7 @@ export function Header() {
                           </p>
                         </div>
                         <button
+                          aria-label={`Remover notificacao: ${notification.title}`}
                           onClick={(e) => {
                             e.stopPropagation();
                             removeNotification(notification.id);
@@ -174,7 +178,10 @@ export function Header() {
           {/* Profile Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-muted transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
+              <button
+                aria-label="Abrir menu da conta"
+                className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-muted transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+              >
                 <User className="h-5 w-5 text-muted-foreground" />
               </button>
             </DropdownMenuTrigger>

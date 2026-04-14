@@ -255,7 +255,7 @@ export default function Estoque() {
                 setPage(1);
               }}
             >
-              <SelectTrigger className="pl-10">
+              <SelectTrigger className="pl-10" aria-label="Filtrar por status">
                 <SelectValue placeholder="Todos os status" />
               </SelectTrigger>
               <SelectContent>
@@ -278,7 +278,7 @@ export default function Estoque() {
                 setPage(1);
               }}
             >
-              <SelectTrigger className="pl-10">
+              <SelectTrigger className="pl-10" aria-label="Filtrar por categoria">
                 <SelectValue placeholder="Todas as categorias" />
               </SelectTrigger>
               <SelectContent>
@@ -300,7 +300,7 @@ export default function Estoque() {
                 setPage(1);
               }}
             >
-              <SelectTrigger className="pl-10">
+              <SelectTrigger className="pl-10" aria-label="Filtrar por ano">
                 <SelectValue placeholder="Todos os anos" />
               </SelectTrigger>
               <SelectContent>
@@ -323,7 +323,7 @@ export default function Estoque() {
                 setPage(1);
               }}
             >
-              <SelectTrigger className="pl-10">
+              <SelectTrigger className="pl-10" aria-label="Filtrar por faixa de preco">
                 <SelectValue placeholder="Todas as faixas de preco" />
               </SelectTrigger>
               <SelectContent>

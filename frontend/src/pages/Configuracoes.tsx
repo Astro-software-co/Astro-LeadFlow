@@ -154,7 +154,10 @@ export default function Configuracoes() {
                   <div className="h-20 w-20 rounded-full bg-muted flex items-center justify-center">
                     <Camera className="h-8 w-8 text-muted-foreground" />
                   </div>
-                  <button className="absolute bottom-0 right-0 h-7 w-7 rounded-full bg-primary flex items-center justify-center text-primary-foreground hover:bg-primary/90 transition-colors">
+                  <button
+                    aria-label="Alterar foto de perfil"
+                    className="absolute bottom-0 right-0 h-7 w-7 rounded-full bg-primary flex items-center justify-center text-primary-foreground hover:bg-primary/90 transition-colors"
+                  >
                     <Camera className="h-3.5 w-3.5" />
                   </button>
                 </div>
@@ -268,10 +271,12 @@ export default function Configuracoes() {
                 </div>
                 <div className="flex items-center justify-between rounded-lg border border-border/50 p-4">
                   <div>
-                    <Label className="text-base font-medium">Modo Compacto</Label>
+                    <Label htmlFor="compact-mode" className="text-base font-medium">
+                      Modo Compacto
+                    </Label>
                     <p className="text-sm text-muted-foreground">Reduz o espaçamento entre elementos</p>
                   </div>
-                  <Switch />
+                  <Switch id="compact-mode" />
                 </div>
               </div>
             </div>
@@ -344,6 +349,7 @@ export default function Configuracoes() {
                               Editar
                             </button>
                             <button
+                              aria-label={`Remover usuário ${user.nome}`}
                               onClick={() => handleDeleteUser(user.id)}
                               className="text-sm font-medium text-destructive hover:text-destructive/80 transition-colors"
                             >
