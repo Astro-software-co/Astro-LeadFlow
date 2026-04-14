@@ -15,7 +15,8 @@
 - [x] **Phase 2: Core CRM** - Dashboard, leads CRUD, Kanban pipeline, and vehicle catalog connected to backend
 - [ ] **Phase 3: Communication + SaaS** - WhatsApp templates, subscription management, marketplace usage
 - [ ] **Phase 4: Responsiveness + UX Polish** - Systematic responsive design and interaction quality across all screens
-- [ ] **Phase 5: Testing + Performance** - Test coverage, E2E flows, and accessibility audit
+- [x] **Phase 5: Testing + Performance** - Test coverage, E2E flows, and accessibility audit
+- [ ] **Phase 6: Backend Audit Fixes** - Resolve Critical/Warning backend findings from Phase 5 REVIEW.md
 
 ---
 
@@ -112,9 +113,9 @@ Plans:
 **Plans**: 5 plans
 Plans:
 - [ ] 04-01-PLAN.md — Header mobile hamburger navigation with Sheet drawer + focus-visible rings
-- [ ] 04-02-PLAN.md — Dashboard skeleton loading state (KPI cards + chart placeholders)
-- [ ] 04-03-PLAN.md — Leads + Estoque skeleton loading + mobile card-per-row views
-- [ ] 04-04-PLAN.md — Kanban mobile column widths + scroll hint gradient
+- [x] 04-02-PLAN.md — Dashboard skeleton loading state (KPI cards + chart placeholders)
+- [x] 04-03-PLAN.md — Leads + Estoque skeleton loading + mobile card-per-row views
+- [x] 04-04-PLAN.md — Kanban mobile column widths + scroll hint gradient
 - [ ] 04-05-PLAN.md — Global sweep: prefers-reduced-motion, cursor-pointer/hover audit, error state standardization
 **UI hint**: yes
 
@@ -126,8 +127,26 @@ Plans:
   1. Running `npm run test:coverage` reports Vitest unit test coverage at 80% or above
   2. E2E tests for login flow, lead creation/edit, and Kanban drag-and-drop pass consistently in Playwright
   3. Running axe-core accessibility audit against all main pages returns zero critical violations
+**Plans**: 5 plans
+Plans:
+- [x] 05-01-PLAN.md — Install coverage/Playwright/axe + vitest.config coverage + e2e helpers (fixtures, a11y, dragKanbanCard)
+- [x] 05-02-PLAN.md — Service unit tests (auth, dashboard, vehicles, saas, chat)
+- [x] 05-03-PLAN.md — Hook + context unit tests (useLeads/Dashboard/Vehicles/Saas/Chat + Theme/Notification)
+- [x] 05-04-PLAN.md — Playwright E2E specs (auth, leads, kanban, users, vehicles) + a11y critical scan on 6 pages
+- [x] 05-05-PLAN.md — Backend audit (REVIEW.md) + conditional Phase 6 skeleton
+**UI hint**: no
+
+### Phase 6: Backend Audit Fixes
+**Goal**: Fix all Critical and Warning issues surfaced by the Phase 5 backend audit
+**Depends on**: Phase 5 (audit report in .planning/phases/05-testing-performance/REVIEW.md)
+**Requirements**: AUDIT-01 (fix Critical issues), AUDIT-02 (fix Warning issues)
+**Success Criteria** (what must be TRUE):
+  1. Every Critical finding from REVIEW.md is resolved (verified by re-running the audit)
+  2. Every Warning finding from REVIEW.md is resolved OR explicitly accepted with written justification
+  3. No canonical package violations remain under `backend/src/main/kotlin/com/astro/leadflow/`
 **Plans**: TBD
 **UI hint**: no
+**Status**: Not started
 
 ---
 
@@ -141,7 +160,8 @@ Plans:
 | 2. Core CRM | 6/6 | Plans complete, verification pending | - |
 | 3. Communication + SaaS | 0/? | Not started | - |
 | 4. Responsiveness + UX Polish | 0/5 | Planned | - |
-| 5. Testing + Performance | 0/? | Not started | - |
+| 5. Testing + Performance | 5/5 | Complete | 2026-04-14 |
+| 6. Backend Audit Fixes | 0/? | Not started | - |
 
 ---
 
@@ -202,12 +222,14 @@ Plans:
 | UX-05 | Phase 4 | Pending |
 | UX-06 | Phase 4 | Pending |
 | UX-07 | Phase 4 | Pending |
-| TEST-01 | Phase 5 | Pending |
-| TEST-02 | Phase 5 | Pending |
-| TEST-03 | Phase 5 | Pending |
+| TEST-01 | Phase 5 | Done |
+| TEST-02 | Phase 5 | Done |
+| TEST-03 | Phase 5 | Done |
+| AUDIT-01 | Phase 6 | Pending |
+| AUDIT-02 | Phase 6 | Pending |
 
-**Total mapped: 56/56**
+**Total mapped: 58/58**
 
 ---
 *Created: 2026-03-27*
-*Last updated: 2026-04-10 — Phase 4 planned (5 plans in 2 waves)*
+*Last updated: 2026-04-14 — Phase 5 testing/a11y execution completed; Phase 6 backend fixes started*
