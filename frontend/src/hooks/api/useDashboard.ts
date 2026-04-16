@@ -2,8 +2,9 @@ import { useQuery } from '@tanstack/react-query';
 import { dashboardService } from '@/services/dashboard.service';
 import { mockKPIData, mockMonthlySales, mockCategorySales, mockRecentSales } from '@/data/mockData';
 import { useAuth } from '@/contexts/AuthContext';
-import { CategorySalesData, KPIData, MonthlySalesData, RecentSale } from '@/types';
+import { CategorySalesData, KPIData, Lead, MonthlySalesData, RecentSale } from '@/types';
 import { mapCategorySalesPoint, mapKpiResponseToStats, mapMonthlySalesPoint } from '@/mappers/analytics.mapper';
+import { useLeads } from '@/hooks/api/useLeads';
 
 const useMocks = import.meta.env.VITE_USE_MOCKS === 'true';
 
@@ -27,6 +28,16 @@ const emptyKpis: KPIData = {
 const emptyMonthlySales: MonthlySalesData[] = [];
 const emptyCategorySales: CategorySalesData[] = [];
 const emptyRecentSales: RecentSale[] = [];
+
+function mapLeadToRecentSale(lead: Lead): RecentSale {
+  return {
+    cliente: lead.nome,
+    veiculo: lead.interesse || 'Veiculo nao informado',
+    valor: lead.orcamento,
+    data: lead.ultimaInteracao.toLocaleDateString('pt-BR'),
+    vendedor: lead.assignedToName || 'Sem responsavel',
+  };
+}
 
 export function useKPIs() {
   const { user } = useAuth();
@@ -82,37 +93,33 @@ export function useCategorySales() {
   });
 }
 
-export function useRecentSales() {
-  const { user } = useAuth();
-  const orgId = user?.organizationId ?? 'unknown';
-
-  return useQuery({
-    queryKey: [orgId, 'dashboard', 'recent-sales'],
-    queryFn: async () => (useMocks ? mockRecentSales : []),
-    staleTime: 60_000,
-  });
-}
-
 export function useDashboard() {
   const kpisQuery = useKPIs();
   const monthlySalesQuery = useMonthlySales();
   const categorySalesQuery = useCategorySales();
-  const recentSalesQuery = useRecentSales();
+  const wonLeadsQuery = useLeads({ stage: 'COMPLETED', page: 0, size: 50 });
+
+  const recentSales = useMocks
+    ? mockRecentSales
+    : [...(wonLeadsQuery.data?.content ?? [])]
+        .sort((a, b) => b.ultimaInteracao.getTime() - a.ultimaInteracao.getTime())
+        .slice(0, 5)
+        .map(mapLeadToRecentSale);
 
   return {
     kpis: kpisQuery.data ?? emptyKpis,
     monthlySales: monthlySalesQuery.data ?? emptyMonthlySales,
     categorySales: categorySalesQuery.data ?? emptyCategorySales,
-    recentSales: recentSalesQuery.data ?? emptyRecentSales,
+    recentSales: recentSales ?? emptyRecentSales,
     isLoading:
-      kpisQuery.isLoading || monthlySalesQuery.isLoading || categorySalesQuery.isLoading || recentSalesQuery.isLoading,
-    error: kpisQuery.error || monthlySalesQuery.error || categorySalesQuery.error || recentSalesQuery.error || null,
+      kpisQuery.isLoading || monthlySalesQuery.isLoading || categorySalesQuery.isLoading || wonLeadsQuery.isLoading,
+    error: kpisQuery.error || monthlySalesQuery.error || categorySalesQuery.error || wonLeadsQuery.error || null,
     refetch: async () => {
       await Promise.all([
         kpisQuery.refetch(),
         monthlySalesQuery.refetch(),
         categorySalesQuery.refetch(),
-        recentSalesQuery.refetch(),
+        wonLeadsQuery.refetch(),
       ]);
     },
   };

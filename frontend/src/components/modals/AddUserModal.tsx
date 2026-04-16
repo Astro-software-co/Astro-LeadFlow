@@ -109,7 +109,7 @@ export function AddUserModal({ open, onOpenChange, onSubmit }: AddUserModalProps
             <Input
               id="email"
               type="email"
-              placeholder="Ex: joao@v3motors.com"
+              placeholder="Ex: joao@astroleadflow.com.br"
               {...register('email')}
               className={errors.email ? 'border-destructive' : ''}
             />

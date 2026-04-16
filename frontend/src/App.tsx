@@ -20,6 +20,7 @@ const Dashboard = lazy(() => import('@/pages/Dashboard'));
 const Leads = lazy(() => import('@/pages/Leads'));
 const Kanban = lazy(() => import('@/pages/Kanban'));
 const Estoque = lazy(() => import('@/pages/Estoque'));
+const VehicleDetail = lazy(() => import('@/pages/VehicleDetail'));
 const Configuracoes = lazy(() => import('@/pages/Configuracoes'));
 const Comunicacao = lazy(() => import('@/pages/Comunicacao'));
 const Login = lazy(() => import('@/pages/Login'));
@@ -78,6 +79,14 @@ const App = () => (
                           element={
                             <Suspense fallback={<PageLoader />}>
                               <Estoque />
+                            </Suspense>
+                          }
+                        />
+                        <Route
+                          path="estoque/:id"
+                          element={
+                            <Suspense fallback={<PageLoader />}>
+                              <VehicleDetail />
                             </Suspense>
                           }
                         />

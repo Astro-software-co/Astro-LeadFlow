@@ -41,7 +41,7 @@ export function RecentSalesTable({ sales }: RecentSalesTableProps) {
             {sales.length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-6 py-12 text-center text-sm text-muted-foreground">
-                  Nenhuma venda recente
+                  Nenhuma venda registrada ainda.
                 </td>
               </tr>
             ) : (
@@ -50,7 +50,7 @@ export function RecentSalesTable({ sales }: RecentSalesTableProps) {
                   <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-foreground">{sale.cliente}</td>
                   <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">{sale.veiculo}</td>
                   <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-chart-primary">
-                    {formatCurrency(sale.valor)}
+                    {typeof sale.valor === 'number' ? formatCurrency(sale.valor) : '—'}
                   </td>
                   <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">{sale.data}</td>
                   <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">{sale.vendedor}</td>

@@ -112,7 +112,7 @@ export interface CategorySalesData {
 export interface RecentSale {
   cliente: string;
   veiculo: string;
-  valor: number;
+  valor?: number;
   data: string;
   vendedor: string;
 }

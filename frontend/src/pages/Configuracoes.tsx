@@ -1,15 +1,11 @@
 import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { AddUserModal } from '@/components/modals/AddUserModal';
-import { EditUserModal } from '@/components/modals/EditUserModal';
 import {
   Settings,
   Bell,
   Shield,
   CreditCard,
-  UserPlus,
   Users,
-  Trash2,
   Sun,
   Moon,
   Monitor,
@@ -22,11 +18,12 @@ import {
   Download,
   PackageCheck,
 } from 'lucide-react';
-import { Seller, ThemeMode, AccentColor } from '@/types';
+import { ThemeMode, AccentColor } from '@/types';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useNotifications } from '@/contexts/NotificationContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -38,12 +35,6 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSubscription, useUsage, usePlans } from '@/hooks/api/useSaas';
-
-const initialUsers: Seller[] = [
-  { id: '1', nome: 'Carlos Mendes', email: 'carlos@v3motors.com', role: 'ADMIN' },
-  { id: '2', nome: 'Ana Paula', email: 'ana@v3motors.com', role: 'VENDEDOR' },
-  { id: '3', nome: 'Roberto Silva', email: 'roberto@v3motors.com', role: 'VENDEDOR' },
-];
 
 const themeOptions: { value: ThemeMode; label: string; icon: React.ReactNode }[] = [
   { value: 'light', label: 'Claro', icon: <Sun className="h-4 w-4" /> },
@@ -59,13 +50,14 @@ const accentColors: { value: AccentColor; label: string; color: string }[] = [
 ];
 
 export default function Configuracoes() {
-  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<Seller | null>(null);
-  const [users, setUsers] = useState<Seller[]>(initialUsers);
   const [activeSection, setActiveSection] = useState<string>('general');
   const { theme, setTheme, accentColor, setAccentColor } = useTheme();
+  const { user } = useAuth();
   const { notifications, unreadCount, markAsRead, markAllAsRead, removeNotification } = useNotifications();
+
+  const profileName = user?.name ?? '';
+  const profileEmail = user?.email ?? '';
+  const profilePhone = '';
 
   // Notification preferences
   const [notifPrefs, setNotifPrefs] = useState({
@@ -82,24 +74,6 @@ export default function Configuracoes() {
     emailMfa: false,
     smsMfa: false,
   });
-
-  const handleAddUser = (userData: Omit<Seller, 'id'>) => {
-    setUsers((prev) => [...prev, { ...userData, id: crypto.randomUUID() }]);
-  };
-
-  const handleEditUser = (user: Seller) => {
-    setEditingUser(user);
-    setIsEditModalOpen(true);
-  };
-
-  const handleUpdateUser = (updatedUser: Seller) => {
-    setUsers((prev) => prev.map((u) => (u.id === updatedUser.id ? updatedUser : u)));
-  };
-
-  const handleDeleteUser = (userId: string) => {
-    setUsers((prev) => prev.filter((u) => u.id !== userId));
-    toast.success('Usuário removido com sucesso!');
-  };
 
   const tabs = [
     { id: 'general', label: 'Geral', icon: Settings },
@@ -162,8 +136,8 @@ export default function Configuracoes() {
                   </button>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-foreground">Carlos Mendes</p>
-                  <p className="text-xs text-muted-foreground">carlos@v3motors.com</p>
+                  <p className="text-sm font-medium text-foreground">{profileName || 'Nome nao informado'}</p>
+                  <p className="text-xs text-muted-foreground">{profileEmail || 'E-mail nao informado'}</p>
                   <Button variant="outline" size="sm" className="mt-2 text-xs">
                     Alterar foto
                   </Button>
@@ -184,7 +158,7 @@ export default function Configuracoes() {
                   </div>
                   <div className="flex-1">
                     <Label className="text-sm font-medium">E-mail</Label>
-                    <p className="text-sm text-muted-foreground">carlos@v3motors.com</p>
+                    <p className="text-sm text-muted-foreground">{profileEmail || 'E-mail de acesso'}</p>
                   </div>
                   <Button
                     variant="outline"
@@ -200,7 +174,7 @@ export default function Configuracoes() {
                   </div>
                   <div className="flex-1">
                     <Label className="text-sm font-medium">Telefone</Label>
-                    <p className="text-sm text-muted-foreground">(11) 99999-9999</p>
+                    <p className="text-sm text-muted-foreground">{profilePhone || 'Nao informado'}</p>
                   </div>
                   <Button variant="outline" size="sm" onClick={() => toast.info('SMS de verificação enviado')}>
                     Alterar
@@ -287,80 +261,25 @@ export default function Configuracoes() {
                 <div className="flex items-center gap-3">
                   <Users className="h-5 w-5 text-muted-foreground" />
                   <div>
-                    <h3 className="text-lg font-semibold text-foreground">Usuários do Sistema</h3>
+                    <h3 className="text-lg font-semibold text-foreground">Membros da Equipe</h3>
                     <p className="text-sm text-muted-foreground">Gerencie vendedores e administradores</p>
                   </div>
                 </div>
-                <button
-                  onClick={() => setIsUserModalOpen(true)}
-                  className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+                <Button
+                  onClick={() => toast.info('Fluxo de convite sera conectado com a API de equipe nas proximas fases.')}
                 >
-                  <UserPlus className="h-4 w-4" />
-                  Adicionar Usuário
-                </button>
+                  Convidar membro
+                </Button>
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-border/50 bg-muted/30">
-                      <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                        Nome
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                        E-mail
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                        Permissão
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                        Ações
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border/50">
-                    {users.map((user) => (
-                      <tr key={user.id} className="hover:bg-muted/20 transition-colors">
-                        <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-foreground">{user.nome}</td>
-                        <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">{user.email}</td>
-                        <td className="whitespace-nowrap px-6 py-4">
-                          <span
-                            className={cn(
-                              'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium',
-                              user.role === 'ADMIN'
-                                ? 'bg-kanban-negotiation/10 text-kanban-negotiation'
-                                : 'bg-kanban-completed/10 text-kanban-completed',
-                            )}
-                          >
-                            <div
-                              className={cn(
-                                'h-1.5 w-1.5 rounded-full',
-                                user.role === 'ADMIN' ? 'bg-kanban-negotiation' : 'bg-kanban-completed',
-                              )}
-                            />
-                            {user.role === 'ADMIN' ? 'Administrador' : 'Vendedor'}
-                          </span>
-                        </td>
-                        <td className="whitespace-nowrap px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => handleEditUser(user)}
-                              className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
-                            >
-                              Editar
-                            </button>
-                            <button
-                              aria-label={`Remover usuário ${user.nome}`}
-                              onClick={() => handleDeleteUser(user.id)}
-                              className="text-sm font-medium text-destructive hover:text-destructive/80 transition-colors"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="flex flex-col items-center justify-center gap-3 px-6 py-12 text-center">
+                <Users className="h-10 w-10 text-muted-foreground/40" />
+                <p className="text-sm text-muted-foreground">Nenhum membro cadastrado ainda.</p>
+                <Button
+                  variant="outline"
+                  onClick={() => toast.info('Convite de membros disponivel nas proximas fases.')}
+                >
+                  Convidar membro
+                </Button>
               </div>
             </div>
           </div>
@@ -738,13 +657,6 @@ export default function Configuracoes() {
         )}
       </div>
 
-      <AddUserModal open={isUserModalOpen} onOpenChange={setIsUserModalOpen} onSubmit={handleAddUser} />
-      <EditUserModal
-        open={isEditModalOpen}
-        onOpenChange={setIsEditModalOpen}
-        user={editingUser}
-        onSubmit={handleUpdateUser}
-      />
     </>
   );
 }

@@ -1,8 +1,10 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useCategorySales, useDashboard, useKPIs, useMonthlySales, useRecentSales } from "@/hooks/api/useDashboard";
+import { useCategorySales, useDashboard, useKPIs, useMonthlySales } from "@/hooks/api/useDashboard";
 import { dashboardService } from "@/services/dashboard.service";
+import { useLeads } from "@/hooks/api/useLeads";
+import { Lead } from "@/types";
 
 vi.mock("@/services/dashboard.service", () => ({
   dashboardService: {
@@ -10,6 +12,10 @@ vi.mock("@/services/dashboard.service", () => ({
     getMonthlySales: vi.fn(),
     getCategorySales: vi.fn(),
   },
+}));
+
+vi.mock("@/hooks/api/useLeads", () => ({
+  useLeads: vi.fn(),
 }));
 
 vi.mock("@/contexts/AuthContext", () => ({
@@ -31,9 +37,39 @@ function createWrapper() {
   );
 }
 
+function makeLead(overrides?: Partial<Lead>): Lead {
+  return {
+    id: "lead-base",
+    nome: "Lead Base",
+    telefone: "(11) 99999-0000",
+    origem: "Direto",
+    dataCriacao: new Date("2026-03-01T12:00:00.000Z"),
+    ultimaInteracao: new Date("2026-03-01T12:00:00.000Z"),
+    ...overrides,
+  };
+}
+
+function makeLeadsQuery(content: Lead[]) {
+  return {
+    data: {
+      content,
+      totalElements: content.length,
+      totalPages: 1,
+      page: 0,
+      size: 50,
+    },
+    isLoading: false,
+    error: null,
+    refetch: vi.fn(),
+  } as ReturnType<typeof useLeads>;
+}
+
 describe("useDashboard hooks", () => {
+  const useLeadsMock = vi.mocked(useLeads);
+
   beforeEach(() => {
     vi.clearAllMocks();
+    useLeadsMock.mockReturnValue(makeLeadsQuery([]));
   });
 
   it("useKPIs maps dashboard KPI dto to view model", async () => {
@@ -88,10 +124,34 @@ describe("useDashboard hooks", () => {
     ]);
   });
 
-  it("useRecentSales returns empty fallback array in real mode", async () => {
-    const { result } = renderHook(() => useRecentSales(), { wrapper: createWrapper() });
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(result.current.data).toEqual([]);
+  it("useDashboard maps recent sales from COMPLETED leads", async () => {
+    useLeadsMock.mockReturnValue(
+      makeLeadsQuery([
+        makeLead({
+          id: "lead-1",
+          nome: "Cliente A",
+          interesse: "Toyota Corolla 2024",
+          orcamento: 120000,
+          assignedToName: "Vendedor 1",
+          ultimaInteracao: new Date("2026-03-10T12:00:00.000Z"),
+        }),
+        makeLead({
+          id: "lead-2",
+          nome: "Cliente B",
+          interesse: "Honda Civic 2024",
+          orcamento: 130000,
+          assignedToName: "Vendedor 2",
+          ultimaInteracao: new Date("2026-03-11T12:00:00.000Z"),
+        }),
+      ]),
+    );
+
+    const { result } = renderHook(() => useDashboard(), { wrapper: createWrapper() });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.recentSales).toHaveLength(2);
+    expect(result.current.recentSales[0].cliente).toBe("Cliente B");
+    expect(result.current.recentSales[0].veiculo).toBe("Honda Civic 2024");
   });
 
   it("useDashboard aggregates child queries and exposes safe defaults/refetch", async () => {
@@ -127,10 +187,10 @@ describe("useDashboard hooks (mock-mode branches)", () => {
   it("returns mock recent sales list when VITE_USE_MOCKS=true", async () => {
     vi.resetModules();
     vi.stubEnv("VITE_USE_MOCKS", "true");
-    const { useRecentSales: useRecentSalesMock } = await import("@/hooks/api/useDashboard");
+    const { useDashboard: useDashboardMock } = await import("@/hooks/api/useDashboard");
 
-    const { result } = renderHook(() => useRecentSalesMock(), { wrapper: createWrapper() });
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(result.current.data?.length).toBeGreaterThan(0);
+    const { result } = renderHook(() => useDashboardMock(), { wrapper: createWrapper() });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.recentSales.length).toBeGreaterThan(0);
   });
 });

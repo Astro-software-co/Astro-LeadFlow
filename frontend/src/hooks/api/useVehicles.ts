@@ -88,6 +88,33 @@ export function useVehicles(filters?: VehicleFilters) {
   });
 }
 
+export function useVehicle(id?: string) {
+  const { user } = useAuth();
+  const orgId = user?.organizationId ?? 'unknown';
+
+  return useQuery({
+    queryKey: [orgId, 'vehicle', id],
+    enabled: Boolean(id),
+    queryFn: async (): Promise<Vehicle> => {
+      if (!id) {
+        throw new Error('ID do veiculo nao informado.');
+      }
+
+      if (useMocks) {
+        const mockVehicle = mockVehicles.find((vehicle) => vehicle.id === id);
+        if (!mockVehicle) {
+          throw new Error('Veiculo nao encontrado');
+        }
+        return mockVehicle;
+      }
+
+      const response = await vehiclesService.getById(id);
+      return mapVehicleResponseToVehicle(response);
+    },
+    staleTime: 30_000,
+  });
+}
+
 export function useCreateVehicle() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -106,6 +133,9 @@ export function useUpdateVehicle() {
       const updated = await vehiclesService.update(id, mapVehicleToUpdateRequest(data));
       return mapVehicleResponseToVehicle(updated);
     },
-    onSuccess: () => queryClient.invalidateQueries({ predicate: (query) => query.queryKey.includes('vehicles') }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({
+        predicate: (query) => query.queryKey.includes('vehicles') || query.queryKey.includes('vehicle'),
+      }),
   });
 }
