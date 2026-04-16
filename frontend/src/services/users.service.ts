@@ -1,5 +1,13 @@
 import api from '@/lib/api';
-import { UserProfileResponseDTO, UserSummaryResponseDTO } from '@/types/api/users';
+import { UserProfileResponseDTO, UserSummaryResponseDTO, UserTeamListDataDTO } from '@/types/api/users';
+
+function normalizeTeamList(data: UserTeamListDataDTO): UserSummaryResponseDTO[] {
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  return data.content ?? data.data ?? data.items ?? [];
+}
 
 export const usersService = {
   async getProfile(): Promise<UserProfileResponseDTO> {
@@ -8,7 +16,7 @@ export const usersService = {
   },
 
   async listTeam(): Promise<UserSummaryResponseDTO[]> {
-    const response = await api.get<UserSummaryResponseDTO[]>('/users');
-    return response.data;
+    const response = await api.get<UserTeamListDataDTO>('/users');
+    return normalizeTeamList(response.data);
   },
 };

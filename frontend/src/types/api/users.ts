@@ -32,3 +32,15 @@ export interface UserSummaryResponseDTO {
   avatarUrl?: string | null;
   role: UserRoleDTO;
 }
+
+export interface UserTeamListResponseDTO {
+  content?: UserSummaryResponseDTO[];
+  data?: UserSummaryResponseDTO[];
+  items?: UserSummaryResponseDTO[];
+  totalElements?: number;
+  totalPages?: number;
+  page?: number;
+  size?: number;
+}
+
+export type UserTeamListDataDTO = UserSummaryResponseDTO[] | UserTeamListResponseDTO;
