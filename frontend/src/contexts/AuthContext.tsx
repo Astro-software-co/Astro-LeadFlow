@@ -9,7 +9,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string, phone?: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,18 +22,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const useMocks = import.meta.env.VITE_USE_MOCKS === 'true';
 
   useEffect(() => {
-    // In-memory tokens are lost on page refresh — user must re-login.
-    // This is expected behavior for SEC-001 (tokens kept in closure, not persisted).
-    const token = tokenStore.accessToken;
-    if (!token) {
-      setIsLoading(false);
-      return;
-    }
-
     if (useMocks) {
+      const token = tokenStore.accessToken;
+      if (!token) {
+        setIsLoading(false);
+        return;
+      }
+
       setUser({
         id: 'mock-user-1',
-        name: 'Usuário Demo',
+        name: 'Usuario Demo',
         email: 'demo@astro.com',
         role: 'ADMIN',
         organizationId: 'org-1',
@@ -42,11 +40,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    authService
-      .getProfile()
-      .then(setUser)
+    const hydrateSession = async () => {
+      const token = tokenStore.accessToken;
+      if (token) {
+        const profile = await authService.getProfile();
+        tokenStore.set(token);
+        setUser(profile);
+        return;
+      }
+
+      const auth = await authService.restoreSession();
+      tokenStore.set(auth.accessToken);
+      const profile = await authService.getProfile();
+      setUser(profile);
+    };
+
+    hydrateSession()
       .catch(() => {
         tokenStore.clear();
+        setUser(null);
       })
       .finally(() => setIsLoading(false));
   }, [useMocks]);
@@ -54,10 +66,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(
     async (email: string, password: string) => {
       if (useMocks) {
-        tokenStore.set('mock-token', 'mock-refresh');
+        tokenStore.set('mock-token');
         setUser({
           id: 'mock-user-1',
-          name: 'Usuário Demo',
+          name: 'Usuario Demo',
           email,
           role: 'ADMIN',
           organizationId: 'org-1',
@@ -66,7 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       const auth: AuthResponse = await authService.login({ email, password });
-      tokenStore.set(auth.accessToken, auth.refreshToken);
+      tokenStore.set(auth.accessToken);
       const profile = await authService.getProfile();
       setUser(profile);
     },
@@ -76,7 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = useCallback(
     async (name: string, email: string, password: string, _phone?: string) => {
       if (useMocks) {
-        tokenStore.set('mock-token', 'mock-refresh');
+        tokenStore.set('mock-token');
         setUser({
           id: 'mock-user-1',
           name,
@@ -101,22 +113,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         adminEmail: email,
         password,
       });
-      tokenStore.set(auth.accessToken, auth.refreshToken);
+      tokenStore.set(auth.accessToken);
       const profile = await authService.getProfile();
       setUser(profile);
     },
     [useMocks],
   );
 
-  const logout = useCallback(() => {
-    // Backend currently has no dedicated logout endpoint.
-    if (!useMocks) {
-      authService.logout().catch(() => {});
-    }
+  const clearSession = useCallback(() => {
     tokenStore.clear();
-    queryClient.clear(); // Wipe ALL React Query cache — prevents multi-tenant data leak
+    queryClient.clear();
     setUser(null);
-  }, [useMocks, queryClient]);
+  }, [queryClient]);
+
+  const logout = useCallback(async () => {
+    if (!useMocks) {
+      try {
+        await authService.logout();
+      } catch {
+        // Best-effort revocation: local session must still be cleared.
+      }
+    }
+
+    clearSession();
+  }, [clearSession, useMocks]);
 
   return (
     <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, register, logout }}>

@@ -71,6 +71,12 @@ springdoc:
 
 app:
   base-url: ${APP_BASE_URL:http://localhost:8080}
+  auth:
+    refresh-cookie:
+      name: ${AUTH_REFRESH_COOKIE_NAME:astro_refresh_token}
+      path: ${AUTH_REFRESH_COOKIE_PATH:/api/v1/auth}
+      same-site: ${AUTH_REFRESH_COOKIE_SAME_SITE:Lax}
+      secure: ${AUTH_REFRESH_COOKIE_SECURE:true}
   jwt:
     secret: ${JWT_SECRET:dev-secret-change-in-production-min-256-bits}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}

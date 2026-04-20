@@ -2,7 +2,6 @@ import api from '@/lib/api';
 import {
   AuthResponseDTO,
   LoginRequestDTO,
-  RefreshTokenRequestDTO,
   RegisterOrganizationRequestDTO,
   UserProfileResponseDTO,
 } from '@/types/api/auth';
@@ -22,7 +21,6 @@ export interface RegisterRequest {
 
 export interface AuthResponse {
   accessToken: string;
-  refreshToken: string;
   pendingTwoFactor: boolean;
 }
 
@@ -35,13 +33,12 @@ export interface UserProfile {
 }
 
 function mapTokenResponse(dto: AuthResponseDTO): AuthResponse {
-  if (!dto.accessToken || !dto.refreshToken) {
+  if (!dto.accessToken) {
     throw new Error('Resposta de autenticacao incompleta: tokens ausentes');
   }
 
   return {
     accessToken: dto.accessToken,
-    refreshToken: dto.refreshToken,
     pendingTwoFactor: dto.pendingTwoFactor,
   };
 }
@@ -80,14 +77,13 @@ export const authService = {
     return mapTokenResponse(response.data);
   },
 
-  async refreshToken(refreshToken: string): Promise<AuthResponse> {
-    const payload: RefreshTokenRequestDTO = { refreshToken };
-    const response = await api.post<AuthResponseDTO>('/auth/refresh', payload);
+  async restoreSession(): Promise<AuthResponse> {
+    const response = await api.post<AuthResponseDTO>('/auth/refresh');
     return mapTokenResponse(response.data);
   },
 
   async logout(): Promise<void> {
-    return Promise.resolve();
+    await api.post('/auth/logout');
   },
 
   async getProfile(): Promise<UserProfile> {

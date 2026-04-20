@@ -9,6 +9,7 @@ vi.mock('@/services/auth.service', () => ({
   authService: {
     login: vi.fn(),
     register: vi.fn(),
+    restoreSession: vi.fn(),
     getProfile: vi.fn(),
     logout: vi.fn(),
   },
@@ -37,7 +38,7 @@ function TestConsumer() {
       {user && <p data-testid="user-name">{user.name}</p>}
       <button onClick={() => login('test@test.com', 'pass')}>Login</button>
       <button onClick={() => register('Novo Admin', 'novo@astro.test', 'SenhaForte123')}>Register</button>
-      <button onClick={() => logout()}>Logout</button>
+      <button onClick={() => void logout()}>Logout</button>
     </div>
   );
 }
@@ -47,6 +48,7 @@ describe('AuthContext', () => {
     tokenStore.clear();
     vi.resetAllMocks();
     vi.stubEnv('VITE_USE_MOCKS', 'true');
+    vi.mocked(authService.restoreSession).mockRejectedValue(new Error('no-session'));
   });
 
   afterEach(() => {
@@ -75,11 +77,12 @@ describe('AuthContext', () => {
       </Wrapper>,
     );
 
+    await waitFor(() => expect(screen.getByTestId('auth-status')).toHaveTextContent('anonymous'));
     fireEvent.click(screen.getByText('Login'));
     await waitFor(() => {
       expect(screen.getByTestId('auth-status')).toHaveTextContent('authenticated');
     });
-    expect(screen.getByTestId('user-name')).toHaveTextContent('Usuário Demo');
+    expect(screen.getByTestId('user-name')).toHaveTextContent('Usuario Demo');
     expect(tokenStore.accessToken).toBe('mock-token');
   });
 
@@ -93,10 +96,11 @@ describe('AuthContext', () => {
       </Wrapper>,
     );
 
+    await waitFor(() => expect(screen.getByTestId('auth-status')).toHaveTextContent('anonymous'));
     fireEvent.click(screen.getByText('Register'));
     await waitFor(() => expect(screen.getByTestId('auth-status')).toHaveTextContent('authenticated'));
     expect(screen.getByTestId('user-name')).toHaveTextContent('Novo Admin');
-    expect(tokenStore.refreshToken).toBe('mock-refresh');
+    expect(tokenStore.accessToken).toBe('mock-token');
   });
 
   it('logout clears user and tokens', async () => {
@@ -109,6 +113,7 @@ describe('AuthContext', () => {
       </Wrapper>,
     );
 
+    await waitFor(() => expect(screen.getByTestId('auth-status')).toHaveTextContent('anonymous'));
     fireEvent.click(screen.getByText('Login'));
     await waitFor(() => {
       expect(screen.getByTestId('auth-status')).toHaveTextContent('authenticated');
@@ -121,7 +126,7 @@ describe('AuthContext', () => {
 
   it('loads profile from API when a token exists and mock mode is disabled', async () => {
     vi.stubEnv('VITE_USE_MOCKS', 'false');
-    tokenStore.set('persisted-access', 'persisted-refresh');
+    tokenStore.set('persisted-access');
     vi.mocked(authService.getProfile).mockResolvedValueOnce({
       id: 'u-1',
       name: 'Real User',
@@ -146,7 +151,7 @@ describe('AuthContext', () => {
 
   it('clears stale token when profile fetch fails during bootstrap', async () => {
     vi.stubEnv('VITE_USE_MOCKS', 'false');
-    tokenStore.set('stale-access', 'stale-refresh');
+    tokenStore.set('stale-access');
     vi.mocked(authService.getProfile).mockRejectedValueOnce(new Error('token-invalid'));
 
     const Wrapper = makeWrapper();
@@ -160,14 +165,12 @@ describe('AuthContext', () => {
 
     await waitFor(() => expect(screen.getByTestId('auth-status')).toHaveTextContent('anonymous'));
     expect(tokenStore.accessToken).toBeNull();
-    expect(tokenStore.refreshToken).toBeNull();
   });
 
   it('calls authService login/profile flow when mock mode is disabled', async () => {
     vi.stubEnv('VITE_USE_MOCKS', 'false');
     vi.mocked(authService.login).mockResolvedValueOnce({
       accessToken: 'api-access',
-      refreshToken: 'api-refresh',
       pendingTwoFactor: false,
     });
     vi.mocked(authService.getProfile).mockResolvedValueOnce({
@@ -187,6 +190,7 @@ describe('AuthContext', () => {
       </Wrapper>,
     );
 
+    await waitFor(() => expect(screen.getByTestId('auth-status')).toHaveTextContent('anonymous'));
     fireEvent.click(screen.getByText('Login'));
 
     await waitFor(() => expect(authService.login).toHaveBeenCalledWith({ email: 'test@test.com', password: 'pass' }));
@@ -198,7 +202,6 @@ describe('AuthContext', () => {
     vi.stubEnv('VITE_USE_MOCKS', 'false');
     vi.mocked(authService.register).mockResolvedValueOnce({
       accessToken: 'registered-access',
-      refreshToken: 'registered-refresh',
       pendingTwoFactor: false,
     });
     vi.mocked(authService.getProfile).mockResolvedValueOnce({
@@ -218,6 +221,7 @@ describe('AuthContext', () => {
       </Wrapper>,
     );
 
+    await waitFor(() => expect(screen.getByTestId('auth-status')).toHaveTextContent('anonymous'));
     fireEvent.click(screen.getByText('Register'));
 
     await waitFor(() =>
@@ -236,7 +240,6 @@ describe('AuthContext', () => {
     vi.stubEnv('VITE_USE_MOCKS', 'false');
     vi.mocked(authService.login).mockResolvedValueOnce({
       accessToken: 'a-1',
-      refreshToken: 'r-1',
       pendingTwoFactor: false,
     });
     vi.mocked(authService.getProfile).mockResolvedValueOnce({
@@ -257,12 +260,42 @@ describe('AuthContext', () => {
       </Wrapper>,
     );
 
+    await waitFor(() => expect(screen.getByTestId('auth-status')).toHaveTextContent('anonymous'));
     fireEvent.click(screen.getByText('Login'));
     await waitFor(() => expect(screen.getByTestId('auth-status')).toHaveTextContent('authenticated'));
 
     fireEvent.click(screen.getByText('Logout'));
-    await waitFor(() => expect(authService.logout).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(authService.logout).toHaveBeenCalledWith());
     expect(screen.getByTestId('auth-status')).toHaveTextContent('anonymous');
+  });
+
+  it('restores session silently on bootstrap when cookie-backed refresh is available', async () => {
+    vi.stubEnv('VITE_USE_MOCKS', 'false');
+    vi.mocked(authService.restoreSession).mockResolvedValueOnce({
+      accessToken: 'restored-access',
+      pendingTwoFactor: false,
+    });
+    vi.mocked(authService.getProfile).mockResolvedValueOnce({
+      id: 'u-5',
+      name: 'Restored User',
+      email: 'restored@astro.test',
+      role: 'ADMIN',
+      organizationId: 'org-restored',
+    });
+
+    const Wrapper = makeWrapper();
+    render(
+      <Wrapper>
+        <AuthProvider>
+          <TestConsumer />
+        </AuthProvider>
+      </Wrapper>,
+    );
+
+    await waitFor(() => expect(authService.restoreSession).toHaveBeenCalled());
+    await waitFor(() => expect(screen.getByTestId('auth-status')).toHaveTextContent('authenticated'));
+    expect(tokenStore.accessToken).toBe('restored-access');
+    expect(screen.getByTestId('user-name')).toHaveTextContent('Restored User');
   });
 
   it('throws when useAuth is used outside provider', () => {

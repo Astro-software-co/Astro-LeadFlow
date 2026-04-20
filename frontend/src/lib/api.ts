@@ -1,52 +1,57 @@
 import axios from 'axios';
-import type { AuthResponseDTO, RefreshTokenRequestDTO } from '@/types/api/auth';
+import type { AuthResponseDTO } from '@/types/api/auth';
 
-// In-memory token store — tokens are kept in module-level closure only.
-// This prevents XSS attacks from accessing tokens via JavaScript.
+function resolveApiBaseUrl() {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+
+  if (typeof window !== 'undefined') {
+    return `${window.location.protocol}//${window.location.hostname}:8080/api/v1`;
+  }
+
+  return 'http://localhost:8080/api/v1';
+}
+
+// In-memory access token store — access tokens never persist across reloads.
+// The refresh token is managed as a secure httpOnly cookie by the backend.
 export const tokenStore = {
   _accessToken: null as string | null,
-  _refreshToken: null as string | null,
   get accessToken() {
     return this._accessToken;
   },
-  get refreshToken() {
-    return this._refreshToken;
-  },
-  set(access: string, refresh: string) {
+  set(access: string) {
     this._accessToken = access;
-    this._refreshToken = refresh;
   },
   clear() {
     this._accessToken = null;
-    this._refreshToken = null;
   },
 };
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1',
+  baseURL: resolveApiBaseUrl(),
   headers: { 'Content-Type': 'application/json' },
+  withCredentials: true,
 });
 
 // Dedicated client for refresh requests to avoid interceptor recursion/cycles.
 const refreshApi = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1',
+  baseURL: resolveApiBaseUrl(),
   headers: { 'Content-Type': 'application/json' },
+  withCredentials: true,
 });
 
-async function refreshAuthToken(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
-  const payload: RefreshTokenRequestDTO = { refreshToken };
-  const response = await refreshApi.post<AuthResponseDTO>('/auth/refresh', payload);
+async function refreshAuthToken(): Promise<{ accessToken: string }> {
+  const response = await refreshApi.post<AuthResponseDTO>('/auth/refresh');
 
   const nextAccessToken = response.data.accessToken;
-  const nextRefreshToken = response.data.refreshToken;
 
-  if (!nextAccessToken || !nextRefreshToken) {
-    throw new Error('Resposta de autenticacao incompleta: tokens ausentes');
+  if (!nextAccessToken) {
+    throw new Error('Resposta de autenticacao incompleta: access token ausente');
   }
 
   return {
     accessToken: nextAccessToken,
-    refreshToken: nextRefreshToken,
   };
 }
 
@@ -82,14 +87,6 @@ api.interceptors.response.use(
     const originalRequest = error.config;
 
     if (error.response?.status === 401 && !originalRequest._retry) {
-      const refresh = tokenStore.refreshToken;
-
-      if (!refresh) {
-        tokenStore.clear();
-        window.location.href = '/app/login';
-        return Promise.reject(error);
-      }
-
       if (isRefreshing) {
         // Queue subsequent 401s while refresh is in progress
         return new Promise<string>((resolve, reject) => {
@@ -106,8 +103,8 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const newAuth = await refreshAuthToken(refresh);
-        tokenStore.set(newAuth.accessToken, newAuth.refreshToken);
+        const newAuth = await refreshAuthToken();
+        tokenStore.set(newAuth.accessToken);
         processQueue(null, newAuth.accessToken);
         originalRequest.headers.Authorization = `Bearer ${newAuth.accessToken}`;
         return api(originalRequest);

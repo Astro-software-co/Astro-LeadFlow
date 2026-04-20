@@ -47,6 +47,9 @@ marketplace:
 
 app:
   base-url: http://localhost:8080
+  auth:
+    refresh-cookie:
+      secure: false
   jwt:
     secret: local_dev_secret_key_must_be_at_least_32_chars_long
     expiration-ms: 3600000

@@ -30,8 +30,12 @@ describe('API client', () => {
     expect(api.defaults.headers['Content-Type']).toBe('application/json');
   });
 
+  it('sends credentials with requests for cookie-backed auth flows', () => {
+    expect(api.defaults.withCredentials).toBe(true);
+  });
+
   it('attaches Authorization header when token exists', async () => {
-    tokenStore.set('test-jwt-token', 'test-refresh-token');
+    tokenStore.set('test-jwt-token');
     const config = buildConfig();
 
     const result = await runRequestInterceptor(config);

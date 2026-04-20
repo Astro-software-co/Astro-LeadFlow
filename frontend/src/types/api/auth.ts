@@ -13,7 +13,7 @@ export interface RegisterOrganizationRequestDTO {
 
 export interface AuthResponseDTO {
   accessToken: string | null;
-  refreshToken: string | null;
+  refreshToken?: string | null;
   userId?: string | null;
   role?: string | null;
   organizationId?: string | null;
@@ -21,7 +21,7 @@ export interface AuthResponseDTO {
 }
 
 export interface RefreshTokenRequestDTO {
-  refreshToken: string;
+  refreshToken?: string;
 }
 
 export interface UserProfileResponseDTO {

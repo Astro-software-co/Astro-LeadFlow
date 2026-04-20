@@ -1,5 +1,8 @@
 package com.astro.leadflow.shared.modules.iam.service
 
+import com.astro.leadflow.shared.exception.BusinessException
+import com.astro.leadflow.shared.exception.DuplicateResourceException
+import com.astro.leadflow.shared.exception.ResourceNotFoundException
 import com.astro.leadflow.shared.modules.iam.api.requests.LoginRequest
 import com.astro.leadflow.shared.modules.iam.api.requests.RegisterOrganizationRequest
 import com.astro.leadflow.shared.modules.iam.api.requests.Verify2FARequest
@@ -10,9 +13,6 @@ import com.astro.leadflow.shared.modules.iam.domain.Role
 import com.astro.leadflow.shared.modules.iam.domain.User
 import com.astro.leadflow.shared.modules.iam.domain.UserRepository
 import com.astro.leadflow.shared.modules.iam.domain.UserStatus
-import com.astro.leadflow.shared.exception.BusinessException
-import com.astro.leadflow.shared.exception.DuplicateResourceException
-import com.astro.leadflow.shared.exception.ResourceNotFoundException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -24,15 +24,18 @@ class AuthService(
     private val organizationRepository: OrganizationRepository,
     private val tokenService: TokenService,
     private val passwordEncoder: PasswordEncoder,
-    private val twoFactorService: TwoFactorService
+    private val twoFactorService: TwoFactorService,
+    private val refreshTokenBlocklistService: RefreshTokenBlocklistService
 ) {
 
     @Transactional
     fun registerOrganization(request: RegisterOrganizationRequest): TokenResponse {
-        if (organizationRepository.existsBySlug(request.slug))
+        if (organizationRepository.existsBySlug(request.slug)) {
             throw DuplicateResourceException("Organization", "slug", request.slug)
-        if (userRepository.existsByEmail(request.adminEmail))
+        }
+        if (userRepository.existsByEmail(request.adminEmail)) {
             throw DuplicateResourceException("User", "email", request.adminEmail)
+        }
 
         val organization = organizationRepository.save(
             Organization(name = request.organizationName, slug = request.slug)
@@ -43,7 +46,7 @@ class AuthService(
                 name = request.adminName,
                 email = request.adminEmail,
                 passwordHash = passwordEncoder.encode(request.password),
-                role = Role.ADMIN
+                role = Role.ADMIN,
             )
         )
         return buildTokenResponse(admin)
@@ -54,14 +57,17 @@ class AuthService(
         val user = userRepository.findByEmail(request.email)
             .orElseThrow { BusinessException("Credenciais inválidas.") }
 
-        if (!passwordEncoder.matches(request.password, user.password))
+        if (!passwordEncoder.matches(request.password, user.password)) {
             throw BusinessException("Credenciais inválidas.")
+        }
 
-        if (user.status == UserStatus.SUSPENDED)
+        if (user.status == UserStatus.SUSPENDED) {
             throw BusinessException("Conta suspensa. Entre em contato com o administrador.")
+        }
 
-        if (user.status == UserStatus.PENDING_VERIFICATION)
+        if (user.status == UserStatus.PENDING_VERIFICATION) {
             throw BusinessException("Conta pendente de ativação.")
+        }
 
         if (user.twoFactorEmailEnabled || user.twoFactorSmsEnabled) {
             twoFactorService.sendCode(user)
@@ -75,11 +81,13 @@ class AuthService(
         val user = userRepository.findByEmail(request.email)
             .orElseThrow { ResourceNotFoundException("User", request.email) }
 
-        if (user.twoFactorCode != request.code)
+        if (user.twoFactorCode != request.code) {
             throw BusinessException("Código 2FA inválido.")
+        }
 
-        if (user.twoFactorCodeExpiresAt?.isBefore(LocalDateTime.now()) == true)
+        if (user.twoFactorCodeExpiresAt?.isBefore(LocalDateTime.now()) == true) {
             throw BusinessException("Código 2FA expirado. Solicite um novo.")
+        }
 
         user.twoFactorCode = null
         user.twoFactorCodeExpiresAt = null
@@ -90,17 +98,33 @@ class AuthService(
 
     @Transactional(readOnly = true)
     fun refreshToken(refreshToken: String): TokenResponse {
-        if (!tokenService.isTokenValid(refreshToken) || !tokenService.isRefreshToken(refreshToken))
+        if (!tokenService.isTokenValid(refreshToken) || !tokenService.isRefreshToken(refreshToken)) {
             throw BusinessException("Refresh token inválido ou expirado.")
+        }
+
+        if (refreshTokenBlocklistService.isRevoked(refreshToken)) {
+            throw BusinessException("Refresh token inválido ou expirado.")
+        }
 
         val userId = tokenService.extractUserId(refreshToken)
         val user = userRepository.findById(userId)
             .orElseThrow { ResourceNotFoundException("User", userId) }
 
-        if (!user.isEnabled)
+        if (!user.isEnabled) {
             throw BusinessException("Conta inativa ou suspensa.")
+        }
 
         return buildTokenResponse(user)
+    }
+
+    @Transactional
+    fun logout(refreshToken: String) {
+        if (!tokenService.isTokenValid(refreshToken) || !tokenService.isRefreshToken(refreshToken)) {
+            throw BusinessException("Refresh token inválido ou expirado.")
+        }
+
+        val expiresAt = tokenService.extractExpiration(refreshToken)
+        refreshTokenBlocklistService.revoke(refreshToken, expiresAt)
     }
 
     private fun buildTokenResponse(user: User) = TokenResponse(
@@ -108,6 +132,6 @@ class AuthService(
         refreshToken = tokenService.generateRefreshToken(user),
         userId = user.id,
         role = user.role.name,
-        organizationId = user.organization?.id
+        organizationId = user.organization?.id,
     )
 }

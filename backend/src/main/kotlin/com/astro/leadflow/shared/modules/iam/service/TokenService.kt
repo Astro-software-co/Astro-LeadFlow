@@ -6,6 +6,7 @@ import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import java.time.Instant
 import java.util.Date
 import java.util.UUID
 
@@ -49,6 +50,9 @@ class TokenService(
         extractAllClaims(token)["organizationId"]
             ?.toString()
             ?.let { UUID.fromString(it) }
+
+    fun extractExpiration(token: String): Instant =
+        extractAllClaims(token).expiration.toInstant()
 
     fun isTokenValid(token: String): Boolean = runCatching {
         extractAllClaims(token).expiration.after(Date())
