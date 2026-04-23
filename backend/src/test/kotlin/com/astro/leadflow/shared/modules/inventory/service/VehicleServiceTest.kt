@@ -2,6 +2,7 @@ package com.astro.leadflow.shared.modules.inventory.service
 
 import com.astro.leadflow.shared.modules.inventory.api.requests.VehicleCreateRequest
 import com.astro.leadflow.shared.modules.inventory.api.requests.VehicleUpdateRequest
+import com.astro.leadflow.shared.modules.crm.domain.LeadRepository
 import com.astro.leadflow.shared.modules.inventory.domain.VehicleRepository
 import com.astro.leadflow.shared.modules.inventory.mapper.VehicleMapper
 import com.astro.leadflow.shared.exception.InvalidOperationException
@@ -24,6 +25,7 @@ class VehicleServiceTest {
     private lateinit var vehicleRepository: VehicleRepository
     private lateinit var organizationRepository: OrganizationRepository
     private lateinit var vehicleMapper: VehicleMapper
+    private lateinit var leadRepository: LeadRepository
     private lateinit var vehicleService: VehicleService
 
     private val orgId = UUID.randomUUID()
@@ -34,7 +36,9 @@ class VehicleServiceTest {
         vehicleRepository = mockk()
         organizationRepository = mockk()
         vehicleMapper = mockk()
-        vehicleService = VehicleService(vehicleRepository, organizationRepository, vehicleMapper)
+        leadRepository = mockk()
+        every { leadRepository.existsByVehicleIdAndPipelineStageNotIn(any(), any()) } returns false
+        vehicleService = VehicleService(vehicleRepository, organizationRepository, vehicleMapper, leadRepository)
 
         mockkObject(com.astro.leadflow.shared.util.SecurityUtils)
         every {

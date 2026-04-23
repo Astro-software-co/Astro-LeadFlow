@@ -71,4 +71,44 @@ describe("saasService", () => {
     expect(api.get).toHaveBeenCalledWith("/saas/marketplaces");
     expect(result).toEqual(dto);
   });
+
+  it("createSubscriptionCheckout creates a self-service checkout", async () => {
+    const dto = {
+      planId: "plan-profissional",
+      planName: "Profissional",
+      checkoutId: "bill_123",
+      checkoutUrl: "https://app.abacatepay.com/pay/bill_123",
+    };
+    const payload = {
+      returnUrl: "http://localhost:5173/app/configuracoes",
+      completionUrl: "http://localhost:5173/app/configuracoes",
+    };
+    vi.mocked(api.post).mockResolvedValueOnce({ data: dto });
+
+    const result = await saasService.createSubscriptionCheckout("plan-profissional", payload);
+
+    expect(api.post).toHaveBeenCalledWith("/saas/subscription/checkout/plan-profissional", payload);
+    expect(result).toEqual(dto);
+  });
+
+  it("cancelSubscription posts cancel request", async () => {
+    const dto = {
+      planId: "plan-profissional",
+      planName: "Profissional",
+      monthlyPriceBrl: 299,
+      messageLimit: 1000,
+      marketplaceLimit: 3,
+      status: "CANCELLED" as const,
+      renewsAt: null,
+      paymentProvider: "ABACATEPAY" as const,
+      checkoutUrl: null,
+      canCancel: false,
+    };
+    vi.mocked(api.post).mockResolvedValueOnce({ data: dto });
+
+    const result = await saasService.cancelSubscription();
+
+    expect(api.post).toHaveBeenCalledWith("/saas/subscription/cancel");
+    expect(result).toEqual(dto);
+  });
 });

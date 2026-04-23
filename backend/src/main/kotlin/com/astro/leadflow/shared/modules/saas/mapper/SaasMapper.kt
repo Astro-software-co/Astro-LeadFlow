@@ -6,6 +6,7 @@ import com.astro.leadflow.shared.modules.saas.api.responses.SubscriptionResponse
 import com.astro.leadflow.shared.modules.saas.domain.MarketplaceConfig
 import com.astro.leadflow.shared.modules.saas.domain.Plan
 import com.astro.leadflow.shared.modules.saas.domain.Subscription
+import com.astro.leadflow.shared.modules.saas.domain.SubscriptionStatus
 import org.springframework.stereotype.Component
 
 @Component
@@ -19,7 +20,11 @@ class SaasMapper {
             messageLimit = subscription.plan.messageLimit,
             marketplaceLimit = subscription.plan.marketplaceLimit,
             status = subscription.status,
-            renewsAt = subscription.renewsAt
+            renewsAt = subscription.renewsAt,
+            paymentProvider = subscription.paymentProvider,
+            checkoutUrl = subscription.abacateCheckoutUrl,
+            canCancel = !subscription.abacateSubscriptionId.isNullOrBlank() &&
+                subscription.status != SubscriptionStatus.CANCELLED,
         )
 
     fun toMarketplaceResponse(config: MarketplaceConfig): MarketplaceConfigResponse =

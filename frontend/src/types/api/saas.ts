@@ -4,8 +4,11 @@ export interface SubscriptionDTO {
   monthlyPriceBrl: number;
   messageLimit: number;
   marketplaceLimit: number;
-  status: 'ACTIVE' | 'SUSPENDED' | 'TRIAL';
-  renewsAt: string; // ISO 8601
+  status: 'ACTIVE' | 'SUSPENDED' | 'TRIAL' | 'CANCELLED' | 'PAST_DUE';
+  renewsAt: string | null; // ISO 8601
+  paymentProvider?: 'ABACATEPAY' | string | null;
+  checkoutUrl?: string | null;
+  canCancel?: boolean;
 }
 
 export interface MarketplaceUsageDTO {
@@ -38,4 +41,16 @@ export interface MarketplaceConfigDTO {
   marketplaceName: string;
   enabled: boolean;
   monthlyLimit: number;
+}
+
+export interface CreateSubscriptionCheckoutDTO {
+  returnUrl?: string;
+  completionUrl?: string;
+}
+
+export interface SubscriptionCheckoutDTO {
+  planId: string;
+  planName: string;
+  checkoutId: string;
+  checkoutUrl: string;
 }

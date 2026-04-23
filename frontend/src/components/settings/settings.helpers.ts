@@ -73,6 +73,10 @@ export function statusBadgeClass(status: string): string {
       return 'bg-red-100 text-red-700';
     case 'TRIAL':
       return 'bg-amber-100 text-amber-700';
+    case 'CANCELLED':
+      return 'bg-slate-200 text-slate-700';
+    case 'PAST_DUE':
+      return 'bg-orange-100 text-orange-700';
     default:
       return 'bg-slate-100 text-slate-600';
   }
@@ -86,6 +90,10 @@ export function statusLabel(status: string): string {
       return 'Suspenso';
     case 'TRIAL':
       return 'Avaliacao';
+    case 'CANCELLED':
+      return 'Cancelado';
+    case 'PAST_DUE':
+      return 'Pagamento pendente';
     default:
       return status;
   }

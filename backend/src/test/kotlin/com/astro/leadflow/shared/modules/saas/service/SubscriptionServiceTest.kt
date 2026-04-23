@@ -4,7 +4,6 @@ import com.astro.leadflow.shared.exception.BusinessException
 import com.astro.leadflow.shared.exception.ResourceNotFoundException
 import com.astro.leadflow.shared.modules.iam.domain.Organization
 import com.astro.leadflow.shared.modules.iam.domain.OrganizationRepository
-import com.astro.leadflow.shared.modules.iam.domain.Role
 import com.astro.leadflow.shared.modules.iam.domain.User
 import com.astro.leadflow.shared.modules.saas.domain.*
 import com.astro.leadflow.shared.modules.saas.mapper.SaasMapper
@@ -16,6 +15,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.math.BigDecimal
+import java.time.LocalDateTime
 import java.util.*
 
 class SubscriptionServiceTest {
@@ -24,7 +24,9 @@ class SubscriptionServiceTest {
     private lateinit var planRepository: PlanRepository
     private lateinit var marketplaceConfigRepository: MarketplaceConfigRepository
     private lateinit var organizationRepository: OrganizationRepository
+    private lateinit var billingHistoryEntryRepository: BillingHistoryEntryRepository
     private lateinit var saasMapper: SaasMapper
+    private lateinit var usageLogRepository: UsageLogRepository
     private lateinit var service: SubscriptionService
 
     private val orgId = UUID.randomUUID()
@@ -47,10 +49,18 @@ class SubscriptionServiceTest {
         planRepository = mockk()
         marketplaceConfigRepository = mockk()
         organizationRepository = mockk()
+        billingHistoryEntryRepository = mockk()
         saasMapper = SaasMapper()
+        usageLogRepository = mockk()
+        
         service = SubscriptionService(
-            subscriptionRepository, planRepository,
-            marketplaceConfigRepository, organizationRepository, saasMapper
+            subscriptionRepository,
+            planRepository,
+            marketplaceConfigRepository,
+            organizationRepository,
+            billingHistoryEntryRepository,
+            usageLogRepository,
+            saasMapper
         )
 
         mockkObject(SecurityUtils)
@@ -84,6 +94,53 @@ class SubscriptionServiceTest {
         assertThrows<ResourceNotFoundException> {
             service.getMySubscription()
         }
+    }
+
+    // ── listBillingHistory ──────────────────────────────────────────────
+
+    @Test
+    fun `should return billing history when data exists`() {
+        every { subscriptionRepository.findByOrganizationId(orgId) } returns Optional.of(subscription)
+        every {
+            billingHistoryEntryRepository.findAllBySubscriptionIdOrderByBilledAtDescCreatedAtDesc(subscription.id)
+        } returns emptyList()
+        
+        val usage = UsageLog(
+            organization = organization,
+            marketplaceName = null,
+            periodMonth = 1,
+            periodYear = 2024,
+            createdAt = LocalDateTime.of(2024, 1, 15, 10, 0)
+        )
+        
+        every { 
+            usageLogRepository.findAllByOrganizationIdAndMarketplaceNameIsNullOrderByPeriodYearDescPeriodMonthDescCreatedAtDesc(orgId)
+        } returns listOf(usage)
+
+        val history = service.listBillingHistory()
+
+        assertEquals(1, history.size)
+        val item = history[0]
+        assertEquals(usage.id, item.id)
+        assertTrue(item.description!!.contains("Básico"))
+        assertTrue(item.description!!.contains("01/2024"))
+        assertEquals("PAID", item.status)
+        assertEquals(plan.monthlyPriceBrl, item.amountBrl)
+    }
+
+    @Test
+    fun `should return empty billing history when no usage logs found`() {
+        every { subscriptionRepository.findByOrganizationId(orgId) } returns Optional.of(subscription)
+        every {
+            billingHistoryEntryRepository.findAllBySubscriptionIdOrderByBilledAtDescCreatedAtDesc(subscription.id)
+        } returns emptyList()
+        every { 
+            usageLogRepository.findAllByOrganizationIdAndMarketplaceNameIsNullOrderByPeriodYearDescPeriodMonthDescCreatedAtDesc(orgId)
+        } returns emptyList()
+
+        val history = service.listBillingHistory()
+
+        assertTrue(history.isEmpty())
     }
 
     // ── changePlan ──────────────────────────────────────────────────────

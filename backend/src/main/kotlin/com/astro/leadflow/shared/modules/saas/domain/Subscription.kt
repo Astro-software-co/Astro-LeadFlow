@@ -26,6 +26,24 @@ class Subscription(
     @Column(nullable = false)
     var status: SubscriptionStatus = SubscriptionStatus.ACTIVE,
 
+    @Column(name = "payment_provider")
+    var paymentProvider: String? = null,
+
+    @Column(name = "abacate_customer_id")
+    var abacateCustomerId: String? = null,
+
+    @Column(name = "abacate_subscription_id")
+    var abacateSubscriptionId: String? = null,
+
+    @Column(name = "abacate_checkout_id")
+    var abacateCheckoutId: String? = null,
+
+    @Column(name = "abacate_checkout_url")
+    var abacateCheckoutUrl: String? = null,
+
+    @Column(name = "abacate_checkout_status")
+    var abacateCheckoutStatus: String? = null,
+
     @Column(name = "renews_at")
     var renewsAt: LocalDate? = null,
 

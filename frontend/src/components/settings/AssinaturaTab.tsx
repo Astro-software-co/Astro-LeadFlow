@@ -1,10 +1,13 @@
+import { startTransition, useState } from 'react';
 import { PackageCheck } from 'lucide-react';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { RoleGate } from '@/components/layout/RoleGate';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
+import { saasService } from '@/services/saas.service';
 import { usePlans, useSubscription, useUsage } from '@/hooks/api/useSaas';
 import { statusBadgeClass, statusLabel, usageColorClass, usageProgressClass } from './settings.helpers';
 
@@ -12,6 +15,8 @@ function AssinaturaContent() {
   const { data: subscription, isLoading: subLoading, error: subError, refetch: subRefetch } = useSubscription();
   const { data: usage, isLoading: usageLoading, error: usageError, refetch: usageRefetch } = useUsage();
   const { data: plans, isLoading: plansLoading } = usePlans();
+  const [checkoutPlanId, setCheckoutPlanId] = useState<string | null>(null);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   if (subLoading || usageLoading) {
     return (
@@ -48,6 +53,43 @@ function AssinaturaContent() {
     ? new Date(usage.renewsAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
     : '—';
 
+  const handleCreateCheckout = async (planId: string) => {
+    setCheckoutPlanId(planId);
+    try {
+      const baseUrl = `${window.location.origin}/app/configuracoes`;
+      const checkout = await saasService.createSubscriptionCheckout(planId, {
+        returnUrl: baseUrl,
+        completionUrl: baseUrl,
+      });
+      window.location.assign(checkout.checkoutUrl);
+    } catch {
+      toast.error('Nao foi possivel iniciar o checkout da assinatura.');
+    } finally {
+      setCheckoutPlanId(null);
+    }
+  };
+
+  const handleCancelSubscription = async () => {
+    const confirmed = window.confirm('Deseja cancelar a assinatura atual? As proximas cobrancas serao interrompidas.');
+    if (!confirmed) {
+      return;
+    }
+
+    setIsCancelling(true);
+    try {
+      await saasService.cancelSubscription();
+      toast.success('Assinatura cancelada com sucesso.');
+      startTransition(() => {
+        void subRefetch();
+        void usageRefetch();
+      });
+    } catch {
+      toast.error('Nao foi possivel cancelar a assinatura.');
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="rounded-xl border border-border/50 bg-card shadow-sm">
@@ -67,9 +109,22 @@ function AssinaturaContent() {
               </p>
               <p className="text-sm text-muted-foreground">Renova em {renewDate}</p>
             </div>
-            <Button variant="default" size="sm" asChild>
-              <a href="mailto:vendas@astrosoftware.com.br?subject=Upgrade de plano Astro LeadFlow">Falar com vendas</a>
-            </Button>
+            <div className="flex flex-col gap-2">
+              {subscription?.checkoutUrl ? (
+                <Button variant="default" size="sm" onClick={() => window.location.assign(subscription.checkoutUrl)}>
+                  Concluir pagamento
+                </Button>
+              ) : (
+                <Button variant="outline" size="sm" disabled>
+                  Plano atual
+                </Button>
+              )}
+              {subscription?.canCancel && (
+                <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" disabled={isCancelling} onClick={handleCancelSubscription}>
+                  {isCancelling ? 'Cancelando...' : 'Cancelar assinatura'}
+                </Button>
+              )}
+            </div>
           </div>
           {subscription?.status === 'SUSPENDED' && (
             <p className="mt-3 text-sm text-red-600">Sua assinatura esta suspensa. Fale com nossa equipe para reativar.</p>
@@ -167,9 +222,21 @@ function AssinaturaContent() {
                       <p>{plan.messageLimit.toLocaleString('pt-BR')} mensagens/mes</p>
                       <p>{plan.marketplaceLimit} marketplaces</p>
                     </div>
-                    {!isCurrent && (
-                      <Button variant="outline" size="sm" className="w-full" asChild>
-                        <a href={`mailto:vendas@astrosoftware.com.br?subject=Interesse no plano ${plan.name} — Astro LeadFlow`}>Falar com vendas</a>
+                    {isCurrent ? (
+                      <Button variant="outline" size="sm" className="w-full" disabled>
+                        Plano atual
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        disabled={checkoutPlanId === plan.id || plan.monthlyPriceBrl <= 0}
+                        onClick={() => {
+                          void handleCreateCheckout(plan.id);
+                        }}
+                      >
+                        {checkoutPlanId === plan.id ? 'Abrindo checkout...' : 'Assinar com AbacatePay'}
                       </Button>
                     )}
                   </div>

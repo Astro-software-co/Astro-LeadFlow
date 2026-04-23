@@ -25,6 +25,15 @@ class Plan(
     @Column(name = "marketplace_limit", nullable = false)
     val marketplaceLimit: Int,
 
+    @Column(name = "billing_cycle", nullable = false)
+    var billingCycle: String = "MONTHLY",
+
+    @Column(name = "abacate_product_id")
+    var abacateProductId: String? = null,
+
+    @Column(name = "abacate_product_external_id")
+    var abacateProductExternalId: String? = null,
+
     @Column(name = "created_at", nullable = false, updatable = false)
     val createdAt: LocalDateTime = LocalDateTime.now()
 )
