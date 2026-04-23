@@ -10,6 +10,7 @@ import com.astro.leadflow.shared.modules.saas.api.responses.SubscriptionCheckout
 import com.astro.leadflow.shared.modules.saas.api.responses.SubscriptionResponse
 import com.astro.leadflow.shared.modules.saas.domain.BillingHistoryEntry
 import com.astro.leadflow.shared.modules.saas.domain.BillingHistoryEntryRepository
+import com.astro.leadflow.shared.modules.saas.domain.BillingCycle
 import com.astro.leadflow.shared.modules.saas.domain.Plan
 import com.astro.leadflow.shared.modules.saas.domain.PlanRepository
 import com.astro.leadflow.shared.modules.saas.domain.Subscription
@@ -19,7 +20,7 @@ import com.astro.leadflow.shared.modules.saas.infra.AbacateCheckoutItem
 import com.astro.leadflow.shared.modules.saas.infra.AbacateCreateCustomerRequest
 import com.astro.leadflow.shared.modules.saas.infra.AbacateCreateProductRequest
 import com.astro.leadflow.shared.modules.saas.infra.AbacateCreateSubscriptionCheckoutRequest
-import com.astro.leadflow.shared.modules.saas.infra.AbacatePayClient
+import com.astro.leadflow.shared.modules.saas.infra.AbacatePayGateway
 import com.astro.leadflow.shared.modules.saas.mapper.SaasMapper
 import com.astro.leadflow.shared.util.SecurityUtils
 import org.slf4j.LoggerFactory
@@ -37,7 +38,7 @@ class AbacatePaySubscriptionService(
     private val planRepository: PlanRepository,
     private val userRepository: UserRepository,
     private val billingHistoryEntryRepository: BillingHistoryEntryRepository,
-    private val abacatePayClient: AbacatePayClient,
+    private val abacatePayGateway: AbacatePayGateway,
     private val saasMapper: SaasMapper,
     @Value("\${app.base-url:http://localhost:8080}") private val appBaseUrl: String,
 ) {
@@ -59,7 +60,7 @@ class AbacatePaySubscriptionService(
         val plan = planRepository.findById(planId)
             .orElseThrow { ResourceNotFoundException("Plan", planId) }
 
-        if (plan.monthlyPriceBrl <= BigDecimal.ZERO) {
+        if (!plan.isSelfServiceAvailable()) {
             throw BusinessException("Plano '${plan.name}' ainda não está disponível para checkout self-service.")
         }
 
@@ -68,7 +69,7 @@ class AbacatePaySubscriptionService(
         val externalReference = buildExternalReference(subscription.id, plan.id)
         val fallbackUrl = buildSettingsUrl()
 
-        val checkout = abacatePayClient.createSubscriptionCheckout(
+        val checkout = abacatePayGateway.createSubscriptionCheckout(
             AbacateCreateSubscriptionCheckoutRequest(
                 items = listOf(AbacateCheckoutItem(id = productId, quantity = 1)),
                 customerId = customerId,
@@ -90,7 +91,7 @@ class AbacatePaySubscriptionService(
 
         return SubscriptionCheckoutResponse(
             planId = plan.id,
-            planName = plan.name,
+            planName = plan.displayName(),
             checkoutId = checkout.id,
             checkoutUrl = checkout.url,
         )
@@ -102,7 +103,7 @@ class AbacatePaySubscriptionService(
         val externalSubscriptionId = subscription.abacateSubscriptionId
             ?: throw BusinessException("Nenhuma assinatura AbacatePay ativa foi encontrada para cancelamento.")
 
-        val cancelled = abacatePayClient.cancelSubscription(externalSubscriptionId)
+        val cancelled = abacatePayGateway.cancelSubscription(externalSubscriptionId)
 
         subscription.paymentProvider = PAYMENT_PROVIDER
         subscription.status = SubscriptionStatus.CANCELLED
@@ -153,7 +154,7 @@ class AbacatePaySubscriptionService(
         }
         subscription.renewsAt = computeNextRenewalDate(
             isoDate = remoteSubscription?.updatedAt ?: payment?.updatedAt ?: remoteSubscription?.createdAt,
-            frequency = remoteSubscription?.frequency ?: plan.billingCycle,
+            billingCycle = BillingCycle.fromApiValue(remoteSubscription?.frequency ?: plan.billingCycle.name),
         )
 
         val savedSubscription = subscriptionRepository.save(subscription)
@@ -225,13 +226,13 @@ class AbacatePaySubscriptionService(
         }
 
         val externalId = plan.abacateProductExternalId ?: "leadflow-plan:${plan.id}"
-        val product = abacatePayClient.createProduct(
+        val product = abacatePayGateway.createProduct(
             AbacateCreateProductRequest(
                 externalId = externalId,
-                name = plan.name,
-                price = toCents(plan.monthlyPriceBrl),
-                description = "Assinatura ${plan.name} do Astro LeadFlow",
-                cycle = plan.billingCycle,
+                name = plan.displayName(),
+                price = toCents(plan.priceBrl),
+                description = plan.description,
+                cycle = plan.billingCycle.name,
             )
         )
 
@@ -250,7 +251,7 @@ class AbacatePaySubscriptionService(
         val organization = currentUser.organization
             ?: throw BusinessException("Usuário atual não está vinculado a uma organização.")
 
-        val customer = abacatePayClient.createCustomer(
+        val customer = abacatePayGateway.createCustomer(
             AbacateCreateCustomerRequest(
                 email = currentUser.email,
                 name = currentUser.name,
@@ -317,14 +318,9 @@ class AbacatePaySubscriptionService(
         }
     }
 
-    private fun computeNextRenewalDate(isoDate: String?, frequency: String?): java.time.LocalDate? {
+    private fun computeNextRenewalDate(isoDate: String?, billingCycle: BillingCycle): java.time.LocalDate? {
         val baseDate = parseOffsetDateTime(isoDate)?.toLocalDate() ?: return null
-        return when (frequency?.uppercase()) {
-            "WEEKLY" -> baseDate.plusWeeks(1)
-            "SEMIANNUALLY" -> baseDate.plusMonths(6)
-            "ANNUALLY" -> baseDate.plusYears(1)
-            else -> baseDate.plusMonths(1)
-        }
+        return billingCycle.nextRenewalFrom(baseDate)
     }
 
     private fun parseIsoDate(value: String?): java.time.LocalDate? =
@@ -335,7 +331,7 @@ class AbacatePaySubscriptionService(
 
     private fun buildBillingDescription(plan: Plan, date: java.time.LocalDate?): String {
         val referenceDate = date ?: java.time.LocalDate.now(ZoneOffset.UTC)
-        return "Plano ${plan.name} - ${"%02d/%04d".format(referenceDate.monthValue, referenceDate.year)}"
+        return "${plan.displayName()} - ${"%02d/%04d".format(referenceDate.monthValue, referenceDate.year)}"
     }
 
     private fun toLocalBillingStatus(status: String?): String =

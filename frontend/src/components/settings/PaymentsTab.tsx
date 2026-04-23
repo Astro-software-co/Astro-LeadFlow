@@ -6,10 +6,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import type { SubscriptionDTO } from '@/types/api/saas';
 import type { BillingHistoryEntry, SettingsLoadState } from '@/types/settings';
 import {
+  billingCycleSuffix,
   billingStatusClass,
   billingStatusLabel,
   formatBillingDate,
   formatCurrencyBrl,
+  formatLocalDateLabel,
   statusBadgeClass,
   statusLabel,
 } from './settings.helpers';
@@ -57,13 +59,11 @@ function renderSubscriptionCard(
     );
   }
 
-  const renewDate = subscription.renewsAt
-    ? new Date(subscription.renewsAt).toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-      })
-    : '--';
+  const renewDate = formatLocalDateLabel(subscription.renewsAt, {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
 
   return (
     <div className="p-6">
@@ -73,14 +73,18 @@ function renderSubscriptionCard(
             <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
               {subscription.planName}
             </span>
+            <span className="inline-flex items-center rounded-full border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground">
+              {subscription.billingCycleLabel}
+            </span>
             <span className={cn('inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium', statusBadgeClass(subscription.status))}>
               {statusLabel(subscription.status)}
             </span>
           </div>
           <p className="text-2xl font-bold text-foreground">
-            {formatCurrencyBrl(subscription.monthlyPriceBrl)}
-            <span className="text-sm font-normal text-muted-foreground">/mes</span>
+            {formatCurrencyBrl(subscription.priceBrl)}
+            <span className="text-sm font-normal text-muted-foreground">{billingCycleSuffix(subscription.billingCycle)}</span>
           </p>
+          <p className="mt-1 text-sm text-muted-foreground">{subscription.planDescription}</p>
           <p className="mt-1 text-sm text-muted-foreground">Renovacao em {renewDate}</p>
         </div>
         <div className="space-y-2">

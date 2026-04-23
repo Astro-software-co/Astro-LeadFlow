@@ -58,7 +58,10 @@ const subscriptionHookResult = {
   data: {
     planId: 'plan-pro',
     planName: 'Profissional',
-    monthlyPriceBrl: 299,
+    planDescription: 'Plano Profissional para operacoes com mais volume.',
+    priceBrl: 299,
+    billingCycle: 'MONTHLY' as const,
+    billingCycleLabel: 'Mensal',
     messageLimit: 1000,
     marketplaceLimit: 3,
     status: 'ACTIVE' as const,

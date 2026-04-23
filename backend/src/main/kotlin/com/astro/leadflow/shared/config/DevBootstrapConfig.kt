@@ -86,7 +86,7 @@ class DevBootstrapConfig {
 
         if (subscriptionRepository.findByOrganizationId(organization.id).isEmpty) {
             val fallbackPlan = planRepository.findAll()
-                .minByOrNull { it.monthlyPriceBrl }
+                .minByOrNull { it.priceBrl }
 
             if (fallbackPlan != null) {
                 subscriptionRepository.save(

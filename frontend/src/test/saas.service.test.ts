@@ -21,7 +21,10 @@ describe("saasService", () => {
     const dto = {
       planId: "plan-profissional",
       planName: "Profissional",
-      monthlyPriceBrl: 299,
+      planDescription: "Plano Profissional para operacoes com mais volume.",
+      priceBrl: 299,
+      billingCycle: "MONTHLY" as const,
+      billingCycleLabel: "Mensal",
       messageLimit: 1000,
       marketplaceLimit: 3,
       status: "ACTIVE" as const,
@@ -53,7 +56,17 @@ describe("saasService", () => {
   });
 
   it("getPlans fetches available plans", async () => {
-    const dto = [{ id: "starter", name: "Starter", monthlyPriceBrl: 99, messageLimit: 200, marketplaceLimit: 1 }];
+    const dto = [{
+      id: "starter",
+      code: "STARTER_MONTHLY",
+      name: "Starter",
+      description: "Plano Starter.",
+      priceBrl: 99,
+      billingCycle: "MONTHLY" as const,
+      billingCycleLabel: "Mensal",
+      messageLimit: 200,
+      marketplaceLimit: 1,
+    }];
     vi.mocked(api.get).mockResolvedValueOnce({ data: dto });
 
     const result = await saasService.getPlans();
@@ -95,7 +108,10 @@ describe("saasService", () => {
     const dto = {
       planId: "plan-profissional",
       planName: "Profissional",
-      monthlyPriceBrl: 299,
+      planDescription: "Plano Profissional para operacoes com mais volume.",
+      priceBrl: 299,
+      billingCycle: "MONTHLY" as const,
+      billingCycleLabel: "Mensal",
       messageLimit: 1000,
       marketplaceLimit: 3,
       status: "CANCELLED" as const,

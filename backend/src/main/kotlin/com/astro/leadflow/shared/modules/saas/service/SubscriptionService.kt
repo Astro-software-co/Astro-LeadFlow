@@ -72,8 +72,8 @@ class SubscriptionService(
                 id = usage.id,
                 billedAt = billedAt,
                 issuedAt = usage.createdAt.toLocalDate(),
-                description = "Plano " + subscription.plan.name + " - " + "%02d/%04d".format(usage.periodMonth, usage.periodYear),
-                amountBrl = subscription.plan.monthlyPriceBrl,
+                description = subscription.plan.displayName() + " - " + "%02d/%04d".format(usage.periodMonth, usage.periodYear),
+                amountBrl = subscription.plan.priceBrl,
                 status = toBillingStatus(subscription.status),
                 invoiceUrl = null,
             )

@@ -9,6 +9,7 @@ import {
   Sun,
   type LucideIcon,
 } from 'lucide-react';
+import type { BillingCycle } from '@/types/api/saas';
 import type { AccentColor, ThemeMode } from '@/types';
 import type { BillingHistoryStatus, SettingsSectionId } from '@/types/settings';
 
@@ -112,14 +113,49 @@ export function billingStatusClass(status: BillingHistoryStatus): string {
 }
 
 export function formatBillingDate(value: string): string {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return '--';
-  }
-
-  return date.toLocaleDateString('pt-BR');
+  return formatLocalDateLabel(value);
 }
 
 export function formatCurrencyBrl(value: number): string {
   return `R$ ${value.toFixed(2).replace('.', ',')}`;
+}
+
+export function billingCycleSuffix(cycle: BillingCycle): string {
+  switch (cycle) {
+    case 'WEEKLY':
+      return '/semana';
+    case 'SEMIANNUALLY':
+      return '/semestre';
+    case 'ANNUALLY':
+      return '/ano';
+    default:
+      return '/mes';
+  }
+}
+
+export function formatLocalDateLabel(
+  value: string | null | undefined,
+  options?: Intl.DateTimeFormatOptions,
+): string {
+  if (!value) {
+    return '--';
+  }
+
+  const date = parseDateValue(value);
+  if (!date) {
+    return '--';
+  }
+
+  return date.toLocaleDateString('pt-BR', options);
+}
+
+function parseDateValue(value: string): Date | null {
+  const dateOnlyMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (dateOnlyMatch) {
+    const [, year, month, day] = dateOnlyMatch;
+    return new Date(Number(year), Number(month) - 1, Number(day));
+  }
+
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
 }

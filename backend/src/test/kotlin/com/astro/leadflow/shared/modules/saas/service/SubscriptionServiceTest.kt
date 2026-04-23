@@ -33,7 +33,7 @@ class SubscriptionServiceTest {
     private val organization = Organization(id = orgId, name = "Test Org", slug = "test-org")
     private val plan = Plan(
         name = "Básico",
-        monthlyPriceBrl = BigDecimal("149.00"),
+        priceBrl = BigDecimal("149.00"),
         messageLimit = 1000,
         marketplaceLimit = 2
     )
@@ -125,7 +125,7 @@ class SubscriptionServiceTest {
         assertTrue(item.description!!.contains("Básico"))
         assertTrue(item.description!!.contains("01/2024"))
         assertEquals("PAID", item.status)
-        assertEquals(plan.monthlyPriceBrl, item.amountBrl)
+        assertEquals(plan.priceBrl, item.amountBrl)
     }
 
     @Test
@@ -151,7 +151,7 @@ class SubscriptionServiceTest {
         val newPlan = Plan(
             id = newPlanId,
             name = "Pro",
-            monthlyPriceBrl = BigDecimal("299.00"),
+            priceBrl = BigDecimal("299.00"),
             messageLimit = 5000,
             marketplaceLimit = 5
         )

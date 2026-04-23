@@ -41,7 +41,10 @@ describe("useSaas hooks", () => {
     vi.mocked(saasService.getSubscription).mockResolvedValueOnce({
       planId: "plan-pro",
       planName: "Profissional",
-      monthlyPriceBrl: 299,
+      planDescription: "Plano Profissional para operacoes com mais volume.",
+      priceBrl: 299,
+      billingCycle: "MONTHLY",
+      billingCycleLabel: "Mensal",
       messageLimit: 1000,
       marketplaceLimit: 3,
       status: "ACTIVE",
@@ -74,8 +77,28 @@ describe("useSaas hooks", () => {
 
   it("usePlans fetches plan catalog from service", async () => {
     vi.mocked(saasService.getPlans).mockResolvedValueOnce([
-      { id: "starter", name: "Starter", monthlyPriceBrl: 99, messageLimit: 200, marketplaceLimit: 1 },
-      { id: "pro", name: "Profissional", monthlyPriceBrl: 299, messageLimit: 1000, marketplaceLimit: 3 },
+      {
+        id: "starter",
+        code: "STARTER_MONTHLY",
+        name: "Starter",
+        description: "Plano Starter.",
+        priceBrl: 99,
+        billingCycle: "MONTHLY",
+        billingCycleLabel: "Mensal",
+        messageLimit: 200,
+        marketplaceLimit: 1,
+      },
+      {
+        id: "pro",
+        code: "PRO_MONTHLY",
+        name: "Profissional",
+        description: "Plano Profissional.",
+        priceBrl: 299,
+        billingCycle: "MONTHLY",
+        billingCycleLabel: "Mensal",
+        messageLimit: 1000,
+        marketplaceLimit: 3,
+      },
     ]);
 
     const { result } = renderHook(() => usePlans(), { wrapper: createWrapper() });

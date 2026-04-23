@@ -16,7 +16,10 @@ class SaasMapper {
         SubscriptionResponse(
             planId = subscription.plan.id,
             planName = subscription.plan.name,
-            monthlyPriceBrl = subscription.plan.monthlyPriceBrl,
+            planDescription = subscription.plan.description,
+            priceBrl = subscription.plan.priceBrl,
+            billingCycle = subscription.plan.billingCycle,
+            billingCycleLabel = subscription.plan.billingCycle.label,
             messageLimit = subscription.plan.messageLimit,
             marketplaceLimit = subscription.plan.marketplaceLimit,
             status = subscription.status,
@@ -38,8 +41,12 @@ class SaasMapper {
     fun toPlanResponse(plan: Plan): PlanResponse =
         PlanResponse(
             id = plan.id,
+            code = plan.code,
             name = plan.name,
-            monthlyPriceBrl = plan.monthlyPriceBrl,
+            description = plan.description,
+            priceBrl = plan.priceBrl,
+            billingCycle = plan.billingCycle,
+            billingCycleLabel = plan.billingCycle.label,
             messageLimit = plan.messageLimit,
             marketplaceLimit = plan.marketplaceLimit
         )

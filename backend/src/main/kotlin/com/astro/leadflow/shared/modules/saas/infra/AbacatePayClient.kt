@@ -16,7 +16,7 @@ class AbacatePayClient(
     @param:Value("\${app.abacatepay.api-url:https://api.abacatepay.com/v2}") private val apiUrl: String,
     @param:Value("\${app.abacatepay.api-key:}") private val apiKey: String,
     webClientBuilder: WebClient.Builder,
-) {
+) : AbacatePayGateway {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     private val webClient = webClientBuilder
@@ -24,20 +24,20 @@ class AbacatePayClient(
         .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
         .build()
 
-    fun createProduct(request: AbacateCreateProductRequest): AbacateProductResponse =
+    override fun createProduct(request: AbacateCreateProductRequest): AbacateProductResponse =
         post("/products/create", request, object : ParameterizedTypeReference<AbacateEnvelope<AbacateProductResponse>>() {})
 
-    fun createCustomer(request: AbacateCreateCustomerRequest): AbacateCustomerResponse =
+    override fun createCustomer(request: AbacateCreateCustomerRequest): AbacateCustomerResponse =
         post("/customers/create", request, object : ParameterizedTypeReference<AbacateEnvelope<AbacateCustomerResponse>>() {})
 
-    fun createSubscriptionCheckout(request: AbacateCreateSubscriptionCheckoutRequest): AbacateCheckoutResponse =
+    override fun createSubscriptionCheckout(request: AbacateCreateSubscriptionCheckoutRequest): AbacateCheckoutResponse =
         post(
             "/subscriptions/create",
             request,
             object : ParameterizedTypeReference<AbacateEnvelope<AbacateCheckoutResponse>>() {},
         )
 
-    fun cancelSubscription(id: String): AbacateSubscriptionResponse =
+    override fun cancelSubscription(id: String): AbacateSubscriptionResponse =
         post(
             "/subscriptions/cancel",
             mapOf("id" to id),
