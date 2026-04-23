@@ -13,7 +13,8 @@ import org.springframework.web.filter.OncePerRequestFilter
 @Component
 class JwtAuthenticationFilter(
     private val tokenService: TokenService,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val authSessionService: com.astro.leadflow.shared.modules.iam.service.AuthSessionService,
 ) : OncePerRequestFilter() {
 
     override fun doFilterInternal(
@@ -35,7 +36,20 @@ class JwtAuthenticationFilter(
             return
         }
 
+        val sessionId = tokenService.extractSessionId(token)
+        if (sessionId.isNullOrBlank()) {
+            filterChain.doFilter(request, response)
+            return
+        }
+
         val userId = tokenService.extractUserId(token)
+        val session = authSessionService.touch(sessionId)
+
+        if (session == null || session.userId != userId) {
+            filterChain.doFilter(request, response)
+            return
+        }
+
         val user = userRepository.findByIdWithOrganization(userId).orElse(null)
 
         if (user != null && user.isEnabled) {

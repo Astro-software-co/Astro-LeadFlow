@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { Camera, Mail, Phone, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { AddUserModal } from '@/components/modals/AddUserModal';
 import type { AccentColor, ThemeMode } from '@/types';
 import type { SettingsLoadState, SettingsProfile, SettingsTeamMember } from '@/types/settings';
 import { accentColorOptions, themeOptions } from './settings.helpers';
@@ -17,6 +19,10 @@ interface GeneralTabProps {
   onThemeChange: (value: ThemeMode) => void;
   onAccentColorChange: (value: AccentColor) => void;
   onRetryTeam: () => void;
+  onInviteMember: (member: { nome: string; email: string; role: 'ADMIN' | 'SELLER' }) => Promise<void>;
+  onDeleteMember: (memberId: string) => Promise<void>;
+  isInvitingMember: boolean;
+  removingMemberId: string | null;
 }
 
 export function GeneralTab({
@@ -28,7 +34,13 @@ export function GeneralTab({
   onThemeChange,
   onAccentColorChange,
   onRetryTeam,
+  onInviteMember,
+  onDeleteMember,
+  isInvitingMember,
+  removingMemberId,
 }: GeneralTabProps) {
+  const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="rounded-xl border border-border/50 bg-card shadow-sm">
@@ -158,36 +170,85 @@ export function GeneralTab({
               <p className="text-sm text-muted-foreground">Gerencie vendedores e administradores</p>
             </div>
           </div>
-          <Button onClick={() => toast.info('Fluxo de convite sera conectado com a API de equipe nas proximas fases.')}>Convidar membro</Button>
+          <Button onClick={() => setIsAddUserModalOpen(true)} disabled={isInvitingMember}>
+            {isInvitingMember ? 'Adicionando...' : 'Adicionar usuario'}
+          </Button>
         </div>
+
         {teamState === 'loading' && <p className="px-6 py-12 text-center text-sm text-muted-foreground">Carregando equipe...</p>}
+
         {teamState === 'error' && (
           <div className="flex flex-col items-center gap-3 px-6 py-12 text-center">
             <p className="text-sm text-muted-foreground">Nao foi possivel carregar a equipe.</p>
             <Button variant="outline" onClick={onRetryTeam}>Tentar novamente</Button>
           </div>
         )}
+
         {teamState === 'ready' && team.length === 0 && (
           <div className="flex flex-col items-center justify-center gap-3 px-6 py-12 text-center">
             <Users className="h-10 w-10 text-muted-foreground/40" />
             <p className="text-sm text-muted-foreground">Nenhum membro cadastrado ainda.</p>
-            <Button variant="outline" onClick={() => toast.info('Convite de membros disponivel nas proximas fases.')}>Convidar membro</Button>
+            <Button variant="outline" onClick={() => setIsAddUserModalOpen(true)} disabled={isInvitingMember}>
+              {isInvitingMember ? 'Adicionando...' : 'Adicionar usuario'}
+            </Button>
           </div>
         )}
+
         {teamState === 'ready' && team.length > 0 && (
-          <div className="divide-y divide-border/50">
-            {team.map((member) => (
-              <div key={member.id} className="flex items-center justify-between px-6 py-4">
-                <div>
-                  <p className="text-sm font-medium text-foreground">{member.name}</p>
-                  <p className="text-xs text-muted-foreground">{member.email}</p>
-                </div>
-                <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">{member.role}</span>
-              </div>
-            ))}
+          <div className="overflow-x-auto px-6 py-4">
+            <table className="w-full min-w-[620px] text-sm">
+              <thead>
+                <tr className="border-b border-border/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
+                  <th className="pb-3 font-medium">Nome</th>
+                  <th className="pb-3 font-medium">E-mail</th>
+                  <th className="pb-3 font-medium">Role</th>
+                  <th className="pb-3 text-right font-medium">Acoes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {team.map((member) => (
+                  <tr key={member.id} className="border-b border-border/30 last:border-none">
+                    <td className="py-3 text-foreground">{member.name}</td>
+                    <td className="py-3 text-muted-foreground">{member.email}</td>
+                    <td className="py-3">
+                      <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">{member.role}</span>
+                    </td>
+                    <td className="py-3">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => toast.info('Edicao de usuario sera conectada em breve.')}
+                        >
+                          Editar
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          disabled={removingMemberId === member.id}
+                          onClick={() => {
+                            void onDeleteMember(member.id);
+                          }}
+                        >
+                          {removingMemberId === member.id ? 'Removendo...' : 'Remover'}
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
+
+      <AddUserModal
+        open={isAddUserModalOpen}
+        onOpenChange={setIsAddUserModalOpen}
+        onSubmit={onInviteMember}
+      />
     </div>
   );
 }

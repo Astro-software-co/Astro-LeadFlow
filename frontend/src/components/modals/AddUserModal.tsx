@@ -7,29 +7,27 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from 'sonner';
-import { Seller } from '@/types';
 
 const userSchema = z
   .object({
     nome: z
       .string()
       .min(3, 'Nome deve ter pelo menos 3 caracteres')
-      .max(100, 'Nome deve ter no máximo 100 caracteres')
+      .max(100, 'Nome deve ter no maximo 100 caracteres')
       .regex(/^[a-zA-ZÀ-ÿ\s]+$/, 'Nome deve conter apenas letras'),
-    email: z.string().email('E-mail inválido').max(255, 'E-mail deve ter no máximo 255 caracteres'),
+    email: z.string().email('E-mail invalido').max(255, 'E-mail deve ter no maximo 255 caracteres'),
     senha: z
       .string()
       .min(8, 'Senha deve ter pelo menos 8 caracteres')
-      .max(50, 'Senha deve ter no máximo 50 caracteres')
-      .regex(/[A-Z]/, 'Senha deve conter pelo menos uma letra maiúscula')
-      .regex(/[a-z]/, 'Senha deve conter pelo menos uma letra minúscula')
-      .regex(/[0-9]/, 'Senha deve conter pelo menos um número'),
+      .max(50, 'Senha deve ter no maximo 50 caracteres')
+      .regex(/[A-Z]/, 'Senha deve conter pelo menos uma letra maiuscula')
+      .regex(/[a-z]/, 'Senha deve conter pelo menos uma letra minuscula')
+      .regex(/[0-9]/, 'Senha deve conter pelo menos um numero'),
     confirmarSenha: z.string(),
-    role: z.enum(['ADMIN', 'VENDEDOR'] as const),
+    role: z.enum(['ADMIN', 'SELLER'] as const),
   })
   .refine((data) => data.senha === data.confirmarSenha, {
-    message: 'As senhas não coincidem',
+    message: 'As senhas nao coincidem',
     path: ['confirmarSenha'],
   });
 
@@ -38,7 +36,7 @@ type UserFormData = z.infer<typeof userSchema>;
 interface AddUserModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (user: Omit<Seller, 'id'>) => void;
+  onSubmit: (user: { nome: string; email: string; role: 'ADMIN' | 'SELLER' }) => Promise<void> | void;
 }
 
 export function AddUserModal({ open, onOpenChange, onSubmit }: AddUserModalProps) {
@@ -56,19 +54,19 @@ export function AddUserModal({ open, onOpenChange, onSubmit }: AddUserModalProps
       email: '',
       senha: '',
       confirmarSenha: '',
-      role: 'VENDEDOR',
+      role: 'SELLER',
     },
   });
 
   const role = watch('role');
 
-  const handleFormSubmit = (data: UserFormData) => {
-    onSubmit({
+  const handleFormSubmit = async (data: UserFormData) => {
+    await onSubmit({
       nome: data.nome,
       email: data.email,
       role: data.role,
     });
-    toast.success('Usuário cadastrado com sucesso!');
+
     reset();
     onOpenChange(false);
   };
@@ -86,24 +84,22 @@ export function AddUserModal({ open, onOpenChange, onSubmit }: AddUserModalProps
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-kanban-negotiation/10">
               <User className="h-5 w-5 text-kanban-negotiation" />
             </div>
-            Cadastrar Usuário
+            Cadastrar Usuario
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4 mt-4">
-          {/* Nome */}
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="mt-4 space-y-4">
           <div className="space-y-2">
             <Label htmlFor="nome">Nome Completo *</Label>
             <Input
               id="nome"
-              placeholder="Ex: João Silva"
+              placeholder="Ex: Joao Silva"
               {...register('nome')}
               className={errors.nome ? 'border-destructive' : ''}
             />
             {errors.nome && <p className="text-xs text-destructive">{errors.nome.message}</p>}
           </div>
 
-          {/* Email */}
           <div className="space-y-2">
             <Label htmlFor="email">E-mail *</Label>
             <Input
@@ -117,26 +113,24 @@ export function AddUserModal({ open, onOpenChange, onSubmit }: AddUserModalProps
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            {/* Senha */}
             <div className="space-y-2">
               <Label htmlFor="senha">Senha *</Label>
               <Input
                 id="senha"
                 type="password"
-                placeholder="••••••••"
+                placeholder="********"
                 {...register('senha')}
                 className={errors.senha ? 'border-destructive' : ''}
               />
               {errors.senha && <p className="text-xs text-destructive">{errors.senha.message}</p>}
             </div>
 
-            {/* Confirmar Senha */}
             <div className="space-y-2">
               <Label htmlFor="confirmarSenha">Confirmar Senha *</Label>
               <Input
                 id="confirmarSenha"
                 type="password"
-                placeholder="••••••••"
+                placeholder="********"
                 {...register('confirmarSenha')}
                 className={errors.confirmarSenha ? 'border-destructive' : ''}
               />
@@ -144,18 +138,17 @@ export function AddUserModal({ open, onOpenChange, onSubmit }: AddUserModalProps
             </div>
           </div>
 
-          {/* Role/Permissão */}
           <div className="space-y-2">
             <Label className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
-              Permissão *
+              Permissao *
             </Label>
-            <Select value={role} onValueChange={(value: 'ADMIN' | 'VENDEDOR') => setValue('role', value)}>
+            <Select value={role} onValueChange={(value: 'ADMIN' | 'SELLER') => setValue('role', value)}>
               <SelectTrigger className={errors.role ? 'border-destructive' : ''}>
-                <SelectValue placeholder="Selecione a permissão" />
+                <SelectValue placeholder="Selecione a permissao" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="VENDEDOR">
+                <SelectItem value="SELLER">
                   <div className="flex items-center gap-2">
                     <div className="h-2 w-2 rounded-full bg-kanban-completed" />
                     Vendedor
@@ -172,27 +165,26 @@ export function AddUserModal({ open, onOpenChange, onSubmit }: AddUserModalProps
             {errors.role && <p className="text-xs text-destructive">{errors.role.message}</p>}
           </div>
 
-          {/* Permission Description */}
           <div className="rounded-lg bg-muted/50 p-4 text-sm">
             {role === 'ADMIN' ? (
               <div className="space-y-2">
-                <p className="font-medium text-foreground">Permissões de Administrador:</p>
-                <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                <p className="font-medium text-foreground">Permissoes de Administrador:</p>
+                <ul className="list-inside list-disc space-y-1 text-muted-foreground">
                   <li>Gerenciar todos os leads e vendas</li>
                   <li>Editar cards de qualquer vendedor</li>
                   <li>Gerenciar estoque completo</li>
-                  <li>Adicionar/remover usuários</li>
-                  <li>Visualizar relatórios completos</li>
+                  <li>Adicionar e remover usuarios</li>
+                  <li>Visualizar relatorios completos</li>
                 </ul>
               </div>
             ) : (
               <div className="space-y-2">
-                <p className="font-medium text-foreground">Permissões de Vendedor:</p>
-                <ul className="list-disc list-inside text-muted-foreground space-y-1">
-                  <li>Assumir e gerenciar seus próprios leads</li>
-                  <li>Mover cards apenas dos seus atendimentos</li>
-                  <li>Visualizar estoque (sem edição)</li>
-                  <li>Visualizar suas próprias métricas</li>
+                <p className="font-medium text-foreground">Permissoes de Vendedor:</p>
+                <ul className="list-inside list-disc space-y-1 text-muted-foreground">
+                  <li>Assumir e gerenciar os proprios leads</li>
+                  <li>Mover cards apenas dos proprios atendimentos</li>
+                  <li>Visualizar estoque sem edicao</li>
+                  <li>Visualizar as proprias metricas</li>
                 </ul>
               </div>
             )}
@@ -203,7 +195,7 @@ export function AddUserModal({ open, onOpenChange, onSubmit }: AddUserModalProps
               Cancelar
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Salvando...' : 'Cadastrar Usuário'}
+              {isSubmitting ? 'Salvando...' : 'Cadastrar Usuario'}
             </Button>
           </div>
         </form>

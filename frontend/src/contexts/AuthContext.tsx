@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, useCallback } from 'rea
 import { useQueryClient } from '@tanstack/react-query';
 import { authService, AuthResponse, UserProfile } from '@/services/auth.service';
 import { tokenStore } from '@/lib/api';
+import { onAuthSessionEnded } from '@/lib/auth-events';
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -14,12 +15,32 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const SESSION_KEEPALIVE_MIN_INTERVAL_MS = 4 * 60 * 1000;
+const RECENT_ACTIVITY_WINDOW_MS = 75 * 1000;
+const ACTIVITY_EVENTS: Array<keyof WindowEventMap> = ['click', 'focus', 'keydown', 'mousemove', 'scroll', 'touchstart'];
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const queryClient = useQueryClient();
 
   const useMocks = import.meta.env.VITE_USE_MOCKS === 'true';
+
+  const clearSession = useCallback(() => {
+    tokenStore.clear();
+    queryClient.clear();
+    setUser(null);
+  }, [queryClient]);
+
+  useEffect(() => {
+    if (useMocks) {
+      return;
+    }
+
+    return onAuthSessionEnded(() => {
+      clearSession();
+    });
+  }, [clearSession, useMocks]);
 
   useEffect(() => {
     if (useMocks) {
@@ -62,6 +83,63 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
       .finally(() => setIsLoading(false));
   }, [useMocks]);
+
+  useEffect(() => {
+    if (useMocks || !user) {
+      return;
+    }
+
+    let keepAliveInFlight = false;
+    let lastActivityAt = Date.now();
+    let lastKeepAliveAt = Date.now();
+
+    const markActivity = () => {
+      lastActivityAt = Date.now();
+    };
+
+    const maybeKeepAlive = async () => {
+      if (keepAliveInFlight) {
+        return;
+      }
+
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+        return;
+      }
+
+      const now = Date.now();
+      if (now - lastActivityAt > RECENT_ACTIVITY_WINDOW_MS) {
+        return;
+      }
+
+      if (now - lastKeepAliveAt < SESSION_KEEPALIVE_MIN_INTERVAL_MS) {
+        return;
+      }
+
+      keepAliveInFlight = true;
+      try {
+        const auth = await authService.restoreSession();
+        tokenStore.set(auth.accessToken);
+        lastKeepAliveAt = Date.now();
+      } finally {
+        keepAliveInFlight = false;
+      }
+    };
+
+    ACTIVITY_EVENTS.forEach((eventName) => {
+      window.addEventListener(eventName, markActivity, { passive: true });
+    });
+
+    const intervalId = window.setInterval(() => {
+      void maybeKeepAlive();
+    }, 60_000);
+
+    return () => {
+      ACTIVITY_EVENTS.forEach((eventName) => {
+        window.removeEventListener(eventName, markActivity);
+      });
+      window.clearInterval(intervalId);
+    };
+  }, [user, useMocks]);
 
   const login = useCallback(
     async (email: string, password: string) => {
@@ -119,12 +197,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
     [useMocks],
   );
-
-  const clearSession = useCallback(() => {
-    tokenStore.clear();
-    queryClient.clear();
-    setUser(null);
-  }, [queryClient]);
 
   const logout = useCallback(async () => {
     if (!useMocks) {

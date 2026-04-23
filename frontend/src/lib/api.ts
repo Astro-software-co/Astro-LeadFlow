@@ -1,5 +1,6 @@
 import axios from 'axios';
 import type { AuthResponseDTO } from '@/types/api/auth';
+import { emitAuthSessionEnded } from '@/lib/auth-events';
 
 function resolveApiBaseUrl() {
   if (import.meta.env.VITE_API_URL) {
@@ -55,6 +56,10 @@ async function refreshAuthToken(): Promise<{ accessToken: string }> {
   };
 }
 
+function isRefreshRequest(url?: string) {
+  return typeof url === 'string' && url.includes('/auth/refresh');
+}
+
 // Refresh queue mechanism — prevents concurrent refresh attempts
 let isRefreshing = false;
 let failedQueue: Array<{
@@ -84,9 +89,15 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config;
+    const originalRequest = error.config as (typeof error.config & { _retry?: boolean }) | undefined;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && isRefreshRequest(originalRequest?.url)) {
+      tokenStore.clear();
+      emitAuthSessionEnded();
+      return Promise.reject(error);
+    }
+
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       if (isRefreshing) {
         // Queue subsequent 401s while refresh is in progress
         return new Promise<string>((resolve, reject) => {
@@ -111,7 +122,7 @@ api.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null);
         tokenStore.clear();
-        window.location.href = '/app/login';
+        emitAuthSessionEnded();
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

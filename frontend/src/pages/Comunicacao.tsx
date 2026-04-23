@@ -1,7 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { useLeads } from '@/hooks/api/useLeads';
-import { useChat } from '@/hooks/api/useChat';
 import { ChatMessageDTO } from '@/types/api/chat';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +8,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ExternalLink, MessageCircle, User, Phone, Loader2, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLeads } from '@/modules/crm';
+import { useChat } from '@/modules/communication';
 
 function StatusBadge({ status }: { status: ChatMessageDTO['status'] }) {
   const config = {

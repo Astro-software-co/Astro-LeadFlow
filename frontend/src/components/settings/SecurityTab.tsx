@@ -1,4 +1,4 @@
-import { type Dispatch, type SetStateAction } from 'react';
+import { FormEvent, useState } from 'react';
 import { Mail, Monitor, Smartphone } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -7,12 +7,66 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import type { SecuritySettings } from '@/types/settings';
 
-interface SecurityTabProps {
-  securitySettings: SecuritySettings;
-  setSecuritySettings: Dispatch<SetStateAction<SecuritySettings>>;
+interface ChangePasswordValues {
+  currentPassword: string;
+  newPassword: string;
+  confirmNewPassword: string;
 }
 
-export function SecurityTab({ securitySettings, setSecuritySettings }: SecurityTabProps) {
+interface SecurityTabProps {
+  securitySettings: SecuritySettings;
+  onChangePassword: (values: ChangePasswordValues) => Promise<void>;
+  onToggleEmailMfa: (enabled: boolean) => Promise<void>;
+  onToggleSmsMfa: (enabled: boolean) => Promise<void>;
+  isSavingPassword: boolean;
+  isSavingTwoFactor: boolean;
+}
+
+export function SecurityTab({
+  securitySettings,
+  onChangePassword,
+  onToggleEmailMfa,
+  onToggleSmsMfa,
+  isSavingPassword,
+  isSavingTwoFactor,
+}: SecurityTabProps) {
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+
+  const handleChangePassword = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!currentPassword || !newPassword || !confirmNewPassword) {
+      toast.error('Preencha todos os campos de senha.');
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      toast.error('A nova senha deve ter pelo menos 8 caracteres.');
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      toast.error('A confirmacao da senha deve ser igual a nova senha.');
+      return;
+    }
+
+    try {
+      await onChangePassword({
+        currentPassword,
+        newPassword,
+        confirmNewPassword,
+      });
+
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmNewPassword('');
+    } catch {
+      // Container already handles error messaging.
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="rounded-xl border border-border/50 bg-card shadow-sm">
@@ -20,21 +74,41 @@ export function SecurityTab({ securitySettings, setSecuritySettings }: SecurityT
           <h3 className="text-lg font-semibold text-foreground">Alterar Senha</h3>
           <p className="text-sm text-muted-foreground">Mantenha sua conta segura</p>
         </div>
-        <div className="max-w-md space-y-4 p-6">
+        <form className="max-w-md space-y-4 p-6" onSubmit={(event) => void handleChangePassword(event)}>
           <div className="space-y-2">
-            <Label>Senha Atual</Label>
-            <Input type="password" placeholder="••••••••" />
+            <Label htmlFor="current-password">Senha Atual</Label>
+            <Input
+              id="current-password"
+              type="password"
+              value={currentPassword}
+              onChange={(event) => setCurrentPassword(event.target.value)}
+              placeholder="••••••••"
+            />
           </div>
           <div className="space-y-2">
-            <Label>Nova Senha</Label>
-            <Input type="password" placeholder="••••••••" />
+            <Label htmlFor="new-password">Nova Senha</Label>
+            <Input
+              id="new-password"
+              type="password"
+              value={newPassword}
+              onChange={(event) => setNewPassword(event.target.value)}
+              placeholder="••••••••"
+            />
           </div>
           <div className="space-y-2">
-            <Label>Confirmar Nova Senha</Label>
-            <Input type="password" placeholder="••••••••" />
+            <Label htmlFor="confirm-password">Confirmar Nova Senha</Label>
+            <Input
+              id="confirm-password"
+              type="password"
+              value={confirmNewPassword}
+              onChange={(event) => setConfirmNewPassword(event.target.value)}
+              placeholder="••••••••"
+            />
           </div>
-          <Button onClick={() => toast.success('Senha alterada com sucesso!')}>Alterar Senha</Button>
-        </div>
+          <Button type="submit" disabled={isSavingPassword}>
+            {isSavingPassword ? 'Salvando...' : 'Alterar Senha'}
+          </Button>
+        </form>
       </div>
 
       <div className="rounded-xl border border-border/50 bg-card shadow-sm">
@@ -55,9 +129,9 @@ export function SecurityTab({ securitySettings, setSecuritySettings }: SecurityT
             </div>
             <Switch
               checked={securitySettings.emailMfa}
+              disabled={isSavingTwoFactor}
               onCheckedChange={(value) => {
-                setSecuritySettings((prev) => ({ ...prev, emailMfa: value }));
-                toast.success(value ? '2FA por e-mail ativado' : '2FA por e-mail desativado');
+                void onToggleEmailMfa(value);
               }}
             />
           </div>
@@ -73,9 +147,9 @@ export function SecurityTab({ securitySettings, setSecuritySettings }: SecurityT
             </div>
             <Switch
               checked={securitySettings.smsMfa}
+              disabled={isSavingTwoFactor}
               onCheckedChange={(value) => {
-                setSecuritySettings((prev) => ({ ...prev, smsMfa: value }));
-                toast.success(value ? '2FA por SMS ativado' : '2FA por SMS desativado');
+                void onToggleSmsMfa(value);
               }}
             />
           </div>

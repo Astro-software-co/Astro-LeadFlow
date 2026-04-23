@@ -117,25 +117,80 @@ export function useVehicle(id?: string) {
 
 export function useCreateVehicle() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const orgId = user?.organizationId ?? 'unknown';
+
   return useMutation({
     mutationFn: async (data: Partial<Vehicle>) => {
       const created = await vehiclesService.create(mapVehicleToCreateRequest(data));
+
+      if (data.fotos !== undefined) {
+        await vehiclesService.syncPhotos(created.id, data.fotos);
+        return mapVehicleResponseToVehicle(await vehiclesService.getById(created.id));
+      }
+
       return mapVehicleResponseToVehicle(created);
     },
-    onSuccess: () => queryClient.invalidateQueries({ predicate: (query) => query.queryKey.includes('vehicles') }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [orgId, 'vehicles'] }),
+  });
+}
+
+export function useDeleteVehicle() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const orgId = user?.organizationId ?? 'unknown';
+
+  return useMutation({
+    mutationFn: (id: string) => vehiclesService.delete(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [orgId, 'vehicles'] }),
+  });
+}
+
+export function useVehiclePhotos(vehicleId?: string) {
+  const { user } = useAuth();
+  const orgId = user?.organizationId ?? 'unknown';
+
+  return useQuery({
+    queryKey: [orgId, 'vehicle-photos', vehicleId],
+    enabled: Boolean(vehicleId),
+    queryFn: () => vehiclesService.listPhotos(vehicleId!),
+    staleTime: 30_000,
+  });
+}
+
+export function useReorderVehiclePhotos(vehicleId: string) {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const orgId = user?.organizationId ?? 'unknown';
+
+  return useMutation({
+    mutationFn: (photoIds: string[]) => vehiclesService.reorderPhotos(vehicleId, photoIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [orgId, 'vehicle-photos', vehicleId] });
+      queryClient.invalidateQueries({ queryKey: [orgId, 'vehicle', vehicleId] });
+    },
   });
 }
 
 export function useUpdateVehicle() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const orgId = user?.organizationId ?? 'unknown';
+
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<Vehicle> }) => {
       const updated = await vehiclesService.update(id, mapVehicleToUpdateRequest(data));
+
+      if (data.fotos !== undefined) {
+        await vehiclesService.syncPhotos(id, data.fotos);
+        return mapVehicleResponseToVehicle(await vehiclesService.getById(id));
+      }
+
       return mapVehicleResponseToVehicle(updated);
     },
-    onSuccess: () =>
-      queryClient.invalidateQueries({
-        predicate: (query) => query.queryKey.includes('vehicles') || query.queryKey.includes('vehicle'),
-      }),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: [orgId, 'vehicles'] });
+      queryClient.invalidateQueries({ queryKey: [orgId, 'vehicle', id] });
+    },
   });
 }

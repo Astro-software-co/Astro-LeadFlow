@@ -21,4 +21,11 @@ test.describe("auth - authenticated", () => {
     await expect(page).toHaveURL(/\/app\/dashboard/);
     await expect(page.getByText(/vendas do mes/i)).toBeVisible();
   });
+
+  test("keeps the user authenticated after a full page reload", async ({ loginPage: page }) => {
+    await expect(page).toHaveURL(/\/app\/dashboard/);
+    await page.reload();
+    await expect(page).toHaveURL(/\/app\/dashboard/);
+    await expect(page.getByText(/vendas do mes/i)).toBeVisible();
+  });
 });

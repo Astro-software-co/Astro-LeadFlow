@@ -2,12 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { Plus, Search, Car, Loader2, Pencil, SlidersHorizontal } from 'lucide-react';
-import { AddVehicleModal } from '@/components/modals/AddVehicleModal';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Vehicle, VehicleStatus } from '@/types';
 import { cn } from '@/lib/utils';
 import { EmptyState } from '@/components/shared/EmptyState';
-import { useCreateVehicle, useUpdateVehicle, useVehicles } from '@/hooks/api/useVehicles';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -21,6 +19,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { formatCurrency } from '@/lib/formatters';
+import { AddVehicleModal, useCreateVehicle, useUpdateVehicle, useVehicles } from '@/modules/inventory';
 
 type FacetStatus = Extract<VehicleStatus, 'disponivel' | 'reservado' | 'vendido'>;
 
@@ -581,12 +580,25 @@ export default function Estoque() {
                         return (
                           <tr key={vehicle.id} className="hover:bg-muted/20 transition-colors">
                             <td className="whitespace-nowrap px-6 py-4 text-sm">
-                              <Link
-                                to={`/app/estoque/${vehicle.id}`}
-                                className="font-medium text-foreground transition-colors hover:text-primary"
-                              >
-                                {vehicle.marca} {vehicle.modelo}
-                              </Link>
+                              <div className="flex items-center gap-3">
+                                {vehicle.fotos?.[0] ? (
+                                  <img
+                                    src={vehicle.fotos[0]}
+                                    alt=""
+                                    className="h-10 w-14 flex-shrink-0 rounded object-cover"
+                                  />
+                                ) : (
+                                  <div className="flex h-10 w-14 flex-shrink-0 items-center justify-center rounded bg-muted">
+                                    <Car className="h-4 w-4 text-muted-foreground" />
+                                  </div>
+                                )}
+                                <Link
+                                  to={`/app/estoque/${vehicle.id}`}
+                                  className="font-medium text-foreground transition-colors hover:text-primary"
+                                >
+                                  {vehicle.marca} {vehicle.modelo}
+                                </Link>
+                              </div>
                             </td>
                             <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">{vehicle.ano}</td>
                             <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">{vehicle.categoria}</td>
@@ -639,35 +651,50 @@ export default function Estoque() {
                   pagedVehicles.map((vehicle) => {
                     const status = statusConfig[vehicle.status];
                     return (
-                      <div key={vehicle.id} className="space-y-2 p-4">
-                        <div className="flex items-start justify-between gap-2">
-                          <Link
-                            to={`/app/estoque/${vehicle.id}`}
-                            className="truncate text-base font-semibold text-foreground transition-colors hover:text-primary"
-                          >
-                            {vehicle.marca} {vehicle.modelo}
-                          </Link>
-                          <span
-                            className={cn(
-                              'inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
-                              status.className,
-                            )}
-                          >
-                            {status.label}
-                          </span>
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          {vehicle.ano}
-                          {vehicle.cor ? ` · ${vehicle.cor}` : ''}
-                        </p>
-                        <p className="text-lg font-semibold text-foreground">{formatCurrency(vehicle.preco)}</p>
-                        <div className="flex justify-end gap-2 pt-1">
-                          <Button variant="ghost" size="sm" asChild>
-                            <Link to={`/app/estoque/${vehicle.id}`}>Ver detalhes</Link>
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => openEditModal(vehicle)}>
-                            Editar
-                          </Button>
+                      <div key={vehicle.id} className="flex gap-3 p-4">
+                        <Link to={`/app/estoque/${vehicle.id}`} className="flex-shrink-0">
+                          {vehicle.fotos?.[0] ? (
+                            <img
+                              src={vehicle.fotos[0]}
+                              alt=""
+                              className="h-20 w-24 rounded-lg object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-20 w-24 items-center justify-center rounded-lg bg-muted">
+                              <Car className="h-6 w-6 text-muted-foreground" />
+                            </div>
+                          )}
+                        </Link>
+                        <div className="min-w-0 flex-1 space-y-1">
+                          <div className="flex items-start justify-between gap-2">
+                            <Link
+                              to={`/app/estoque/${vehicle.id}`}
+                              className="truncate text-base font-semibold text-foreground transition-colors hover:text-primary"
+                            >
+                              {vehicle.marca} {vehicle.modelo}
+                            </Link>
+                            <span
+                              className={cn(
+                                'inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
+                                status.className,
+                              )}
+                            >
+                              {status.label}
+                            </span>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {vehicle.ano}
+                            {vehicle.cor ? ` · ${vehicle.cor}` : ''}
+                          </p>
+                          <p className="text-base font-semibold text-foreground">{formatCurrency(vehicle.preco)}</p>
+                          <div className="flex gap-2 pt-1">
+                            <Button variant="ghost" size="sm" asChild>
+                              <Link to={`/app/estoque/${vehicle.id}`}>Ver detalhes</Link>
+                            </Button>
+                            <Button variant="outline" size="sm" onClick={() => openEditModal(vehicle)}>
+                              Editar
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     );

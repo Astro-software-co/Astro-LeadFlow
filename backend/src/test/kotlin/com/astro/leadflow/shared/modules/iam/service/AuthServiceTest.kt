@@ -33,6 +33,7 @@ class AuthServiceTest {
     @MockK lateinit var passwordEncoder: PasswordEncoder
     @MockK lateinit var twoFactorService: TwoFactorService
     @MockK lateinit var refreshTokenBlocklistService: RefreshTokenBlocklistService
+    @MockK lateinit var authSessionService: AuthSessionService
 
     private lateinit var authService: AuthService
 
@@ -46,6 +47,7 @@ class AuthServiceTest {
             passwordEncoder,
             twoFactorService,
             refreshTokenBlocklistService,
+            authSessionService,
         )
     }
 
@@ -66,8 +68,9 @@ class AuthServiceTest {
         every { passwordEncoder.encode(request.password) } returns "hashed_password"
         every { organizationRepository.save(any()) } returns org
         every { userRepository.save(any()) } returns user
-        every { tokenService.generateAccessToken(user) } returns "access_token"
-        every { tokenService.generateRefreshToken(user) } returns "refresh_token"
+        every { tokenService.generateAccessToken(user, any()) } returns "access_token"
+        every { tokenService.generateRefreshToken(user, any(), any()) } returns "refresh_token"
+        every { authSessionService.create(any(), user.id, org.id, user.role, any()) } returns buildSessionRecord("session-1", user, "refresh-jti-1")
 
         val result = authService.registerOrganization(request)
 
@@ -118,8 +121,9 @@ class AuthServiceTest {
 
         every { userRepository.findByEmail(request.email) } returns Optional.of(user)
         every { passwordEncoder.matches(request.password, user.password) } returns true
-        every { tokenService.generateAccessToken(user) } returns "access_token"
-        every { tokenService.generateRefreshToken(user) } returns "refresh_token"
+        every { tokenService.generateAccessToken(user, any()) } returns "access_token"
+        every { tokenService.generateRefreshToken(user, any(), any()) } returns "refresh_token"
+        every { authSessionService.create(any(), user.id, user.organization?.id, user.role, any()) } returns buildSessionRecord("session-1", user, "refresh-jti-1")
 
         val result = authService.login(request)
 
@@ -187,14 +191,23 @@ class AuthServiceTest {
     @Test
     fun `refresh should provide new tokens when valid`() {
         val refreshToken = "valid_token"
+        val sessionId = "session-1"
+        val refreshTokenId = "refresh-jti-1"
+        val refreshExpiresAt = Instant.now().plusSeconds(900)
         val user = buildUser()
         every { tokenService.isTokenValid(refreshToken) } returns true
         every { tokenService.isRefreshToken(refreshToken) } returns true
         every { refreshTokenBlocklistService.isRevoked(refreshToken) } returns false
+        every { tokenService.extractSessionId(refreshToken) } returns sessionId
+        every { tokenService.extractTokenId(refreshToken) } returns refreshTokenId
+        every { authSessionService.get(sessionId) } returns buildSessionRecord(sessionId, user, refreshTokenId)
         every { tokenService.extractUserId(refreshToken) } returns user.id
         every { userRepository.findById(user.id) } returns Optional.of(user)
-        every { tokenService.generateAccessToken(user) } returns "new_access"
-        every { tokenService.generateRefreshToken(user) } returns "new_refresh"
+        every { tokenService.extractExpiration(refreshToken) } returns refreshExpiresAt
+        every { refreshTokenBlocklistService.revoke(refreshToken, refreshExpiresAt) } returns true
+        every { tokenService.generateAccessToken(user, sessionId) } returns "new_access"
+        every { tokenService.generateRefreshToken(user, sessionId, any()) } returns "new_refresh"
+        every { authSessionService.rotateRefreshToken(sessionId, any()) } returns buildSessionRecord(sessionId, user, "refresh-jti-2")
 
         val response = authService.refreshToken(refreshToken)
 
@@ -205,16 +218,30 @@ class AuthServiceTest {
     @Test
     fun `logout should revoke token with extracted expiration`() {
         val refreshToken = "token_to_logout"
+        val sessionId = "session-1"
         val expiry = Instant.now().plusSeconds(3600)
         every { tokenService.isTokenValid(refreshToken) } returns true
         every { tokenService.isRefreshToken(refreshToken) } returns true
+        every { tokenService.extractSessionId(refreshToken) } returns sessionId
         every { tokenService.extractExpiration(refreshToken) } returns expiry
+        every { authSessionService.revoke(sessionId) } just runs
         every { refreshTokenBlocklistService.revoke(refreshToken, expiry) } returns true
 
         authService.logout(refreshToken)
 
+        verify { authSessionService.revoke(sessionId) }
         verify { refreshTokenBlocklistService.revoke(refreshToken, expiry) }
     }
+
+    private fun buildSessionRecord(sessionId: String, user: User, refreshTokenId: String) = AuthSessionRecord(
+        sessionId = sessionId,
+        userId = user.id,
+        organizationId = user.organization?.id,
+        role = user.role,
+        refreshTokenId = refreshTokenId,
+        createdAt = Instant.now(),
+        lastActivityAt = Instant.now(),
+    )
 
     private fun buildUser(
         organization: Organization = Organization(

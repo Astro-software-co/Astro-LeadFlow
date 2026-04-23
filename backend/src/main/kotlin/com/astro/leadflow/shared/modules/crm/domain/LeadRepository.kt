@@ -109,6 +109,8 @@ interface LeadRepository : JpaRepository<Lead, UUID> {
 
     fun countByStage(@Param("orgId") orgId: UUID): List<Array<Any>>
 
+    fun existsByVehicleIdAndPipelineStageNotIn(vehicleId: UUID, stages: List<PipelineStage>): Boolean
+
     // Contagem total de leads da organização
     @Query("SELECT COUNT(l) FROM Lead l WHERE l.organization.id = :orgId")
     fun countByOrganizationId(@Param("orgId") orgId: UUID): Long

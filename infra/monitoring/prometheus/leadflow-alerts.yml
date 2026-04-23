@@ -1,0 +1,42 @@
+groups:
+  - name: leadflow-auth-webhook-alerts
+    rules:
+      - alert: LeadflowAuthRateLimitSpike
+        expr: rate(leadflow_rate_limit_blocked_total{bucket="auth"}[5m]) > 3
+        for: 5m
+        labels:
+          severity: warning
+          service: astro-leadflow
+        annotations:
+          summary: "Auth rate-limit spike"
+          description: "Auth endpoints are returning 429 above expected threshold."
+
+      - alert: LeadflowWebhookRateLimitSpike
+        expr: rate(leadflow_rate_limit_blocked_total{bucket="webhook"}[5m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+          service: astro-leadflow
+        annotations:
+          summary: "Webhook rate-limit spike"
+          description: "Webhook traffic is being throttled frequently."
+
+      - alert: LeadflowWebhookSignatureFailures
+        expr: rate(leadflow_webhook_meta_rejected_total[5m]) > 2
+        for: 10m
+        labels:
+          severity: critical
+          service: astro-leadflow
+        annotations:
+          summary: "Meta webhook signature failures"
+          description: "Invalid, missing, or replayed Meta webhook signatures exceeded threshold."
+
+      - alert: LeadflowRateLimitBackendErrors
+        expr: rate(leadflow_rate_limit_errors_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: critical
+          service: astro-leadflow
+        annotations:
+          summary: "Rate limiter backend errors"
+          description: "Rate limiter is failing open due to backend errors (likely Redis)."

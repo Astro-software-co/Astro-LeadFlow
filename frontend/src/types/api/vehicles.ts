@@ -21,6 +21,12 @@ export interface VehicleResponseDTO {
   updatedAt: string;
 }
 
+export interface VehiclePhotoResponseDTO {
+  id: string;
+  s3Url: string;
+  position: number;
+}
+
 export interface VehicleCreateRequestDTO {
   brand: string;
   model: string;

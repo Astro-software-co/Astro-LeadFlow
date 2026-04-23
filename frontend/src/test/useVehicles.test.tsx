@@ -8,6 +8,8 @@ vi.mock("@/services/vehicles.service", () => ({
   vehiclesService: {
     list: vi.fn(),
     create: vi.fn(),
+    getById: vi.fn(),
+    syncPhotos: vi.fn(),
     update: vi.fn(),
   },
 }));
@@ -139,6 +141,61 @@ describe("useVehicles hooks", () => {
       category: undefined,
       status: "RESERVED",
     });
+  });
+
+  it("useCreateVehicle syncs photos and reloads the vehicle when gallery data is provided", async () => {
+    vi.mocked(vehiclesService.create).mockResolvedValueOnce(baseVehicleResponse);
+    vi.mocked(vehiclesService.syncPhotos).mockResolvedValueOnce(undefined);
+    vi.mocked(vehiclesService.getById).mockResolvedValueOnce({
+      ...baseVehicleResponse,
+      photos: ["https://cdn.test/vehicle.png"],
+    });
+
+    const { result } = renderHook(() => useCreateVehicle(), { wrapper: createWrapper() });
+
+    await act(async () => {
+      const created = await result.current.mutateAsync({
+        marca: "Toyota",
+        modelo: "Corolla",
+        ano: 2023,
+        preco: 145000,
+        categoria: "Sedan",
+        fotos: ["data:image/png;base64,AAA"],
+      });
+
+      expect(created.fotos).toEqual(["https://cdn.test/vehicle.png"]);
+    });
+
+    expect(vehiclesService.syncPhotos).toHaveBeenCalledWith("veh-1", ["data:image/png;base64,AAA"]);
+    expect(vehiclesService.getById).toHaveBeenCalledWith("veh-1");
+  });
+
+  it("useUpdateVehicle syncs photos and reloads the vehicle when gallery data changes", async () => {
+    vi.mocked(vehiclesService.update).mockResolvedValueOnce(baseVehicleResponse);
+    vi.mocked(vehiclesService.syncPhotos).mockResolvedValueOnce(undefined);
+    vi.mocked(vehiclesService.getById).mockResolvedValueOnce({
+      ...baseVehicleResponse,
+      photos: ["https://cdn.test/updated.png"],
+    });
+
+    const { result } = renderHook(() => useUpdateVehicle(), { wrapper: createWrapper() });
+
+    await act(async () => {
+      const updated = await result.current.mutateAsync({
+        id: "veh-1",
+        data: {
+          fotos: ["https://cdn.test/existing.png", "data:image/png;base64,BBB"],
+        },
+      });
+
+      expect(updated.fotos).toEqual(["https://cdn.test/updated.png"]);
+    });
+
+    expect(vehiclesService.syncPhotos).toHaveBeenCalledWith("veh-1", [
+      "https://cdn.test/existing.png",
+      "data:image/png;base64,BBB",
+    ]);
+    expect(vehiclesService.getById).toHaveBeenCalledWith("veh-1");
   });
 });
 

@@ -1,5 +1,6 @@
 package com.astro.leadflow.shared.config
 
+import io.micrometer.core.instrument.MeterRegistry
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -28,7 +29,8 @@ class RateLimitFilter(
     @Value("\${app.rate-limit.webhook-per-minute:100}") private val webhookLimit: Int,
     @Value("\${app.rate-limit.auth-per-minute:10}") private val authLimit: Int,
     @Value("\${app.rate-limit.general-per-minute:500}") private val generalLimit: Int,
-    @Value("\${app.rate-limit.enabled:true}") private val enabled: Boolean
+    @Value("\${app.rate-limit.enabled:true}") private val enabled: Boolean,
+    private val meterRegistry: MeterRegistry? = null,
 ) : OncePerRequestFilter() {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -59,17 +61,24 @@ class RateLimitFilter(
 
         val limit = bucket.second
         val key = bucket.first
+        val bucketType = bucketTagValue(key)
 
         try {
             if (isRateLimited(key, limit)) {
                 log.warn("Rate limit excedido. key={} limit={}/min", key, limit)
+                meterRegistry?.counter("leadflow.rate_limit.blocked", "bucket", bucketType)?.increment()
+                response.setIntHeader("X-RateLimit-Limit", limit)
+                response.setHeader("X-RateLimit-Bucket", bucketType)
                 response.setIntHeader("Retry-After", WINDOW_SECONDS.toInt())
                 response.sendError(429, "Too many requests")
                 return
             }
+
+            meterRegistry?.counter("leadflow.rate_limit.allowed", "bucket", bucketType)?.increment()
         } catch (e: Exception) {
             // Redis indisponível — fail open para não bloquear tráfego legítimo
             log.error("Erro ao verificar rate limit (fail open). key={} error={}", key, e.message)
+            meterRegistry?.counter("leadflow.rate_limit.errors", "bucket", bucketType)?.increment()
         }
 
         filterChain.doFilter(request, response)
@@ -115,5 +124,10 @@ class RateLimitFilter(
         ops.add(key, "$now:${UUID.randomUUID()}", now)
         redisTemplate.expire(key, Duration.ofSeconds(WINDOW_SECONDS + 1))
         return false
+    }
+
+    private fun bucketTagValue(key: String): String {
+        val withoutPrefix = key.removePrefix(PREFIX)
+        return withoutPrefix.substringBefore(":", missingDelimiterValue = "unknown")
     }
 }

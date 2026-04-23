@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { usersService } from '@/services/users.service';
 import type { UserProfileResponseDTO } from '@/types/api/users';
-import type { SettingsLoadState, SettingsProfile } from '@/types/settings';
+import type { NotificationPreferences, SecuritySettings, SettingsLoadState, SettingsProfile } from '@/types/settings';
 
 const useMocks = import.meta.env.VITE_USE_MOCKS === 'true';
 
@@ -45,6 +45,24 @@ function mapProfile(dto: UserProfileResponseDTO, fallbackOrgId: string): Setting
   };
 }
 
+function mapNotificationPreferences(dto: UserProfileResponseDTO): NotificationPreferences {
+  return {
+    newLead: dto.notifyNewLead,
+    leadWaiting: dto.notifyLeadWaiting,
+    saleCompleted: dto.notifySaleCompleted,
+    cardMoved: dto.notifyCardMoved,
+    email: dto.notifyViaEmail,
+    push: dto.notifyViaPush,
+  };
+}
+
+function mapSecuritySettings(dto: UserProfileResponseDTO): SecuritySettings {
+  return {
+    emailMfa: dto.twoFactorEmailEnabled,
+    smsMfa: dto.twoFactorSmsEnabled,
+  };
+}
+
 function resolveState(isPending: boolean, isError: boolean): SettingsLoadState {
   if (isPending) {
     return 'loading';
@@ -59,6 +77,8 @@ function resolveState(isPending: boolean, isError: boolean): SettingsLoadState {
 
 export interface UseProfileResult {
   profile: SettingsProfile | null;
+  notificationPreferences: NotificationPreferences | null;
+  securitySettings: SecuritySettings | null;
   state: SettingsLoadState;
   isLoading: boolean;
   isError: boolean;
@@ -85,9 +105,13 @@ export function useProfile(): UseProfileResult {
 
   const state = resolveState(query.isPending, query.isError);
   const profile = query.data ? mapProfile(query.data, orgId) : null;
+  const notificationPreferences = query.data ? mapNotificationPreferences(query.data) : null;
+  const securitySettings = query.data ? mapSecuritySettings(query.data) : null;
 
   return {
     profile,
+    notificationPreferences,
+    securitySettings,
     state,
     isLoading: state === 'loading',
     isError: state === 'error',

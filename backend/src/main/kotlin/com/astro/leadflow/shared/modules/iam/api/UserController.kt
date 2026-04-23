@@ -6,6 +6,7 @@ import com.astro.leadflow.shared.modules.iam.api.requests.UpdateNotificationsReq
 import com.astro.leadflow.shared.modules.iam.api.requests.UpdateTwoFactorRequest
 import com.astro.leadflow.shared.modules.iam.api.requests.UpdateUserRequest
 import com.astro.leadflow.shared.modules.iam.api.requests.UpdateUserRoleRequest
+import com.astro.leadflow.shared.modules.iam.api.responses.AssignableUserResponse
 import com.astro.leadflow.shared.modules.iam.api.responses.UserResponse
 import com.astro.leadflow.shared.modules.crm.api.responses.UserSummaryResponse
 import com.astro.leadflow.shared.modules.iam.service.UserService
@@ -74,6 +75,12 @@ class UserController(private val userService: UserService) {
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     fun listUsers(): List<UserSummaryResponse> =
         userService.listOrganizationUsers()
+
+    @GetMapping("/assignable")
+    @Operation(summary = "Lista usuarios que podem receber leads")
+    @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
+    fun listAssignable(): List<AssignableUserResponse> =
+        userService.listAssignableUsers()
 
     @GetMapping("/{id}")
     @Operation(summary = "Busca usuário da organização por ID")

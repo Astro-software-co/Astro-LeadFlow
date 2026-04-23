@@ -1,31 +1,34 @@
-import { expect, Page } from "@playwright/test";
+import { expect, type Page } from '@playwright/test';
 
-export async function dragKanbanCard(
-  page: Page,
-  cardMatcher: string,
-  targetColumnLocator: string,
-): Promise<void> {
-  const card = page.locator("div").filter({ hasText: cardMatcher }).first();
-  const targetColumn = page.locator(targetColumnLocator).first();
+/**
+ * Helper to drag a kanban card from its current column to a target column element.
+ * 
+ * @param page The Playwright page instance
+ * @param cardMatcher Text or Regexp to match the card (e.g., the title)
+ * @param targetColumnSelector CSS selector for the drop zone (e.g., [data-rfd-droppable-id="negociacao"])
+ */
+export async function dragKanbanCard(page: Page, cardMatcher: string | RegExp, targetColumnSelector: string) {
+  const card = page.locator('[data-rfd-draggable-id]', { hasText: cardMatcher }).first();
+  const targetCol = page.locator(targetColumnSelector).first();
 
   await expect(card).toBeVisible();
-  await expect(targetColumn).toBeVisible();
+  await expect(targetCol).toBeVisible();
 
-  const sourceBox = await card.boundingBox();
-  const targetBox = await targetColumn.boundingBox();
+  const cardBox = await card.boundingBox();
+  const targetBox = await targetCol.boundingBox();
 
-  if (!sourceBox || !targetBox) {
-    throw new Error("Could not get source/target bounding boxes for drag operation.");
+  if (!cardBox || !targetBox) {
+    throw new Error('Could not find bounding box for card or target column');
   }
 
-  const fromX = sourceBox.x + sourceBox.width / 2;
-  const fromY = sourceBox.y + sourceBox.height / 2;
-  const toX = targetBox.x + targetBox.width / 2;
-  const toY = targetBox.y + Math.min(80, targetBox.height / 2);
-
-  await page.mouse.move(fromX, fromY);
+  // Move to the center of the card, hold, move to target, and release
+  await page.mouse.move(cardBox.x + cardBox.width / 2, cardBox.y + cardBox.height / 2);
   await page.mouse.down();
-  await page.mouse.move((fromX + toX) / 2, (fromY + toY) / 2, { steps: 12 });
-  await page.mouse.move(toX, toY, { steps: 18 });
+  
+  // Dragging sometimes requires a small movement first to trigger the start of DnD
+  await page.mouse.move(cardBox.x + cardBox.width / 2 + 10, cardBox.y + cardBox.height / 2 + 10, { steps: 5 });
+  
+  // Move to target
+  await page.mouse.move(targetBox.x + targetBox.width / 2, targetBox.y + targetBox.height / 2, { steps: 10 });
   await page.mouse.up();
 }

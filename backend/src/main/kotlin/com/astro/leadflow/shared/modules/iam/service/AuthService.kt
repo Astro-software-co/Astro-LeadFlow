@@ -17,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
+import java.util.UUID
 
 @Service
 class AuthService(
@@ -25,7 +26,8 @@ class AuthService(
     private val tokenService: TokenService,
     private val passwordEncoder: PasswordEncoder,
     private val twoFactorService: TwoFactorService,
-    private val refreshTokenBlocklistService: RefreshTokenBlocklistService
+    private val refreshTokenBlocklistService: RefreshTokenBlocklistService,
+    private val authSessionService: AuthSessionService,
 ) {
 
     @Transactional
@@ -49,10 +51,10 @@ class AuthService(
                 role = Role.ADMIN,
             )
         )
-        return buildTokenResponse(admin)
+        return issueTokensForNewSession(admin)
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     fun login(request: LoginRequest): TokenResponse {
         val user = userRepository.findByEmail(request.email)
             .orElseThrow { BusinessException("Credenciais inválidas.") }
@@ -74,7 +76,7 @@ class AuthService(
             return TokenResponse(pendingTwoFactor = true)
         }
 
-        return buildTokenResponse(user)
+        return issueTokensForNewSession(user)
     }
 
     fun verify2FA(request: Verify2FARequest): TokenResponse {
@@ -93,10 +95,10 @@ class AuthService(
         user.twoFactorCodeExpiresAt = null
         userRepository.save(user)
 
-        return buildTokenResponse(user)
+        return issueTokensForNewSession(user)
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     fun refreshToken(refreshToken: String): TokenResponse {
         if (!tokenService.isTokenValid(refreshToken) || !tokenService.isRefreshToken(refreshToken)) {
             throw BusinessException("Refresh token inválido ou expirado.")
@@ -106,7 +108,18 @@ class AuthService(
             throw BusinessException("Refresh token inválido ou expirado.")
         }
 
+        val sessionId = tokenService.extractSessionId(refreshToken)
+            ?: throw BusinessException("Refresh token inválido ou expirado.")
+        val refreshTokenId = tokenService.extractTokenId(refreshToken)
+            ?: throw BusinessException("Refresh token inválido ou expirado.")
+        val session = authSessionService.get(sessionId)
+            ?: throw BusinessException("Refresh token inválido ou expirado.")
         val userId = tokenService.extractUserId(refreshToken)
+
+        if (session.userId != userId || session.refreshTokenId != refreshTokenId) {
+            throw BusinessException("Refresh token inválido ou expirado.")
+        }
+
         val user = userRepository.findById(userId)
             .orElseThrow { ResourceNotFoundException("User", userId) }
 
@@ -114,7 +127,8 @@ class AuthService(
             throw BusinessException("Conta inativa ou suspensa.")
         }
 
-        return buildTokenResponse(user)
+        refreshTokenBlocklistService.revoke(refreshToken, tokenService.extractExpiration(refreshToken))
+        return rotateSessionTokens(user, sessionId)
     }
 
     @Transactional
@@ -124,14 +138,42 @@ class AuthService(
         }
 
         val expiresAt = tokenService.extractExpiration(refreshToken)
+        tokenService.extractSessionId(refreshToken)?.let(authSessionService::revoke)
         refreshTokenBlocklistService.revoke(refreshToken, expiresAt)
     }
 
-    private fun buildTokenResponse(user: User) = TokenResponse(
-        accessToken = tokenService.generateAccessToken(user),
-        refreshToken = tokenService.generateRefreshToken(user),
-        userId = user.id,
-        role = user.role.name,
-        organizationId = user.organization?.id,
-    )
+    private fun issueTokensForNewSession(user: User): TokenResponse {
+        val sessionId = UUID.randomUUID().toString()
+        return issueTokens(user, sessionId, createSession = true)
+    }
+
+    private fun rotateSessionTokens(user: User, sessionId: String): TokenResponse =
+        issueTokens(user, sessionId, createSession = false)
+
+    private fun issueTokens(user: User, sessionId: String, createSession: Boolean): TokenResponse {
+        val refreshTokenId = UUID.randomUUID().toString()
+        val accessToken = tokenService.generateAccessToken(user, sessionId)
+        val refreshToken = tokenService.generateRefreshToken(user, sessionId, refreshTokenId)
+
+        if (createSession) {
+            authSessionService.create(
+                sessionId = sessionId,
+                userId = user.id,
+                organizationId = user.organization?.id,
+                role = user.role,
+                refreshTokenId = refreshTokenId,
+            )
+        } else {
+            authSessionService.rotateRefreshToken(sessionId, refreshTokenId)
+                ?: throw BusinessException("Sessão expirada ou inválida.")
+        }
+
+        return TokenResponse(
+            accessToken = accessToken,
+            refreshToken = refreshToken,
+            userId = user.id,
+            role = user.role.name,
+            organizationId = user.organization?.id,
+        )
+    }
 }

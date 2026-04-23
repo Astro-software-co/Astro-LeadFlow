@@ -6,6 +6,7 @@ import com.astro.leadflow.shared.modules.iam.api.requests.UpdateNotificationsReq
 import com.astro.leadflow.shared.modules.iam.api.requests.UpdateTwoFactorRequest
 import com.astro.leadflow.shared.modules.iam.api.requests.UpdateUserRequest
 import com.astro.leadflow.shared.modules.iam.api.requests.UpdateUserRoleRequest
+import com.astro.leadflow.shared.modules.iam.api.responses.AssignableUserResponse
 import com.astro.leadflow.shared.modules.iam.api.responses.UserResponse
 import com.astro.leadflow.shared.modules.crm.api.responses.UserSummaryResponse
 import com.astro.leadflow.shared.modules.iam.domain.OrganizationRepository
@@ -113,6 +114,18 @@ class UserService(
         val orgId = SecurityUtils.getCurrentOrganizationId()
         return userRepository.findAllByOrganizationId(orgId)
             .map { user -> userMapper.toSummary(user) }
+    }
+
+    @Transactional(readOnly = true)
+    fun listAssignableUsers(): List<AssignableUserResponse> {
+        val orgId = SecurityUtils.getCurrentOrganizationId()
+        return userRepository.findAllByOrganizationIdAndStatusAndRoleIn(
+            organizationId = orgId,
+            status = UserStatus.ACTIVE,
+            roles = listOf(Role.SELLER, Role.MANAGER),
+        )
+            .sortedBy { it.name.lowercase() }
+            .map(userMapper::toAssignable)
     }
 
     @Transactional(readOnly = true)

@@ -33,6 +33,13 @@ export interface UserSummaryResponseDTO {
   role: UserRoleDTO;
 }
 
+export interface AssignableUserResponseDTO {
+  id: string;
+  name: string;
+  avatarUrl?: string | null;
+  role: UserRoleDTO;
+}
+
 export interface UserTeamListResponseDTO {
   content?: UserSummaryResponseDTO[];
   data?: UserSummaryResponseDTO[];
@@ -44,3 +51,30 @@ export interface UserTeamListResponseDTO {
 }
 
 export type UserTeamListDataDTO = UserSummaryResponseDTO[] | UserTeamListResponseDTO;
+
+export interface ChangePasswordRequestDTO {
+  currentPassword: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}
+
+export interface UpdateNotificationsRequestDTO {
+  notifyNewLead: boolean;
+  notifyLeadWaiting: boolean;
+  notifySaleCompleted: boolean;
+  notifyCardMoved: boolean;
+  notifyViaEmail: boolean;
+  notifyViaPush: boolean;
+}
+
+export interface UpdateTwoFactorRequestDTO {
+  emailEnabled: boolean;
+  smsEnabled: boolean;
+}
+
+export interface InviteUserRequestDTO {
+  name: string;
+  email: string;
+  role: Exclude<UserRoleDTO, 'SUPER_ADMIN'>;
+  phoneNumber?: string | null;
+}

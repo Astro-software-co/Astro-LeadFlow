@@ -22,7 +22,7 @@ import { formatTimeAgo } from '@/lib/formatters';
 const navItems = [
   { label: 'Dashboard', path: '/app/dashboard' },
   { label: 'Leads', path: '/app/leads' },
-  { label: 'Painel de controle', path: '/app/kanban' },
+  { label: 'Kanban', path: '/app/kanban' },
   { label: 'Estoque', path: '/app/estoque' },
   { label: 'Comunicacao', path: '/app/comunicacao' },
   { label: 'Configurações', path: '/app/configuracoes' },
@@ -35,8 +35,8 @@ export function Header() {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
 
-  const handleSignOut = () => {
-    logout();
+  const handleSignOut = async () => {
+    await logout();
     toast.success('Você foi desconectado com sucesso!');
     navigate('/app/login');
   };
@@ -56,180 +56,180 @@ export function Header() {
 
   return (
     <>
-    <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
-      <div className="flex h-16 items-center justify-between px-6">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-            <Car className="h-5 w-5 text-primary-foreground" />
+      <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
+        <div className="flex h-16 items-center justify-between px-6">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
+              <Car className="h-5 w-5 text-primary-foreground" />
+            </div>
+            <span className="text-xl font-bold text-foreground">Astro LeadFlow</span>
           </div>
-          <span className="text-xl font-bold text-foreground">Astro LeadFlow</span>
-        </div>
 
-        <nav className="hidden md:flex items-center gap-1">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              end={false}
-              className={({ isActive }) =>
-                cn(
-                  'px-4 py-2 text-sm font-medium rounded-md transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
-                  isActive ? 'text-primary bg-primary/5' : 'text-muted-foreground hover:text-foreground hover:bg-muted',
-                )
-              }
-            >
-              {item.label}
-            </NavLink>
-          ))}
-        </nav>
-
-        <div className="flex items-center gap-2">
-          {/* Hamburger — mobile only */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden"
-            onClick={() => setSheetOpen(true)}
-            aria-label="Abrir menu de navegacao"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-
-          {/* Notifications */}
-          <Popover open={notificationsOpen} onOpenChange={setNotificationsOpen}>
-            <PopoverTrigger asChild>
-              <button
-                aria-label={unreadCount > 0 ? `Notificacoes (${unreadCount} nao lidas)` : 'Notificacoes'}
-                className="relative flex h-9 w-9 items-center justify-center rounded-full hover:bg-muted transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+          <nav className="hidden md:flex items-center gap-1">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                end={false}
+                className={({ isActive }) =>
+                  cn(
+                    'px-4 py-2 text-sm font-medium rounded-md transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
+                    isActive ? 'text-primary bg-primary/5' : 'text-muted-foreground hover:text-foreground hover:bg-muted',
+                  )
+                }
               >
-                <Bell className="h-5 w-5 text-muted-foreground" />
-                {unreadCount > 0 && (
-                  <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
-                )}
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80 p-0" align="end">
-              <div className="flex items-center justify-between border-b border-border/50 px-4 py-3">
-                <h4 className="font-semibold text-foreground">Notificações</h4>
-                {unreadCount > 0 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={markAllAsRead}
-                    className="text-xs text-muted-foreground hover:text-foreground"
-                  >
-                    <Check className="mr-1 h-3 w-3" />
-                    Marcar todas como lidas
-                  </Button>
-                )}
-              </div>
-              <ScrollArea className="h-[300px]">
-                {notifications.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-8 text-center">
-                    <Bell className="h-10 w-10 text-muted-foreground/50 mb-2" />
-                    <p className="text-sm text-muted-foreground">Nenhuma notificação</p>
-                  </div>
-                ) : (
-                  <div className="divide-y divide-border/50">
-                    {notifications.map((notification) => (
-                      <div
-                        key={notification.id}
-                        className={cn(
-                          'flex gap-3 px-4 py-3 hover:bg-muted/50 transition-colors cursor-pointer',
-                          !notification.read && 'bg-primary/5',
-                        )}
-                        onClick={() => markAsRead(notification.id)}
-                      >
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={() => setSheetOpen(true)}
+              aria-label="Abrir menu de navegacao"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+
+            <Popover open={notificationsOpen} onOpenChange={setNotificationsOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  aria-label={unreadCount > 0 ? `Notificacoes (${unreadCount} nao lidas)` : 'Notificacoes'}
+                  className="relative flex h-9 w-9 items-center justify-center rounded-full hover:bg-muted transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                >
+                  <Bell className="h-5 w-5 text-muted-foreground" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-0" align="end">
+                <div className="flex items-center justify-between border-b border-border/50 px-4 py-3">
+                  <h4 className="font-semibold text-foreground">Notificações</h4>
+                  {unreadCount > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={markAllAsRead}
+                      className="text-xs text-muted-foreground hover:text-foreground"
+                    >
+                      <Check className="mr-1 h-3 w-3" />
+                      Marcar todas como lidas
+                    </Button>
+                  )}
+                </div>
+                <ScrollArea className="h-[300px]">
+                  {notifications.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-8 text-center">
+                      <Bell className="h-10 w-10 text-muted-foreground/50 mb-2" />
+                      <p className="text-sm text-muted-foreground">Nenhuma notificação</p>
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-border/50">
+                      {notifications.map((notification) => (
                         <div
+                          key={notification.id}
                           className={cn(
-                            'flex h-8 w-8 shrink-0 items-center justify-center rounded-full',
-                            getNotificationIcon(notification.type),
+                            'flex gap-3 px-4 py-3 hover:bg-muted/50 transition-colors cursor-pointer',
+                            !notification.read && 'bg-primary/5',
                           )}
+                          onClick={() => markAsRead(notification.id)}
                         >
-                          <Bell className="h-4 w-4" />
+                          <div
+                            className={cn(
+                              'flex h-8 w-8 shrink-0 items-center justify-center rounded-full',
+                              getNotificationIcon(notification.type),
+                            )}
+                          >
+                            <Bell className="h-4 w-4" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-foreground truncate">{notification.title}</p>
+                            <p className="text-xs text-muted-foreground line-clamp-2">{notification.message}</p>
+                            <p className="text-[10px] text-muted-foreground mt-1">{formatTimeAgo(notification.createdAt)}</p>
+                          </div>
+                          <button
+                            aria-label={`Remover notificacao: ${notification.title}`}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              removeNotification(notification.id);
+                            }}
+                            className="shrink-0 p-1 rounded hover:bg-muted"
+                          >
+                            <X className="h-3 w-3 text-muted-foreground" />
+                          </button>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-foreground truncate">{notification.title}</p>
-                          <p className="text-xs text-muted-foreground line-clamp-2">{notification.message}</p>
-                          <p className="text-[10px] text-muted-foreground mt-1">
-                            {formatTimeAgo(notification.createdAt)}
-                          </p>
-                        </div>
-                        <button
-                          aria-label={`Remover notificacao: ${notification.title}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removeNotification(notification.id);
-                          }}
-                          className="shrink-0 p-1 rounded hover:bg-muted"
-                        >
-                          <X className="h-3 w-3 text-muted-foreground" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </ScrollArea>
-            </PopoverContent>
-          </Popover>
+                      ))}
+                    </div>
+                  )}
+                </ScrollArea>
+              </PopoverContent>
+            </Popover>
 
-          {/* Profile Menu */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                aria-label="Abrir menu da conta"
-                className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-muted transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-              >
-                <User className="h-5 w-5 text-muted-foreground" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate('/app/configuracoes')}>
-                <Settings className="mr-2 h-4 w-4" />
-                Configurações
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
-                <LogOut className="mr-2 h-4 w-4" />
-                Sair
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-    </header>
-
-    <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-      <SheetContent side="left" className="w-[280px] p-6">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-            <Car className="h-5 w-5 text-primary-foreground" />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  aria-label="Abrir menu da conta"
+                  className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-muted transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                >
+                  <User className="h-5 w-5 text-muted-foreground" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate('/app/configuracoes')}>
+                  <Settings className="mr-2 h-4 w-4" />
+                  Configurações
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => {
+                    void handleSignOut();
+                  }}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sair
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-          <span className="text-lg font-semibold">Astro LeadFlow</span>
         </div>
-        <nav className="flex flex-col gap-1">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              onClick={() => setSheetOpen(false)}
-              className={({ isActive }) =>
-                cn(
-                  'w-full px-4 py-3 text-base font-medium rounded-md transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
-                  isActive ? 'text-primary bg-primary/5' : 'text-muted-foreground hover:text-foreground hover:bg-muted',
-                )
-              }
-            >
-              {item.label}
-            </NavLink>
-          ))}
-        </nav>
-      </SheetContent>
-    </Sheet>
+      </header>
+
+      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+        <SheetContent side="left" className="w-[280px] p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
+              <Car className="h-5 w-5 text-primary-foreground" />
+            </div>
+            <span className="text-lg font-semibold">Astro LeadFlow</span>
+          </div>
+          <nav className="flex flex-col gap-1">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                onClick={() => setSheetOpen(false)}
+                className={({ isActive }) =>
+                  cn(
+                    'w-full px-4 py-3 text-base font-medium rounded-md transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
+                    isActive ? 'text-primary bg-primary/5' : 'text-muted-foreground hover:text-foreground hover:bg-muted',
+                  )
+                }
+              >
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+        </SheetContent>
+      </Sheet>
     </>
   );
 }

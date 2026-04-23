@@ -10,6 +10,8 @@ import com.astro.leadflow.shared.modules.inventory.domain.VehicleRepository
 import com.astro.leadflow.shared.modules.inventory.domain.VehicleStatus
 import com.astro.leadflow.shared.modules.inventory.mapper.VehicleMapper
 import com.astro.leadflow.shared.modules.iam.domain.OrganizationRepository
+import com.astro.leadflow.shared.modules.crm.domain.LeadRepository
+import com.astro.leadflow.shared.modules.crm.domain.PipelineStage
 import com.astro.leadflow.shared.exception.InvalidOperationException
 import com.astro.leadflow.shared.exception.ResourceNotFoundException
 import com.astro.leadflow.shared.util.SecurityUtils
@@ -24,7 +26,8 @@ import java.util.UUID
 class VehicleService(
     private val vehicleRepository: VehicleRepository,
     private val organizationRepository: OrganizationRepository,
-    private val vehicleMapper: VehicleMapper
+    private val vehicleMapper: VehicleMapper,
+    private val leadRepository: LeadRepository
 ) {
 
     @Transactional
@@ -141,6 +144,9 @@ class VehicleService(
             throw InvalidOperationException("Veículo em manutenção não pode ser removido.")
         if (vehicle.status == VehicleStatus.SOLD)
             throw InvalidOperationException("Veículos vendidos não podem ser removidos.")
+        val activeStages = listOf(PipelineStage.COMPLETED, PipelineStage.ARCHIVED)
+        if (leadRepository.existsByVehicleIdAndPipelineStageNotIn(vehicleId, activeStages))
+            throw InvalidOperationException("Veículo possui leads ativos e não pode ser removido. Finalize ou arquive os leads primeiro.")
         vehicleRepository.delete(vehicle)
     }
 

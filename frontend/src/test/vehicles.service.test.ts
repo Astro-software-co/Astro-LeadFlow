@@ -116,4 +116,74 @@ describe("vehiclesService", () => {
 
     expect(api.delete).toHaveBeenCalledWith("/vehicles/veh-1");
   });
+
+  it("syncPhotos removes deleted photos, uploads new ones and reorders the final gallery", async () => {
+    const inlinePhoto =
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9sot6mAAAAAASUVORK5CYII=";
+
+    vi.mocked(api.get).mockResolvedValueOnce({
+      data: [
+        { id: "photo-1", s3Url: "https://cdn.test/existing-1.png", position: 0 },
+        { id: "photo-2", s3Url: "https://cdn.test/existing-2.png", position: 1 },
+      ],
+    });
+    vi.mocked(api.delete).mockResolvedValueOnce({});
+    vi.mocked(api.post).mockResolvedValueOnce({
+      data: { id: "photo-3", s3Url: "https://cdn.test/new-photo.png", position: 1 },
+    });
+    vi.mocked(api.patch).mockResolvedValueOnce({
+      data: [
+        { id: "photo-1", s3Url: "https://cdn.test/existing-1.png", position: 0 },
+        { id: "photo-3", s3Url: "https://cdn.test/new-photo.png", position: 1 },
+      ],
+    });
+
+    await vehiclesService.syncPhotos("veh-1", ["https://cdn.test/existing-1.png", inlinePhoto]);
+
+    expect(api.get).toHaveBeenCalledWith("/vehicles/veh-1/photos");
+    expect(api.delete).toHaveBeenCalledWith("/vehicles/veh-1/photos/photo-2");
+    expect(api.post).toHaveBeenCalledWith(
+      "/vehicles/veh-1/photos",
+      expect.any(FormData),
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          "Content-Type": "multipart/form-data",
+        }),
+      }),
+    );
+    expect(api.patch).toHaveBeenCalledWith("/vehicles/veh-1/photos/reorder", {
+      photoIds: ["photo-1", "photo-3"],
+    });
+  });
+
+  it("syncPhotos preserves existing photos when signed urls rotate", async () => {
+    vi.mocked(api.get).mockResolvedValueOnce({
+      data: [
+        {
+          id: "photo-1",
+          s3Url: "http://localhost:4566/leadflow-files/vehicles/org/veh/existing-1.jpg?X-Amz-Signature=new-signature",
+          position: 0,
+        },
+      ],
+    });
+    vi.mocked(api.patch).mockResolvedValueOnce({
+      data: [
+        {
+          id: "photo-1",
+          s3Url: "http://localhost:4566/leadflow-files/vehicles/org/veh/existing-1.jpg?X-Amz-Signature=new-signature",
+          position: 0,
+        },
+      ],
+    });
+
+    await vehiclesService.syncPhotos("veh-1", [
+      "http://localhost:4566/leadflow-files/vehicles/org/veh/existing-1.jpg?X-Amz-Signature=old-signature",
+    ]);
+
+    expect(api.delete).not.toHaveBeenCalled();
+    expect(api.post).not.toHaveBeenCalled();
+    expect(api.patch).toHaveBeenCalledWith("/vehicles/veh-1/photos/reorder", {
+      photoIds: ["photo-1"],
+    });
+  });
 });

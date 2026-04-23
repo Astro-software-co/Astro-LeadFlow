@@ -7,7 +7,7 @@ O repositorio contem:
 - aplicacao autenticada em React
 - API Kotlin/Spring Boot
 - ativos de infraestrutura e observabilidade
-- documentacao operacional em `docs/`
+- documentacao canonica em `docs/`
 
 ## Visao do produto
 
@@ -39,7 +39,7 @@ Backend:
 - Spring Boot 3.2.5 com Kotlin e Java 21
 - JWT, RBAC, rate limiting e OpenAPI
 - PostgreSQL + Flyway
-- Redis para rate limit, anti-replay e revogacao de refresh token
+- Redis para rate limit, anti-replay, blocklist de refresh token e sessao autenticada
 - integracoes preparadas para Meta, Webmotors e Mercado Livre
 
 SaaS:
@@ -121,6 +121,8 @@ O projeto usa JWT com dois niveis:
 
 Comportamento atual:
 - a sessao sobrevive a reload da pagina via `POST /auth/refresh`
+- a sessao expira apos 15 minutos de inatividade e e renovada enquanto o usuario continua ativo
+- o backend valida a sessao no Redis mesmo para chamadas autenticadas com Bearer token
 - o frontend envia `withCredentials` nas chamadas de autenticacao
 - `logout` revoga o refresh token no backend
 - tokens nao sao persistidos em `localStorage`
@@ -175,8 +177,13 @@ Variaveis ja presentes no repositorio:
 
 Defaults atuais do frontend:
 - `VITE_API_URL=/api/v1`
-- `VITE_USE_MOCKS=true` em desenvolvimento
+- `VITE_USE_MOCKS=false` em desenvolvimento
 - `VITE_USE_MOCKS=false` em E2E
+
+Bootstrap dev do backend:
+- organizacao demo criada automaticamente quando ausente
+- usuario admin garantido: `admin@astro.dev`
+- senha: `senha123`
 
 ## Build
 
@@ -239,6 +246,7 @@ Observacoes:
 
 - [`docs/HEALTH_REPORT.md`](docs/HEALTH_REPORT.md)
 - [`docs/varredura-geral-2026-04-17.md`](docs/varredura-geral-2026-04-17.md)
+- [`docs/README.md`](docs/README.md)
 - [`docs/notion/INDEX.md`](docs/notion/INDEX.md)
 
 ## Branching
@@ -248,8 +256,9 @@ Observacoes:
 
 ## Status de publicacao
 
-O branch `develop` agora contem a mudanca de persistencia de sessao baseada em:
-- access token em memoria
+O branch `develop` contem a estrategia atual de sessao baseada em:
+- access token curto em memoria
 - refresh token em cookie `httpOnly`
+- sessao deslizante de 15 minutos no Redis
 
-Se voce validar o fluxo manual de reload com sucesso, a base ja fica pronta para promover essa experiencia como comportamento oficial do produto.
+Essa combinacao e o comportamento oficial esperado para o produto no fluxo web autenticado.

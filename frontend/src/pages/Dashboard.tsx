@@ -1,15 +1,10 @@
 import { Helmet } from 'react-helmet-async';
 import { TrendingUp, DollarSign, Car, Receipt, Users, Clock, Activity } from 'lucide-react';
-import { KPICard } from '@/components/dashboard/KPICard';
-import { SalesLineChart } from '@/components/dashboard/SalesLineChart';
-import { CategoryBarChart } from '@/components/dashboard/CategoryBarChart';
-import { StockTable } from '@/components/dashboard/StockTable';
-import { RecentSalesTable } from '@/components/dashboard/RecentSalesTable';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useDashboard } from '@/hooks/api/useDashboard';
-import { useVehicles } from '@/hooks/api/useVehicles';
 import { formatCurrency } from '@/lib/formatters';
+import { CategoryBarChart, KPICard, RecentSalesTable, SalesLineChart, StockTable, useDashboard } from '@/modules/crm';
+import { useVehicles } from '@/modules/inventory';
 
 function DashboardSkeleton() {
   return (

@@ -3,16 +3,108 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import type { SubscriptionDTO } from '@/types/api/saas';
 import type { BillingHistoryEntry, SettingsLoadState } from '@/types/settings';
-import { billingStatusClass, billingStatusLabel, formatBillingDate, formatCurrencyBrl } from './settings.helpers';
+import {
+  billingStatusClass,
+  billingStatusLabel,
+  formatBillingDate,
+  formatCurrencyBrl,
+  statusBadgeClass,
+  statusLabel,
+} from './settings.helpers';
 
 interface PaymentsTabProps {
   history: BillingHistoryEntry[];
   historyState: SettingsLoadState;
   onRetryHistory: () => void;
+  subscription: SubscriptionDTO | null;
+  subscriptionState: SettingsLoadState;
+  onRetrySubscription: () => void;
 }
 
-export function PaymentsTab({ history, historyState, onRetryHistory }: PaymentsTabProps) {
+function renderSubscriptionCard(
+  subscription: SubscriptionDTO | null,
+  subscriptionState: SettingsLoadState,
+  onRetrySubscription: () => void,
+) {
+  if (subscriptionState === 'loading') {
+    return (
+      <div className="space-y-3 p-6">
+        <Skeleton className="h-5 w-40" />
+        <Skeleton className="h-8 w-32" />
+        <Skeleton className="h-4 w-52" />
+      </div>
+    );
+  }
+
+  if (subscriptionState === 'error') {
+    return (
+      <div className="p-6">
+        <p className="mb-3 text-sm text-muted-foreground">Nao foi possivel carregar os dados da assinatura.</p>
+        <Button variant="outline" size="sm" onClick={onRetrySubscription}>
+          Tentar novamente
+        </Button>
+      </div>
+    );
+  }
+
+  if (!subscription) {
+    return (
+      <div className="p-6">
+        <p className="text-sm text-muted-foreground">Nenhum plano ativo encontrado para esta organizacao.</p>
+      </div>
+    );
+  }
+
+  const renewDate = subscription.renewsAt
+    ? new Date(subscription.renewsAt).toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      })
+    : '--';
+
+  return (
+    <div className="p-6">
+      <div className="flex items-center justify-between rounded-xl border border-primary/30 bg-primary/5 p-6">
+        <div>
+          <div className="mb-2 flex items-center gap-2">
+            <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+              {subscription.planName}
+            </span>
+            <span className={cn('inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium', statusBadgeClass(subscription.status))}>
+              {statusLabel(subscription.status)}
+            </span>
+          </div>
+          <p className="text-2xl font-bold text-foreground">
+            {formatCurrencyBrl(subscription.monthlyPriceBrl)}
+            <span className="text-sm font-normal text-muted-foreground">/mes</span>
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">Renovacao em {renewDate}</p>
+        </div>
+        <div className="space-y-2">
+          <Button variant="outline" size="sm" disabled>
+            Alterar plano
+          </Button>
+          <br />
+          <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" disabled>
+            Cancelar
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function PaymentsTab({
+  history,
+  historyState,
+  onRetryHistory,
+  subscription,
+  subscriptionState,
+  onRetrySubscription,
+}: PaymentsTabProps) {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="rounded-xl border border-border/50 bg-card shadow-sm">
@@ -20,28 +112,7 @@ export function PaymentsTab({ history, historyState, onRetryHistory }: PaymentsT
           <h3 className="text-lg font-semibold text-foreground">Plano Atual</h3>
           <p className="text-sm text-muted-foreground">Gerencie sua assinatura e licenca de uso</p>
         </div>
-        <div className="p-6">
-          <div className="flex items-center justify-between rounded-xl border border-primary/30 bg-primary/5 p-6">
-            <div>
-              <span className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                Plano Profissional
-              </span>
-              <p className="text-2xl font-bold text-foreground">
-                R$ 299<span className="text-sm font-normal text-muted-foreground">/mes</span>
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">Renovacao automatica em 15/03/2026</p>
-            </div>
-            <div className="space-y-2">
-              <Button variant="outline" size="sm">
-                Alterar plano
-              </Button>
-              <br />
-              <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
-                Cancelar
-              </Button>
-            </div>
-          </div>
-        </div>
+        {renderSubscriptionCard(subscription, subscriptionState, onRetrySubscription)}
       </div>
 
       <div className="rounded-xl border border-border/50 bg-card shadow-sm">
@@ -127,11 +198,11 @@ export function PaymentsTab({ history, historyState, onRetryHistory }: PaymentsT
             <div className="flex items-center gap-3">
               <CreditCard className="h-5 w-5 text-muted-foreground" />
               <div>
-                <p className="text-sm font-medium text-foreground">Visa •••• 4242</p>
-                <p className="text-xs text-muted-foreground">Expira em 12/2027</p>
+                <p className="text-sm font-medium text-foreground">Cartao cadastrado</p>
+                <p className="text-xs text-muted-foreground">Gerencie o metodo de pagamento com o suporte financeiro.</p>
               </div>
             </div>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" disabled>
               Alterar
             </Button>
           </div>

@@ -1,4 +1,3 @@
-import { type Dispatch, type SetStateAction } from 'react';
 import { Bell, Check, Mail, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatTimeAgo } from '@/lib/formatters';
@@ -26,22 +25,24 @@ const preferenceItems: Array<{
 
 interface NotificationsTabProps {
   notifPrefs: NotificationPreferences;
-  setNotifPrefs: Dispatch<SetStateAction<NotificationPreferences>>;
   notifications: Notification[];
   unreadCount: number;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
   removeNotification: (id: string) => void;
+  onTogglePreference: (key: keyof NotificationPreferences, value: boolean) => Promise<void>;
+  isSavingPreferences: boolean;
 }
 
 export function NotificationsTab({
   notifPrefs,
-  setNotifPrefs,
   notifications,
   unreadCount,
   markAsRead,
   markAllAsRead,
   removeNotification,
+  onTogglePreference,
+  isSavingPreferences,
 }: NotificationsTabProps) {
   return (
     <div className="space-y-6 animate-fade-in">
@@ -57,7 +58,13 @@ export function NotificationsTab({
                 <Label className="text-sm font-medium">{item.label}</Label>
                 <p className="text-xs text-muted-foreground">{item.desc}</p>
               </div>
-              <Switch checked={notifPrefs[item.key]} onCheckedChange={(value) => setNotifPrefs((prev) => ({ ...prev, [item.key]: value }))} />
+              <Switch
+                checked={notifPrefs[item.key]}
+                disabled={isSavingPreferences}
+                onCheckedChange={(value) => {
+                  void onTogglePreference(item.key, value);
+                }}
+              />
             </div>
           ))}
         </div>
@@ -76,7 +83,13 @@ export function NotificationsTab({
                 <p className="text-xs text-muted-foreground">Receber notificacoes por e-mail</p>
               </div>
             </div>
-            <Switch checked={notifPrefs.email} onCheckedChange={(value) => setNotifPrefs((prev) => ({ ...prev, email: value }))} />
+            <Switch
+              checked={notifPrefs.email}
+              disabled={isSavingPreferences}
+              onCheckedChange={(value) => {
+                void onTogglePreference('email', value);
+              }}
+            />
           </div>
           <div className="flex items-center justify-between rounded-lg border border-border/50 p-4">
             <div className="flex items-center gap-3">
@@ -86,7 +99,13 @@ export function NotificationsTab({
                 <p className="text-xs text-muted-foreground">Notificacoes em tempo real</p>
               </div>
             </div>
-            <Switch checked={notifPrefs.push} onCheckedChange={(value) => setNotifPrefs((prev) => ({ ...prev, push: value }))} />
+            <Switch
+              checked={notifPrefs.push}
+              disabled={isSavingPreferences}
+              onCheckedChange={(value) => {
+                void onTogglePreference('push', value);
+              }}
+            />
           </div>
         </div>
       </div>

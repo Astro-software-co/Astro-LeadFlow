@@ -1,21 +1,13 @@
-import { useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Loader2 } from 'lucide-react';
-import { KanbanBoard } from '@/components/kanban/KanbanBoard';
-import { useArchiveLead, useLeads, useUpdateLeadStage } from '@/hooks/api/useLeads';
-import { mapLeadToKanbanCard } from '@/mappers/leads.mapper';
 import { Button } from '@/components/ui/button';
 import { KanbanColumn } from '@/types';
+import { KanbanBoard, useArchiveLead, useKanbanBoard, useUpdateLeadStage } from '@/modules/crm';
 
 export default function Kanban() {
-  const { data, isLoading, error, refetch } = useLeads();
+  const { data: cards, isLoading, error, refetch } = useKanbanBoard();
   const updateLeadStage = useUpdateLeadStage();
   const archiveLead = useArchiveLead();
-
-  const cards = useMemo(() => {
-    const leads = data?.content ?? [];
-    return leads.map(mapLeadToKanbanCard);
-  }, [data]);
 
   if (isLoading) {
     return (
@@ -45,11 +37,11 @@ export default function Kanban() {
       </Helmet>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Painel de Controle</h1>
+          <h1 className="text-2xl font-bold text-foreground">Kanban</h1>
           <p className="text-muted-foreground">Gerencie seus leads e atendimentos</p>
         </div>
         <KanbanBoard
-          initialCards={cards}
+          initialCards={cards ?? []}
           onMoveLead={async (leadId: string, stage: KanbanColumn) => {
             await updateLeadStage.mutateAsync({ id: leadId, stage });
           }}
