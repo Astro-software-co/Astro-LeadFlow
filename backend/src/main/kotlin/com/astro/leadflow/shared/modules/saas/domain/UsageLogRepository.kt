@@ -9,6 +9,10 @@ import java.util.UUID
 
 interface UsageLogRepository : JpaRepository<UsageLog, UUID> {
 
+    fun findAllByOrganizationIdAndMarketplaceNameIsNullOrderByPeriodYearDescPeriodMonthDescCreatedAtDesc(
+        organizationId: UUID
+    ): List<UsageLog>
+
     fun findByOrganizationIdAndMarketplaceNameAndPeriodMonthAndPeriodYear(
         organizationId: UUID,
         marketplaceName: String?,
