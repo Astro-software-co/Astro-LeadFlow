@@ -16,6 +16,7 @@ import NotFound from './pages/NotFound';
 import { ErrorBoundary } from '@/components/layout/ErrorBoundary';
 import { Loader2 } from 'lucide-react';
 
+const Onboarding = lazy(() => import('@/pages/Onboarding'));
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
 const Leads = lazy(() => import('@/pages/Leads'));
 const Kanban = lazy(() => import('@/pages/Kanban'));
@@ -47,6 +48,14 @@ const App = () => (
                     <Route element={<LandingLayout />}>
                       <Route path="/" element={<LandingPage />} />
                     </Route>
+                    <Route
+                      path="/onboarding"
+                      element={
+                        <Suspense fallback={<PageLoader />}>
+                          <Onboarding />
+                        </Suspense>
+                      }
+                    />
                     <Route element={<AuthGuard />}>
                       <Route path="/app" element={<AppLayout />}>
                         <Route index element={<Navigate to="/app/dashboard" replace />} />
