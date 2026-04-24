@@ -12,29 +12,42 @@
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
+import React from 'react';
 
 // ── Mock onboarding service ─────────────────────────────────────────────────
-const mockSubmit = vi.fn();
+// vi.mock is hoisted before variable declarations, so we must NOT reference
+// external variables inside the factory. Use vi.fn() directly in the factory.
 vi.mock('@/services/onboarding.service', () => ({
-  onboardingService: { submit: mockSubmit },
+  onboardingService: { submit: vi.fn() },
 }));
 
 // ── Mock framer-motion (avoids jsdom animation issues) ──────────────────────
-vi.mock('framer-motion', () => {
-  const actual = vi.importActual('framer-motion');
+vi.mock('framer-motion', async () => {
   return {
-    ...actual,
     AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
     motion: {
-      div: ({ children, ...rest }: React.HTMLAttributes<HTMLDivElement> & { children?: React.ReactNode }) => (
-        <div {...rest}>{children}</div>
-      ),
+      div: ({
+        children,
+        initial: _initial,
+        animate: _animate,
+        exit: _exit,
+        transition: _transition,
+        ...rest
+      }: React.HTMLAttributes<HTMLDivElement> & {
+        children?: React.ReactNode;
+        initial?: unknown;
+        animate?: unknown;
+        exit?: unknown;
+        transition?: unknown;
+      }) => <div {...rest}>{children}</div>,
     },
+    useReducedMotion: () => false,
   };
 });
 
+// Import after mocks are set up
+import { onboardingService } from '@/services/onboarding.service';
 import Onboarding from '@/pages/Onboarding';
-import React from 'react';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -51,7 +64,12 @@ function fillStep1(companyName = 'Astro Motors', cnpj = '11.222.333/0001-81') {
   fireEvent.change(screen.getByLabelText(/cnpj/i), { target: { value: cnpj } });
 }
 
-function fillStep2(name = 'João Silva', email = 'joao@astro.com', cpf = '123.456.789-09', phone = '(11) 99999-9999') {
+function fillStep2(
+  name = 'João Silva',
+  email = 'joao@astro.com',
+  cpf = '123.456.789-09',
+  phone = '(11) 99999-9999',
+) {
   fireEvent.change(screen.getByLabelText(/nome do responsável/i), { target: { value: name } });
   fireEvent.change(screen.getByLabelText(/e-mail/i), { target: { value: email } });
   fireEvent.change(screen.getByLabelText(/cpf/i), { target: { value: cpf } });
@@ -82,6 +100,8 @@ async function advanceStep() {
 // ── Tests ────────────────────────────────────────────────────────────────────
 
 describe('OnboardingPage', () => {
+  const mockSubmit = vi.mocked(onboardingService.submit);
+
   beforeEach(() => {
     mockSubmit.mockResolvedValue({ id: 'app-1', status: 'PENDING' });
     // Default: ViaCEP succeeds
@@ -102,24 +122,25 @@ describe('OnboardingPage', () => {
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
     vi.unstubAllGlobals();
   });
 
   // ── 1. Step 1 renders ─────────────────────────────────────────────────────
   it('renders step 1 (Dados da empresa) on initial load', () => {
     renderOnboarding();
-    expect(screen.getByText(/dados da empresa/i)).toBeInTheDocument();
+    // Use getByRole('heading') to uniquely target the step h2 heading
+    expect(screen.getByRole('heading', { name: /dados da empresa/i })).toBeInTheDocument();
   });
 
   // ── 2. Step validation blocks progression ────────────────────────────────
   it('blocks progression to step 2 when step 1 fields are empty', async () => {
     renderOnboarding();
     await advanceStep();
-    // Still on step 1
-    expect(screen.getByText(/dados da empresa/i)).toBeInTheDocument();
-    // Should not see step 2 title
-    expect(screen.queryByText(/responsável/i)).not.toBeInTheDocument();
+    // Still on step 1 — heading is still present
+    expect(screen.getByRole('heading', { name: /dados da empresa/i })).toBeInTheDocument();
+    // Should not see step 2 heading
+    expect(screen.queryByRole('heading', { name: /^responsável$/i })).not.toBeInTheDocument();
   });
 
   // ── 3. Advance to step 2 when step 1 is valid ────────────────────────────
@@ -127,7 +148,7 @@ describe('OnboardingPage', () => {
     renderOnboarding();
     fillStep1();
     await advanceStep();
-    expect(screen.getByText(/responsável/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /responsável/i })).toBeInTheDocument();
   });
 
   // ── 4. CNPJ mask renders formatted value ─────────────────────────────────
@@ -135,7 +156,6 @@ describe('OnboardingPage', () => {
     renderOnboarding();
     const cnpjField = screen.getByLabelText(/cnpj/i);
     fireEvent.change(cnpjField, { target: { value: '11222333000181' } });
-    // Mask should produce formatted display (contains dots/slash/dash)
     const displayValue = (cnpjField as HTMLInputElement).value;
     expect(displayValue).toMatch(/\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}/);
   });
@@ -169,7 +189,6 @@ describe('OnboardingPage', () => {
     await advanceStep();
     fillStep2();
     await advanceStep();
-    // Step 3: Endereco
     const cepField = screen.getByLabelText(/cep/i);
     fireEvent.change(cepField, { target: { value: '01310100' } });
     const displayValue = (cepField as HTMLInputElement).value;
@@ -200,7 +219,7 @@ describe('OnboardingPage', () => {
 
   // ── 9. ViaCEP loading text ─────────────────────────────────────────────────
   it('shows "Buscando endereco..." while fetching CEP', async () => {
-    let resolveFetch: (value: unknown) => void;
+    let resolveFetch!: (value: unknown) => void;
     const pendingFetch = new Promise((resolve) => {
       resolveFetch = resolve;
     });
@@ -220,25 +239,24 @@ describe('OnboardingPage', () => {
 
     expect(screen.getByText(/buscando endereco/i)).toBeInTheDocument();
 
-    // Clean up pending promise
-    resolveFetch!({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          logradouro: 'Av. Paulista',
-          bairro: 'Bela Vista',
-          localidade: 'São Paulo',
-          uf: 'SP',
-        }),
+    // Resolve the pending fetch to avoid dangling promises
+    await act(async () => {
+      resolveFetch({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            logradouro: 'Av. Paulista',
+            bairro: 'Bela Vista',
+            localidade: 'São Paulo',
+            uf: 'SP',
+          }),
+      });
     });
   });
 
   // ── 10. ViaCEP fallback message ───────────────────────────────────────────
   it('shows fallback message when ViaCEP fails', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockRejectedValue(new Error('Network error')),
-    );
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network error')));
 
     renderOnboarding();
     fillStep1();
@@ -338,7 +356,7 @@ describe('OnboardingPage', () => {
   });
 
   // ── 15. Step 4 (Revisao) shows summary before submit ─────────────────────
-  it('shows step 4 title Revisao after completing steps 1-3', async () => {
+  it('shows step 4 title Revisão after completing steps 1-3', async () => {
     renderOnboarding();
     fillStep1();
     await advanceStep();
@@ -346,13 +364,12 @@ describe('OnboardingPage', () => {
     await advanceStep();
     fillStep3();
     await advanceStep();
-    expect(screen.getByText(/revisão/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /revisão/i })).toBeInTheDocument();
   });
 
   // ── 16. Route is accessible without auth (component renders) ─────────────
-  it('renders without AuthGuard (public route)', () => {
+  it('renders without AuthGuard (public route — component mounts successfully)', () => {
     renderOnboarding();
-    // If the component renders at all, the route is public
-    expect(screen.getByRole('main') || screen.getByText(/dados da empresa/i)).toBeTruthy();
+    expect(screen.getByRole('heading', { name: /dados da empresa/i })).toBeInTheDocument();
   });
 });
