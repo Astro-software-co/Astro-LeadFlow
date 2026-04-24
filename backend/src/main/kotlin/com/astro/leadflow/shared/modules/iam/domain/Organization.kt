@@ -28,6 +28,9 @@ class Organization(
     @Column(name = "cnpj", length = 20)
     var cnpj: String? = null,
 
+    @Column(name = "referral_code", length = 32, unique = true)
+    var referralCode: String? = null,
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     var status: OrganizationStatus = OrganizationStatus.ACTIVE,
