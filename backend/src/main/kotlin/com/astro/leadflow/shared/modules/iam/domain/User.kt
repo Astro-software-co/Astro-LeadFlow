@@ -80,8 +80,17 @@ class User(
     @PreUpdate
     fun onUpdate() { updatedAt = LocalDateTime.now() }
 
-    override fun getAuthorities(): Collection<GrantedAuthority> =
-        listOf(SimpleGrantedAuthority("ROLE_${role.name}"))
+    override fun getAuthorities(): Collection<GrantedAuthority> {
+        val base = SimpleGrantedAuthority("ROLE_${role.name}")
+        return when (role) {
+            Role.ADMIN, Role.MANAGER, Role.SELLER ->
+                listOf(base, SimpleGrantedAuthority("ROLE_DEALERSHIP"))
+            Role.ASTRO_ADMIN ->
+                listOf(SimpleGrantedAuthority("ROLE_ASTRO_ADMIN"))
+            Role.SUPER_ADMIN ->
+                listOf(SimpleGrantedAuthority("ROLE_SUPER_ADMIN"))
+        }
+    }
 
     override fun getPassword(): String = passwordHash
     override fun getUsername(): String = email

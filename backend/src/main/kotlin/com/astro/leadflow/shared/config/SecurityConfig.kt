@@ -47,6 +47,9 @@ class SecurityConfig(
                     // ── Webhooks (protegidos por API Key no Gateway)
                     .requestMatchers("/api/v1/webhooks/**").permitAll()
 
+                    // ── Onboarding público ─────────────────────────
+                    .requestMatchers(HttpMethod.POST, "/api/onboarding").permitAll()
+
                     // ── Planos públicos (landing page) ─────────────
                     .requestMatchers(HttpMethod.GET, "/api/v1/plans").permitAll()
 
@@ -54,8 +57,20 @@ class SecurityConfig(
                     .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
                     .requestMatchers("/actuator/**").hasRole("SUPER_ADMIN")
 
-                    // ── Admin interno ──────────────────────────────
-                    .requestMatchers("/api/v1/admin/**").hasRole("SUPER_ADMIN")
+                    // ── Admin Astro (onboarding + finance dashboard)
+                    .requestMatchers("/api/v1/admin/**").hasRole("ASTRO_ADMIN")
+
+                    // ── APIs de concessionária ─────────────────────
+                    .requestMatchers(
+                        "/api/v1/users/**",
+                        "/api/v1/leads/**",
+                        "/api/v1/kanban/**",
+                        "/api/v1/vehicles/**",
+                        "/api/v1/chat/**",
+                        "/api/v1/saas/**",
+                        "/api/v1/analytics/**",
+                        "/api/v1/referrals/**"
+                    ).hasRole("DEALERSHIP")
 
                     // ── Operações restritas ────────────────────────
                     .requestMatchers(HttpMethod.DELETE, "/**")
