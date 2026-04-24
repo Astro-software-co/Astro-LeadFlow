@@ -87,6 +87,8 @@ class OnboardingApprovalServiceTest {
         val application = pendingApplication()
         every { onboardingRepository.findById(applicationId) } returns Optional.of(application)
         every { userRepository.existsByEmail(application.ownerEmail) } returns false
+        // findByReferralCode called by generateUniqueReferralCode to check uniqueness
+        every { organizationRepository.findByReferralCode(any()) } returns Optional.empty()
         every { organizationRepository.save(any()) } answers { firstArg() }
         every { userRepository.save(any()) } answers { firstArg() }
         every { onboardingRepository.save(any()) } answers { firstArg() }
@@ -110,6 +112,7 @@ class OnboardingApprovalServiceTest {
         val application = pendingApplication()
         every { onboardingRepository.findById(applicationId) } returns Optional.of(application)
         every { userRepository.existsByEmail(application.ownerEmail) } returns false
+        every { organizationRepository.findByReferralCode(any()) } returns Optional.empty()
         every { organizationRepository.save(any()) } answers { firstArg() }
         every { userRepository.save(any()) } answers { firstArg() }
         every { onboardingRepository.save(any()) } answers { firstArg() }
@@ -126,6 +129,8 @@ class OnboardingApprovalServiceTest {
         val application = pendingApplication(referralCode = referrerCode)
         every { onboardingRepository.findById(applicationId) } returns Optional.of(application)
         every { userRepository.existsByEmail(application.ownerEmail) } returns false
+        // For uniqueness check — return empty for any generated code (not the submitted referrerCode)
+        every { organizationRepository.findByReferralCode(neq(referrerCode)) } returns Optional.empty()
         every { organizationRepository.findByReferralCode(referrerCode) } returns Optional.of(referrerOrg)
         every { organizationRepository.save(any()) } answers { firstArg() }
         every { userRepository.save(any()) } answers { firstArg() }
@@ -146,6 +151,7 @@ class OnboardingApprovalServiceTest {
         val application = pendingApplication(referralCode = null)
         every { onboardingRepository.findById(applicationId) } returns Optional.of(application)
         every { userRepository.existsByEmail(application.ownerEmail) } returns false
+        every { organizationRepository.findByReferralCode(any()) } returns Optional.empty()
         every { organizationRepository.save(any()) } answers { firstArg() }
         every { userRepository.save(any()) } answers { firstArg() }
         every { onboardingRepository.save(any()) } answers { firstArg() }
@@ -161,7 +167,7 @@ class OnboardingApprovalServiceTest {
         val application = pendingApplication(referralCode = "UNKNOWN_CODE_XYZ")
         every { onboardingRepository.findById(applicationId) } returns Optional.of(application)
         every { userRepository.existsByEmail(application.ownerEmail) } returns false
-        every { organizationRepository.findByReferralCode("UNKNOWN_CODE_XYZ") } returns Optional.empty()
+        every { organizationRepository.findByReferralCode(any()) } returns Optional.empty()
         every { organizationRepository.save(any()) } answers { firstArg() }
         every { userRepository.save(any()) } answers { firstArg() }
         every { onboardingRepository.save(any()) } answers { firstArg() }
