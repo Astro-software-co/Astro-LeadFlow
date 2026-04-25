@@ -15,11 +15,13 @@ import java.util.UUID
 class OnboardingDomainTest {
 
     @Test
-    fun `OnboardingStatus enum contains PENDING APPROVED REJECTED`() {
+    fun `OnboardingStatus enum contains prompt statuses plus legacy PENDING alias`() {
         val names = OnboardingStatus.entries.map { it.name }
+        assert(names.contains("PENDING_APPROVAL")) { "Missing PENDING_APPROVAL" }
         assert(names.contains("PENDING")) { "Missing PENDING" }
         assert(names.contains("APPROVED")) { "Missing APPROVED" }
         assert(names.contains("REJECTED")) { "Missing REJECTED" }
+        assertEquals(OnboardingStatus.PENDING_APPROVAL, OnboardingStatus.PENDING.canonical())
     }
 
     @Test

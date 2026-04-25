@@ -46,7 +46,8 @@ class AdminOnboardingControllerTest {
         ownerName = "Test Owner",
         ownerEmail = "owner@test.com",
         planCode = "BASICO_MONTHLY",
-        status = OnboardingStatus.PENDING,
+        ownerPhone = "11999999999",
+        status = OnboardingStatus.PENDING_APPROVAL,
         referralCode = null,
         createdAt = LocalDateTime.now()
     )
@@ -61,6 +62,16 @@ class AdminOnboardingControllerTest {
         ownerCpf = "12345678900",
         ownerEmail = "owner@test.com",
         ownerPhone = "11999999999",
+        ownerRole = "Socio administrador",
+        dealershipSegment = "Seminovos",
+        branchCount = 1,
+        employeeCount = 12,
+        stockCount = 45,
+        monthlyLeadsAvg = 220,
+        marketYears = 8,
+        website = "https://test.example",
+        intendedMarketplaces = "WEBMOTORS,OLX",
+        otherMarketplaces = "Instagram",
         cep = null,
         street = null,
         number = null,
@@ -68,7 +79,7 @@ class AdminOnboardingControllerTest {
         neighborhood = null,
         city = null,
         state = null,
-        status = OnboardingStatus.PENDING,
+        status = OnboardingStatus.PENDING_APPROVAL,
         referralCode = null,
         rejectionReason = null,
         approvedOrganizationId = null,
@@ -93,12 +104,25 @@ class AdminOnboardingControllerTest {
     fun `list with status filter delegates status to service`() {
         val pageable = PageRequest.of(0, 20)
         val page = PageImpl(listOf(summaryResponse()), pageable, 1)
-        every { onboardingService.list(OnboardingStatus.PENDING, null, pageable) } returns page
+        every { onboardingService.list(OnboardingStatus.PENDING_APPROVAL, null, pageable) } returns page
 
-        val result = controller.list(OnboardingStatus.PENDING, null, pageable)
+        val result = controller.list(OnboardingStatus.PENDING_APPROVAL, null, pageable)
 
         assertEquals(1, result.totalElements)
-        verify { onboardingService.list(OnboardingStatus.PENDING, null, pageable) }
+        verify { onboardingService.list(OnboardingStatus.PENDING_APPROVAL, null, pageable) }
+    }
+
+    @Test
+    fun `controller exposes both admin onboarding route aliases`() {
+        val mapping = AdminOnboardingController::class.java.getAnnotation(
+            org.springframework.web.bind.annotation.RequestMapping::class.java
+        )
+
+        assertNotNull(mapping)
+        assertEquals(
+            setOf("/api/v1/admin/onboarding", "/api/admin/onboarding"),
+            mapping.value.toSet()
+        )
     }
 
     @Test

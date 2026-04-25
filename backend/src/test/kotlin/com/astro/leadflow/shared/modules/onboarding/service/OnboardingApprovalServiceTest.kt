@@ -73,7 +73,7 @@ class OnboardingApprovalServiceTest {
         ownerCpf = "12345678900",
         ownerEmail = "joao@nova.com",
         ownerPhone = "11999999999",
-        status = OnboardingStatus.PENDING,
+        status = OnboardingStatus.PENDING_APPROVAL,
         referralCode = referralCode
     )
 
@@ -224,6 +224,17 @@ class OnboardingApprovalServiceTest {
         assertThrows<BusinessException> {
             service.approve(applicationId)
         }
+    }
+
+    @Test
+    fun `approve accepts legacy PENDING status for compatibility`() {
+        val application = pendingApplication().apply { status = OnboardingStatus.PENDING }
+        stubHappyPath(application)
+
+        service.approve(applicationId)
+
+        assertEquals(OnboardingStatus.APPROVED, application.status)
+        verify { subscriptionRepository.save(any()) }
     }
 
     @Test

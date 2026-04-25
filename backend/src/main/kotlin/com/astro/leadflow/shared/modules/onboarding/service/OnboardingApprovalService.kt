@@ -39,7 +39,7 @@ class OnboardingApprovalService(
         val application = onboardingRepository.findById(applicationId)
             .orElseThrow { ResourceNotFoundException("OnboardingApplication", applicationId) }
 
-        if (application.status != OnboardingStatus.PENDING) {
+        if (!application.status.isPendingApproval()) {
             throw BusinessException(
                 "Solicitação de onboarding não está pendente. Status atual: ${application.status}"
             )
@@ -95,7 +95,7 @@ class OnboardingApprovalService(
             }
         }
 
-        // 4. Mark application as approved
+        // 5. Mark application as approved
         application.status = OnboardingStatus.APPROVED
         application.approvedOrganization = organization
         application.approvedAt = LocalDateTime.now()
@@ -118,7 +118,7 @@ class OnboardingApprovalService(
         val application = onboardingRepository.findById(applicationId)
             .orElseThrow { ResourceNotFoundException("OnboardingApplication", applicationId) }
 
-        if (application.status != OnboardingStatus.PENDING) {
+        if (!application.status.isPendingApproval()) {
             throw BusinessException(
                 "Solicitação de onboarding não está pendente. Status atual: ${application.status}"
             )

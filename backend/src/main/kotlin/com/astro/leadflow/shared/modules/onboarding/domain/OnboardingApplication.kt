@@ -95,7 +95,7 @@ class OnboardingApplication(
     // Workflow
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
-    var status: OnboardingStatus = OnboardingStatus.PENDING,
+    var status: OnboardingStatus = OnboardingStatus.PENDING_APPROVAL,
 
     @Column(name = "referral_code", length = 32)
     var referralCode: String? = null,

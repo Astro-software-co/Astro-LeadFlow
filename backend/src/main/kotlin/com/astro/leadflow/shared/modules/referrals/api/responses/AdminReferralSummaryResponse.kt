@@ -9,11 +9,3 @@ data class AdminReferralSummaryResponse(
     val pendingCommissionBrl: BigDecimal,
     val topReferrers: List<TopReferrerResponse>
 )
-
-data class TopReferrerResponse(
-    val companyName: String,
-    val referralCode: String,
-    val approvedCount: Long,
-    val tier: String,
-    val totalCommissionBrl: BigDecimal
-)

@@ -63,7 +63,7 @@ class OnboardingApplicationService(
 
     @Transactional(readOnly = true)
     fun list(status: OnboardingStatus?, query: String?, pageable: Pageable): Page<OnboardingApplicationSummaryResponse> {
-        return onboardingRepository.search(status, query, pageable).map { it.toSummary() }
+        return onboardingRepository.search(status?.canonical(), query, pageable).map { it.toSummary() }
     }
 
     @Transactional(readOnly = true)
@@ -82,6 +82,7 @@ class OnboardingApplicationService(
         cnpj = cnpj,
         ownerName = ownerName,
         ownerEmail = ownerEmail,
+        ownerPhone = ownerPhone,
         planCode = planCode,
         status = status,
         referralCode = referralCode,
@@ -98,6 +99,16 @@ class OnboardingApplicationService(
         ownerCpf = ownerCpf,
         ownerEmail = ownerEmail,
         ownerPhone = ownerPhone,
+        ownerRole = ownerRole,
+        dealershipSegment = dealershipSegment,
+        branchCount = branchCount,
+        employeeCount = employeeCount,
+        stockCount = stockCount,
+        monthlyLeadsAvg = monthlyLeadsAvg,
+        marketYears = marketYears,
+        website = website,
+        intendedMarketplaces = intendedMarketplaces,
+        otherMarketplaces = otherMarketplaces,
         cep = cep,
         street = street,
         number = number,

@@ -12,3 +12,10 @@ ALTER TABLE onboarding_applications
     ADD COLUMN IF NOT EXISTS website             VARCHAR(255),
     ADD COLUMN IF NOT EXISTS intended_marketplaces TEXT,
     ADD COLUMN IF NOT EXISTS other_marketplaces  TEXT;
+
+ALTER TABLE onboarding_applications
+    ALTER COLUMN status SET DEFAULT 'PENDING_APPROVAL';
+
+UPDATE onboarding_applications
+SET status = 'PENDING_APPROVAL'
+WHERE status = 'PENDING';

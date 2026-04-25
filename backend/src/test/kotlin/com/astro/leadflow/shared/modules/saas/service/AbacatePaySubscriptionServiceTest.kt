@@ -4,6 +4,7 @@ import com.astro.leadflow.shared.modules.iam.domain.Organization
 import com.astro.leadflow.shared.modules.iam.domain.Role
 import com.astro.leadflow.shared.modules.iam.domain.User
 import com.astro.leadflow.shared.modules.iam.domain.UserRepository
+import com.astro.leadflow.shared.modules.referrals.service.ReferralService
 import com.astro.leadflow.shared.modules.saas.api.requests.AbacatePayWebhookCheckout
 import com.astro.leadflow.shared.modules.saas.api.requests.AbacatePayWebhookData
 import com.astro.leadflow.shared.modules.saas.api.requests.AbacatePayWebhookEvent
@@ -46,6 +47,7 @@ class AbacatePaySubscriptionServiceTest {
     @MockK private lateinit var userRepository: UserRepository
     @MockK private lateinit var billingHistoryEntryRepository: BillingHistoryEntryRepository
     @MockK private lateinit var abacatePayGateway: AbacatePayGateway
+    @MockK private lateinit var referralService: ReferralService
 
     private lateinit var service: AbacatePaySubscriptionService
 
@@ -86,6 +88,7 @@ class AbacatePaySubscriptionServiceTest {
             userRepository,
             billingHistoryEntryRepository,
             abacatePayGateway,
+            referralService,
             SaasMapper(),
             "http://localhost:5173",
         )
@@ -98,6 +101,7 @@ class AbacatePaySubscriptionServiceTest {
         every { subscriptionRepository.save(any()) } answers { firstArg() }
         every { planRepository.save(any()) } answers { firstArg() }
         every { billingHistoryEntryRepository.save(any()) } answers { firstArg() }
+        every { referralService.generateCommissionIfFirstPayment(any(), any()) } returns Unit
     }
 
     @AfterEach
@@ -195,5 +199,8 @@ class AbacatePaySubscriptionServiceTest {
         assertNull(subscription.abacateCheckoutUrl)
         assertEquals(LocalDate.of(2026, 5, 23), subscription.renewsAt)
         verify(exactly = 1) { billingHistoryEntryRepository.save(any()) }
+        verify(exactly = 1) {
+            referralService.generateCommissionIfFirstPayment(organization.id, any())
+        }
     }
 }

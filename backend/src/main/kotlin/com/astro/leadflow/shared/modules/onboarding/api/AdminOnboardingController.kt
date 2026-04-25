@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*
 import java.util.UUID
 
 @RestController
-@RequestMapping("/api/v1/admin/onboarding")
+@RequestMapping(value = ["/api/v1/admin/onboarding", "/api/admin/onboarding"])
 @PreAuthorize("hasRole('ASTRO_ADMIN')")
 @Tag(name = "Admin — Onboarding", description = "Gestão de solicitações de onboarding de concessionárias (Astro Admin)")
 class AdminOnboardingController(

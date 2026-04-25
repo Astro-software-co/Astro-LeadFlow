@@ -4,6 +4,7 @@ import com.astro.leadflow.shared.exception.BusinessException
 import com.astro.leadflow.shared.exception.ResourceNotFoundException
 import com.astro.leadflow.shared.modules.iam.domain.User
 import com.astro.leadflow.shared.modules.iam.domain.UserRepository
+import com.astro.leadflow.shared.modules.referrals.service.ReferralService
 import com.astro.leadflow.shared.modules.saas.api.requests.AbacatePayWebhookEvent
 import com.astro.leadflow.shared.modules.saas.api.requests.CreateSubscriptionCheckoutRequest
 import com.astro.leadflow.shared.modules.saas.api.responses.SubscriptionCheckoutResponse
@@ -39,6 +40,7 @@ class AbacatePaySubscriptionService(
     private val userRepository: UserRepository,
     private val billingHistoryEntryRepository: BillingHistoryEntryRepository,
     private val abacatePayGateway: AbacatePayGateway,
+    private val referralService: ReferralService,
     private val saasMapper: SaasMapper,
     @Value("\${app.base-url:http://localhost:8080}") private val appBaseUrl: String,
 ) {
@@ -160,7 +162,7 @@ class AbacatePaySubscriptionService(
         val savedSubscription = subscriptionRepository.save(subscription)
 
         if (payment?.id != null || providerEventId != null) {
-            billingHistoryEntryRepository.save(
+            val savedBillingEntry = billingHistoryEntryRepository.save(
                 BillingHistoryEntry(
                     subscription = savedSubscription,
                     providerEventId = providerEventId,
@@ -181,6 +183,13 @@ class AbacatePaySubscriptionService(
                     invoiceUrl = payment?.receiptUrl,
                 )
             )
+
+            if (savedBillingEntry.status == "PAID") {
+                referralService.generateCommissionIfFirstPayment(
+                    referredOrganizationId = savedSubscription.organization.id,
+                    billingEntry = savedBillingEntry,
+                )
+            }
         }
     }
 

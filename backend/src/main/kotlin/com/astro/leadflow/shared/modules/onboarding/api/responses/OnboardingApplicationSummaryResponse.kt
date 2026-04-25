@@ -11,6 +11,7 @@ data class OnboardingApplicationSummaryResponse(
     val cnpj: String,
     val ownerName: String,
     val ownerEmail: String,
+    val ownerPhone: String,
     val planCode: String,
     val status: OnboardingStatus,
     val referralCode: String?,
