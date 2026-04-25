@@ -17,6 +17,7 @@ import { ErrorBoundary } from '@/components/layout/ErrorBoundary';
 import { Loader2 } from 'lucide-react';
 
 const Onboarding = lazy(() => import('@/pages/Onboarding'));
+const AdminOnboarding = lazy(() => import('@/pages/admin/AdminOnboarding'));
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
 const Leads = lazy(() => import('@/pages/Leads'));
 const Kanban = lazy(() => import('@/pages/Kanban'));
@@ -118,6 +119,18 @@ const App = () => (
                           }
                         />
                       </Route>
+                    </Route>
+                    <Route element={<AuthGuard />}>
+                      <Route
+                        path="/admin/onboarding"
+                        element={
+                          <Suspense fallback={<PageLoader />}>
+                            <RoleGate allowedRoles={['ASTRO_ADMIN']}>
+                              <AdminOnboarding />
+                            </RoleGate>
+                          </Suspense>
+                        }
+                      />
                     </Route>
                     <Route
                       path="/app/login"
