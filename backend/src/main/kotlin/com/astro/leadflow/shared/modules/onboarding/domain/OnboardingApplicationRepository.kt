@@ -14,13 +14,22 @@ interface OnboardingApplicationRepository : JpaRepository<OnboardingApplication,
 
     fun existsByCnpj(cnpj: String): Boolean
 
-    @Query("""
-        SELECT a FROM OnboardingApplication a
-        WHERE (:status IS NULL OR a.status = :status)
-        AND (:query IS NULL OR LOWER(a.companyName) LIKE LOWER(CONCAT('%', :query, '%'))
-             OR LOWER(a.ownerEmail) LIKE LOWER(CONCAT('%', :query, '%')))
-        ORDER BY a.createdAt DESC
-    """)
+    @Query(
+        value = """
+            SELECT a FROM OnboardingApplication a
+            WHERE (:status IS NULL OR a.status = :status)
+            AND (CAST(:query AS string) IS NULL
+                 OR LOWER(a.companyName) LIKE LOWER(CONCAT('%', CAST(:query AS string), '%'))
+                 OR LOWER(a.ownerEmail)  LIKE LOWER(CONCAT('%', CAST(:query AS string), '%')))
+        """,
+        countQuery = """
+            SELECT COUNT(a) FROM OnboardingApplication a
+            WHERE (:status IS NULL OR a.status = :status)
+            AND (CAST(:query AS string) IS NULL
+                 OR LOWER(a.companyName) LIKE LOWER(CONCAT('%', CAST(:query AS string), '%'))
+                 OR LOWER(a.ownerEmail)  LIKE LOWER(CONCAT('%', CAST(:query AS string), '%')))
+        """
+    )
     fun search(
         status: OnboardingStatus?,
         query: String?,
