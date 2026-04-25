@@ -111,7 +111,7 @@ describe('OnboardingPage (5-step flow)', () => {
   const mockSubmit = vi.mocked(onboardingService.submit);
 
   beforeEach(() => {
-    mockSubmit.mockResolvedValue({ id: 'app-1', status: 'PENDING' });
+    mockSubmit.mockResolvedValue({ id: 'app-1', status: 'PENDING_APPROVAL' });
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({

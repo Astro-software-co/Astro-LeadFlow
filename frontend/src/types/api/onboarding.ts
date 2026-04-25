@@ -35,6 +35,6 @@ export interface SubmitOnboardingRequestDTO {
 
 export interface SubmitOnboardingResponseDTO {
   id: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  status: 'PENDING_APPROVAL' | 'PENDING' | 'APPROVED' | 'REJECTED';
   message?: string;
 }
