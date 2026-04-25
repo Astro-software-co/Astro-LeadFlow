@@ -63,6 +63,7 @@ class SecurityConfig(
 
                     // ── Referral dealership endpoints ──────────────
                     .requestMatchers("/api/referral/**").hasRole("DEALERSHIP")
+                    .requestMatchers("/api/v1/referral/**").hasRole("DEALERSHIP")
 
                     // ── APIs de concessionária ─────────────────────
                     .requestMatchers(

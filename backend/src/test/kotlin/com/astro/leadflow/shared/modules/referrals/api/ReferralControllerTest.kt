@@ -15,7 +15,7 @@ class ReferralControllerTest {
         val preAuthorize = ReferralController::class.java.getAnnotation(PreAuthorize::class.java)
 
         assertNotNull(controllerMapping)
-        assertEquals(listOf("/api/referral"), controllerMapping.value.toList())
+        assertEquals(listOf("/api/referral", "/api/v1/referral"), controllerMapping.value.toList())
         assertEquals("hasRole('DEALERSHIP')", preAuthorize.value)
 
         assertEquals(

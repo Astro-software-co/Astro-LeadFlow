@@ -127,6 +127,10 @@ vi.mock('@/components/settings/AssinaturaTab', () => ({
   AssinaturaTab: () => <div data-testid="assinatura-tab">Assinatura tab</div>,
 }));
 
+vi.mock('@/components/settings/ReferralTab', () => ({
+  ReferralTab: () => <div data-testid="referral-tab">Referral tab</div>,
+}));
+
 describe('Configuracoes page container', () => {
   it('renders and switches tab composition from container state', async () => {
     render(
@@ -153,5 +157,9 @@ describe('Configuracoes page container', () => {
     const subBtn = screen.getByRole('button', { name: /Assinatura/i });
     fireEvent.click(subBtn);
     expect(await screen.findByTestId('assinatura-tab')).toBeInTheDocument();
+
+    const referralsBtn = screen.getByRole('button', { name: /Indicacoes/i });
+    fireEvent.click(referralsBtn);
+    expect(await screen.findByTestId('referral-tab')).toBeInTheDocument();
   }, 10000);
 });

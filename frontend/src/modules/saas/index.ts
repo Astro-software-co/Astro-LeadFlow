@@ -2,6 +2,7 @@ export { AssinaturaTab } from '@/components/settings/AssinaturaTab';
 export { GeneralTab } from '@/components/settings/GeneralTab';
 export { NotificationsTab } from '@/components/settings/NotificationsTab';
 export { PaymentsTab } from '@/components/settings/PaymentsTab';
+export { ReferralTab } from '@/components/settings/ReferralTab';
 export { SecurityTab } from '@/components/settings/SecurityTab';
 export { accentColorOptions, settingsTabs, themeOptions } from '@/components/settings/settings.helpers';
 export { useBillingHistory } from '@/hooks/api/useBillingHistory';

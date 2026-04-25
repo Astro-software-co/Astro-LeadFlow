@@ -10,6 +10,7 @@ import {
   GeneralTab,
   NotificationsTab,
   PaymentsTab,
+  ReferralTab,
   SecurityTab,
   accentColorOptions,
   settingsTabs,
@@ -282,13 +283,13 @@ export default function Configuracoes() {
           <p className="text-muted-foreground">Gerencie as configuracoes do sistema</p>
         </div>
 
-        <div className="flex gap-2 border-b border-border/50 pb-0">
+        <div className="flex gap-2 overflow-x-auto border-b border-border/50 pb-0">
           {settingsTabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveSection(tab.id)}
               className={cn(
-                'flex items-center gap-2 border-b-2 -mb-px px-4 py-2.5 text-sm font-medium transition-colors',
+                'flex shrink-0 items-center gap-2 border-b-2 -mb-px px-4 py-2.5 text-sm font-medium transition-colors',
                 activeSection === tab.id
                   ? 'border-primary text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground',
@@ -365,6 +366,8 @@ export default function Configuracoes() {
         )}
 
         {activeSection === 'assinatura' && <AssinaturaTab />}
+
+        {activeSection === 'referrals' && <ReferralTab />}
       </div>
     </>
   );

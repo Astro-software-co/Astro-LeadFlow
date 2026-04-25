@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/api/referral")
+@RequestMapping(value = ["/api/referral", "/api/v1/referral"])
 @PreAuthorize("hasRole('DEALERSHIP')")
 @Tag(name = "Referral — Dealership", description = "Programa de indicação para concessionárias")
 class ReferralController(private val referralService: ReferralService) {

@@ -5,6 +5,7 @@ import {
   Moon,
   PackageCheck,
   Settings,
+  Share2,
   Shield,
   Sun,
   type LucideIcon,
@@ -37,6 +38,7 @@ export const settingsTabs: SettingsTabItem[] = [
   { id: 'security', label: 'Seguranca', icon: Shield },
   { id: 'payments', label: 'Pagamentos', icon: CreditCard },
   { id: 'assinatura', label: 'Assinatura', icon: PackageCheck },
+  { id: 'referrals', label: 'Indicacoes', icon: Share2 },
 ];
 
 export const themeOptions: ThemeOptionItem[] = [
