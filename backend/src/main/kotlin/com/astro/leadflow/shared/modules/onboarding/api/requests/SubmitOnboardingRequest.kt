@@ -1,5 +1,6 @@
 package com.astro.leadflow.shared.modules.onboarding.api.requests
 
+import com.astro.leadflow.shared.modules.saas.domain.MarketplaceType
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
@@ -59,6 +60,28 @@ data class SubmitOnboardingRequest(
 
     @field:Size(max = 2)
     val state: String? = null,
+
+    // Extended owner profile
+    @field:Size(max = 100)
+    val ownerRole: String? = null,
+
+    // Extended dealership profile
+    @field:Size(max = 100)
+    val dealershipSegment: String? = null,
+    val branchCount: Int? = null,
+    val employeeCount: Int? = null,
+    val stockCount: Int? = null,
+    val monthlyLeadsAvg: Int? = null,
+    val marketYears: Int? = null,
+
+    @field:Size(max = 255)
+    val website: String? = null,
+
+    // Marketplace intent
+    val intendedMarketplaces: Set<MarketplaceType>? = null,
+
+    @field:Size(max = 500)
+    val otherMarketplaces: String? = null,
 
     // Referral attribution — populated from ?ref={code} query param by the frontend
     @field:Size(max = 32)

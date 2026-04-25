@@ -57,8 +57,12 @@ class SecurityConfig(
                     .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
                     .requestMatchers("/actuator/**").hasRole("SUPER_ADMIN")
 
-                    // ── Admin Astro (onboarding + finance dashboard)
+                    // ── Admin Astro (onboarding + finance dashboard + referral summary)
                     .requestMatchers("/api/v1/admin/**").hasRole("ASTRO_ADMIN")
+                    .requestMatchers("/api/admin/**").hasRole("ASTRO_ADMIN")
+
+                    // ── Referral dealership endpoints ──────────────
+                    .requestMatchers("/api/referral/**").hasRole("DEALERSHIP")
 
                     // ── APIs de concessionária ─────────────────────
                     .requestMatchers(

@@ -59,6 +59,39 @@ class OnboardingApplication(
     @Column(name = "state", length = 2)
     var state: String? = null,
 
+    // Extended owner profile
+    @Column(name = "owner_role", length = 100)
+    var ownerRole: String? = null,
+
+    // Extended dealership profile
+    @Column(name = "dealership_segment", length = 100)
+    var dealershipSegment: String? = null,
+
+    @Column(name = "branch_count")
+    var branchCount: Int? = null,
+
+    @Column(name = "employee_count")
+    var employeeCount: Int? = null,
+
+    @Column(name = "stock_count")
+    var stockCount: Int? = null,
+
+    @Column(name = "monthly_leads_avg")
+    var monthlyLeadsAvg: Int? = null,
+
+    @Column(name = "market_years")
+    var marketYears: Int? = null,
+
+    @Column(name = "website", length = 255)
+    var website: String? = null,
+
+    // Marketplace intent — stored as comma-separated enum names
+    @Column(name = "intended_marketplaces", columnDefinition = "TEXT")
+    var intendedMarketplaces: String? = null,
+
+    @Column(name = "other_marketplaces", columnDefinition = "TEXT")
+    var otherMarketplaces: String? = null,
+
     // Workflow
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
