@@ -1,11 +1,12 @@
-export type OnboardingStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+export type OnboardingStatus = 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED';
 
 export interface OnboardingApplicationDTO {
   id: string;
   companyName: string;
   ownerName: string;
   ownerEmail: string;
-  submittedAt: string;
+  createdAt: string;
+  submittedAt?: string;
   status: OnboardingStatus;
   planCode: string;
   referralCode: string | null;
@@ -43,6 +44,7 @@ export interface ApproveOnboardingResponseDTO {
 export interface ListOnboardingResponseDTO {
   content: OnboardingApplicationDTO[];
   totalElements: number;
-  page: number;
+  number?: number;
+  page?: number;
   size: number;
 }

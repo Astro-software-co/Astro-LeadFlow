@@ -18,7 +18,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 
 // ── Mock toast ──────────────────────────────────────────────────────────────
-const mockToast = vi.fn();
 vi.mock('sonner', () => ({ toast: Object.assign(vi.fn(), { success: vi.fn(), error: vi.fn() }) }));
 
 // ── Mock useAdminOnboarding ─────────────────────────────────────────────────
@@ -30,8 +29,8 @@ const baseApplication = {
   companyName: 'Astro Motors',
   ownerName: 'João Silva',
   ownerEmail: 'joao@astro.com',
-  submittedAt: '2026-04-20T10:00:00.000Z',
-  status: 'PENDING' as const,
+  createdAt: '2026-04-20T10:00:00.000Z',
+  status: 'PENDING_APPROVAL' as const,
   planCode: 'STARTER',
   referralCode: null,
   cnpj: '11222333000181',

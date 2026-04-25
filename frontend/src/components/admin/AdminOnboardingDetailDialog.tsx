@@ -8,13 +8,13 @@ import { Badge } from '@/components/ui/badge';
 import type { OnboardingApplicationDTO, OnboardingStatus } from '@/types/api/admin-onboarding';
 
 const STATUS_LABELS: Record<OnboardingStatus, string> = {
-  PENDING: 'Pendente',
+  PENDING_APPROVAL: 'Pendente',
   APPROVED: 'Aprovado',
   REJECTED: 'Rejeitado',
 };
 
 const STATUS_VARIANTS: Record<OnboardingStatus, 'secondary' | 'default' | 'destructive'> = {
-  PENDING: 'secondary',
+  PENDING_APPROVAL: 'secondary',
   APPROVED: 'default',
   REJECTED: 'destructive',
 };
@@ -33,6 +33,10 @@ function Row({ label, value }: { label: string; value?: string | number | null }
       <p className="text-sm font-medium">{value}</p>
     </div>
   );
+}
+
+function getSubmittedAt(application: OnboardingApplicationDTO): string {
+  return application.submittedAt ?? application.createdAt;
 }
 
 export function AdminOnboardingDetailDialog({
@@ -109,7 +113,7 @@ export function AdminOnboardingDetailDialog({
               <Row label="Plano solicitado" value={application.planCode} />
               <Row
                 label="Enviado em"
-                value={new Date(application.submittedAt).toLocaleDateString('pt-BR')}
+                value={new Date(getSubmittedAt(application)).toLocaleDateString('pt-BR')}
               />
               {application.approvedAt && (
                 <Row

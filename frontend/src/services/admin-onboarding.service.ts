@@ -15,7 +15,7 @@ export interface AdminOnboardingFilters {
 export const adminOnboardingService = {
   async list(filters: AdminOnboardingFilters = {}): Promise<ListOnboardingResponseDTO> {
     const params = new URLSearchParams();
-    if (filters.search) params.set('search', filters.search);
+    if (filters.search) params.set('query', filters.search);
     if (filters.status && filters.status !== 'ALL') params.set('status', filters.status);
     if (filters.page !== undefined) params.set('page', String(filters.page));
     if (filters.size !== undefined) params.set('size', String(filters.size));
@@ -38,6 +38,6 @@ export const adminOnboardingService = {
   },
 
   async reject(id: string, reason: string): Promise<void> {
-    await api.post(`/admin/onboarding/${id}/reject`, { reason });
+    await api.post(`/admin/onboarding/${id}/reject`, { rejectionReason: reason });
   },
 };

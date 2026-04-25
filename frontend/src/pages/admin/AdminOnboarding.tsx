@@ -32,16 +32,20 @@ import type { OnboardingApplicationDTO, OnboardingStatus } from '@/types/api/adm
 // ── Constants ────────────────────────────────────────────────────────────────
 
 const STATUS_LABELS: Record<OnboardingStatus, string> = {
-  PENDING: 'Pendente',
+  PENDING_APPROVAL: 'Pendente',
   APPROVED: 'Aprovado',
   REJECTED: 'Rejeitado',
 };
 
 const STATUS_VARIANTS: Record<OnboardingStatus, 'secondary' | 'default' | 'destructive'> = {
-  PENDING: 'secondary',
+  PENDING_APPROVAL: 'secondary',
   APPROVED: 'default',
   REJECTED: 'destructive',
 };
+
+function getSubmittedAt(application: OnboardingApplicationDTO): string {
+  return application.submittedAt ?? application.createdAt;
+}
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
@@ -85,7 +89,7 @@ interface ActionButtonsProps {
 }
 
 function ActionButtons({ application, onView, onApprove, onReject, isApproving }: ActionButtonsProps) {
-  const isPending = application.status === 'PENDING';
+  const isPending = application.status === 'PENDING_APPROVAL';
   return (
     <div className="flex items-center gap-1">
       <Tooltip>
@@ -168,7 +172,7 @@ function MobileCard({ application, onView, onApprove, onReject, isApproving }: M
         </Badge>
       </div>
       <p className="text-xs text-muted-foreground">
-        Enviado em: {new Date(application.submittedAt).toLocaleDateString('pt-BR')}
+        Enviado em: {new Date(getSubmittedAt(application)).toLocaleDateString('pt-BR')}
       </p>
       <ActionButtons
         application={application}
@@ -235,7 +239,7 @@ export default function AdminOnboarding() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL">Todos</SelectItem>
-            <SelectItem value="PENDING">Pendente</SelectItem>
+            <SelectItem value="PENDING_APPROVAL">Pendente</SelectItem>
             <SelectItem value="APPROVED">Aprovado</SelectItem>
             <SelectItem value="REJECTED">Rejeitado</SelectItem>
           </SelectContent>
@@ -269,7 +273,7 @@ export default function AdminOnboarding() {
                     <TableCell className="font-medium">{app.companyName}</TableCell>
                     <TableCell>{app.ownerName}</TableCell>
                     <TableCell>
-                      {new Date(app.submittedAt).toLocaleDateString('pt-BR')}
+                      {new Date(getSubmittedAt(app)).toLocaleDateString('pt-BR')}
                     </TableCell>
                     <TableCell>
                       <Badge variant={STATUS_VARIANTS[app.status]}>
