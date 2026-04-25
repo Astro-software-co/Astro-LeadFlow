@@ -7,6 +7,8 @@ import { Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import {
   Form,
@@ -24,67 +26,37 @@ import type { OnboardingFormValues } from '@/features/onboarding/schema';
 import { maskCNPJ, maskCPF, maskPhone, maskCEP, digitsOnly } from '@/features/onboarding/masks';
 import { fetchViaCEP } from '@/features/onboarding/viacep';
 import { onboardingService } from '@/services/onboarding.service';
+import type { MarketplaceTypeDTO } from '@/types/api/onboarding';
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
 const STEPS = [
-  { index: 0, label: 'Dados da empresa' },
-  { index: 1, label: 'Responsável' },
+  { index: 0, label: 'Responsável' },
+  { index: 1, label: 'Concessionária' },
   { index: 2, label: 'Endereço' },
-  { index: 3, label: 'Revisão' },
+  { index: 3, label: 'Integrações' },
+  { index: 4, label: 'Revisão' },
+];
+
+const MARKETPLACE_OPTIONS: { value: MarketplaceTypeDTO; label: string }[] = [
+  { value: 'WEBMOTORS', label: 'WebMotors' },
+  { value: 'MERCADO_LIVRE', label: 'Mercado Livre' },
+  { value: 'OLX', label: 'OLX' },
 ];
 
 // ── Step content components ──────────────────────────────────────────────────
 
 interface StepProps {
   form: ReturnType<typeof useForm<OnboardingFormValues>>;
-  cepLoading?: boolean;
+}
+
+interface Step3Props extends StepProps {
+  cepLoading: boolean;
   cepError?: string;
-  onCepBlur?: () => void;
+  onCepBlur: () => void;
 }
 
-function Step1Empresa({ form }: StepProps) {
-  return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-semibold">Dados da empresa</h2>
-
-      <FormField
-        control={form.control}
-        name="companyName"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Nome da empresa *</FormLabel>
-            <FormControl>
-              <Input placeholder="Ex: Astro Motors" {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name="cnpj"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>CNPJ *</FormLabel>
-            <FormControl>
-              <Input
-                placeholder="00.000.000/0000-00"
-                value={field.value}
-                onChange={(e) => field.onChange(maskCNPJ(e.target.value))}
-                onBlur={field.onBlur}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-    </div>
-  );
-}
-
-function Step2Responsavel({ form }: StepProps) {
+function Step1Responsavel({ form }: StepProps) {
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold">Responsável</h2>
@@ -154,11 +126,180 @@ function Step2Responsavel({ form }: StepProps) {
           </FormItem>
         )}
       />
+
+      <FormField
+        control={form.control}
+        name="ownerRole"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Cargo</FormLabel>
+            <FormControl>
+              <Input placeholder="Ex: Diretor Comercial" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
     </div>
   );
 }
 
-function Step3Endereco({ form, cepLoading, cepError, onCepBlur }: StepProps) {
+function Step2Concessionaria({ form }: StepProps) {
+  return (
+    <div className="space-y-4">
+      <h2 className="text-xl font-semibold">Dados da concessionária</h2>
+
+      <FormField
+        control={form.control}
+        name="companyName"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Nome da empresa *</FormLabel>
+            <FormControl>
+              <Input placeholder="Ex: Astro Motors" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="cnpj"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>CNPJ *</FormLabel>
+            <FormControl>
+              <Input
+                placeholder="00.000.000/0000-00"
+                value={field.value}
+                onChange={(e) => field.onChange(maskCNPJ(e.target.value))}
+                onBlur={field.onBlur}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="tradeName"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Nome fantasia</FormLabel>
+            <FormControl>
+              <Input placeholder="Ex: Astro Veículos" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="dealershipSegment"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Segmento</FormLabel>
+            <FormControl>
+              <Input placeholder="Ex: Multimarcas, Concessionária, Loja" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <div className="grid grid-cols-2 gap-4">
+        <FormField
+          control={form.control}
+          name="branchCount"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Filiais</FormLabel>
+              <FormControl>
+                <Input type="number" min="1" placeholder="1" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="employeeCount"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Funcionários</FormLabel>
+              <FormControl>
+                <Input type="number" min="1" placeholder="10" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="stockCount"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Veículos no estoque</FormLabel>
+              <FormControl>
+                <Input type="number" min="0" placeholder="50" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="monthlyLeadsAvg"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Leads por mês</FormLabel>
+              <FormControl>
+                <Input type="number" min="0" placeholder="100" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="marketYears"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Anos no mercado</FormLabel>
+              <FormControl>
+                <Input type="number" min="0" placeholder="5" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <FormField
+        control={form.control}
+        name="website"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Site</FormLabel>
+            <FormControl>
+              <Input type="url" placeholder="https://suaempresa.com.br" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </div>
+  );
+}
+
+function Step3Endereco({ form, cepLoading, cepError, onCepBlur }: Step3Props) {
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold">Endereço</h2>
@@ -169,7 +310,6 @@ function Step3Endereco({ form, cepLoading, cepError, onCepBlur }: StepProps) {
         render={({ field }) => (
           <FormItem>
             <FormLabel>CEP *</FormLabel>
-            {/* FormControl must wrap only the labellable input directly */}
             <div className="relative">
               <FormControl>
                 <Input
@@ -178,7 +318,7 @@ function Step3Endereco({ form, cepLoading, cepError, onCepBlur }: StepProps) {
                   onChange={(e) => field.onChange(maskCEP(e.target.value))}
                   onBlur={() => {
                     field.onBlur();
-                    onCepBlur?.();
+                    onCepBlur();
                   }}
                   className={cepLoading ? 'pr-10' : ''}
                 />
@@ -211,6 +351,36 @@ function Step3Endereco({ form, cepLoading, cepError, onCepBlur }: StepProps) {
           </FormItem>
         )}
       />
+
+      <div className="grid grid-cols-2 gap-4">
+        <FormField
+          control={form.control}
+          name="number"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Número</FormLabel>
+              <FormControl>
+                <Input placeholder="100" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="complement"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Complemento</FormLabel>
+              <FormControl>
+                <Input placeholder="Sala 1" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
 
       <FormField
         control={form.control}
@@ -259,8 +429,72 @@ function Step3Endereco({ form, cepLoading, cepError, onCepBlur }: StepProps) {
   );
 }
 
-function Step4Revisao({ form, referralCode }: StepProps & { referralCode?: string }) {
+function Step4Integracoes({ form }: StepProps) {
+  const selected = form.watch('intendedMarketplaces') ?? [];
+
+  function toggleMarketplace(value: MarketplaceTypeDTO) {
+    const current = form.getValues('intendedMarketplaces') ?? [];
+    form.setValue(
+      'intendedMarketplaces',
+      current.includes(value) ? current.filter((v) => v !== value) : [...current, value],
+      { shouldValidate: true },
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-xl font-semibold">Integrações</h2>
+      <p className="text-sm text-muted-foreground">
+        Selecione os marketplaces que você usa para capturar leads.
+      </p>
+
+      <div className="space-y-3">
+        {MARKETPLACE_OPTIONS.map((opt) => (
+          <div key={opt.value} className="flex items-center gap-3">
+            <Checkbox
+              id={`marketplace-${opt.value}`}
+              checked={selected.includes(opt.value)}
+              onCheckedChange={() => toggleMarketplace(opt.value)}
+            />
+            <label
+              htmlFor={`marketplace-${opt.value}`}
+              className="text-sm font-medium leading-none cursor-pointer"
+            >
+              {opt.label}
+            </label>
+          </div>
+        ))}
+      </div>
+
+      <FormField
+        control={form.control}
+        name="otherMarketplaces"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Outros canais</FormLabel>
+            <FormControl>
+              <Textarea
+                placeholder="Ex: Site próprio, Instagram, indicações..."
+                className="resize-none"
+                rows={3}
+                {...field}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </div>
+  );
+}
+
+function Step5Revisao({ form }: StepProps) {
   const values = form.getValues();
+  const selected = values.intendedMarketplaces ?? [];
+  const marketplaceLabels = MARKETPLACE_OPTIONS.filter((o) => selected.includes(o.value))
+    .map((o) => o.label)
+    .join(', ');
+
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold">Revisão</h2>
@@ -270,28 +504,49 @@ function Step4Revisao({ form, referralCode }: StepProps & { referralCode?: strin
 
       <div className="space-y-3 rounded-lg border bg-muted/20 p-4 text-sm">
         <div>
+          <span className="text-xs text-muted-foreground">Responsável</span>
+          <p className="font-medium">{values.ownerName}</p>
+          <p className="text-muted-foreground">{values.ownerEmail}</p>
+          <p className="text-muted-foreground">
+            {values.ownerCpf} · {values.ownerPhone}
+          </p>
+        </div>
+        <div>
           <span className="text-xs text-muted-foreground">Empresa</span>
           <p className="font-medium">{values.companyName}</p>
           <p className="text-muted-foreground">{values.cnpj}</p>
         </div>
         <div>
-          <span className="text-xs text-muted-foreground">Responsável</span>
-          <p className="font-medium">{values.ownerName}</p>
-          <p className="text-muted-foreground">{values.ownerEmail}</p>
-          <p className="text-muted-foreground">{values.ownerCpf} · {values.ownerPhone}</p>
-        </div>
-        <div>
           <span className="text-xs text-muted-foreground">Endereço</span>
-          <p className="font-medium">{values.street}, {values.neighborhood}</p>
-          <p className="text-muted-foreground">{values.city} – {values.state} · {values.cep}</p>
+          <p className="font-medium">
+            {values.street}
+            {values.number ? `, ${values.number}` : ''}
+          </p>
+          <p className="text-muted-foreground">
+            {values.neighborhood} · {values.city} – {values.state} · {values.cep}
+          </p>
         </div>
-        {referralCode && (
+        {marketplaceLabels && (
           <div>
-            <span className="text-xs text-muted-foreground">Indicação</span>
-            <p className="text-muted-foreground">Código: {referralCode}</p>
+            <span className="text-xs text-muted-foreground">Integrações</span>
+            <p className="font-medium">{marketplaceLabels}</p>
           </div>
         )}
       </div>
+
+      <FormField
+        control={form.control}
+        name="referralCode"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Código de indicação</FormLabel>
+            <FormControl>
+              <Input placeholder="Opcional" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
     </div>
   );
 }
@@ -300,7 +555,7 @@ function Step4Revisao({ form, referralCode }: StepProps & { referralCode?: strin
 
 export default function Onboarding() {
   const [searchParams] = useSearchParams();
-  const referralCode = searchParams.get('ref') ?? undefined;
+  const refFromUrl = searchParams.get('ref') ?? '';
 
   const [currentStep, setCurrentStep] = useState(0);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -314,17 +569,31 @@ export default function Onboarding() {
   const form = useForm<OnboardingFormValues>({
     resolver: zodResolver(onboardingSchema),
     defaultValues: {
-      companyName: '',
-      cnpj: '',
       ownerName: '',
       ownerEmail: '',
       ownerCpf: '',
       ownerPhone: '',
+      ownerRole: '',
+      companyName: '',
+      cnpj: '',
+      tradeName: '',
+      dealershipSegment: '',
+      branchCount: '',
+      employeeCount: '',
+      stockCount: '',
+      monthlyLeadsAvg: '',
+      marketYears: '',
+      website: '',
       cep: '',
       street: '',
+      number: '',
+      complement: '',
       neighborhood: '',
       city: '',
       state: '',
+      intendedMarketplaces: [],
+      otherMarketplaces: '',
+      referralCode: refFromUrl,
     },
     mode: 'onBlur',
   });
@@ -354,11 +623,10 @@ export default function Onboarding() {
   // ── Step navigation ─────────────────────────────────────────────────────────
   async function handleContinue() {
     const fields = stepFields[currentStep];
-    if (!fields) return;
-
-    const isValid = await form.trigger(fields);
-    if (!isValid) return;
-
+    if (fields && fields.length > 0) {
+      const isValid = await form.trigger(fields);
+      if (!isValid) return;
+    }
     setCurrentStep((prev) => prev + 1);
   }
 
@@ -375,18 +643,33 @@ export default function Onboarding() {
 
     try {
       await onboardingService.submit({
-        companyName: values.companyName,
-        cnpj: digitsOnly(values.cnpj),
         ownerName: values.ownerName,
         ownerEmail: values.ownerEmail,
         ownerCpf: digitsOnly(values.ownerCpf),
         ownerPhone: digitsOnly(values.ownerPhone),
+        ...(values.ownerRole ? { ownerRole: values.ownerRole } : {}),
+        companyName: values.companyName,
+        cnpj: digitsOnly(values.cnpj),
+        ...(values.tradeName ? { tradeName: values.tradeName } : {}),
+        ...(values.dealershipSegment ? { dealershipSegment: values.dealershipSegment } : {}),
+        ...(values.branchCount ? { branchCount: parseInt(values.branchCount) } : {}),
+        ...(values.employeeCount ? { employeeCount: parseInt(values.employeeCount) } : {}),
+        ...(values.stockCount ? { stockCount: parseInt(values.stockCount) } : {}),
+        ...(values.monthlyLeadsAvg ? { monthlyLeadsAvg: parseInt(values.monthlyLeadsAvg) } : {}),
+        ...(values.marketYears ? { marketYears: parseInt(values.marketYears) } : {}),
+        ...(values.website ? { website: values.website } : {}),
         cep: digitsOnly(values.cep),
         street: values.street,
+        ...(values.number ? { number: values.number } : {}),
+        ...(values.complement ? { complement: values.complement } : {}),
         neighborhood: values.neighborhood,
         city: values.city,
         state: values.state,
-        ...(referralCode ? { referralCode } : {}),
+        ...(values.intendedMarketplaces?.length
+          ? { intendedMarketplaces: values.intendedMarketplaces }
+          : {}),
+        ...(values.otherMarketplaces ? { otherMarketplaces: values.otherMarketplaces } : {}),
+        ...(values.referralCode ? { referralCode: values.referralCode } : {}),
       });
       setIsSuccess(true);
     } catch {
@@ -417,7 +700,6 @@ export default function Onboarding() {
     );
   }
 
-  // ── Steps ───────────────────────────────────────────────────────────────────
   const isLastStep = currentStep === STEPS.length - 1;
 
   return (
@@ -429,10 +711,10 @@ export default function Onboarding() {
         </div>
 
         {/* Referral badge */}
-        {referralCode && (
+        {refFromUrl && (
           <div className="mb-4 flex justify-center">
             <Badge variant="secondary" className="text-xs">
-              Indicado por: {referralCode}
+              Indicado por: {refFromUrl}
             </Badge>
           </div>
         )}
@@ -446,8 +728,8 @@ export default function Onboarding() {
             <form onSubmit={(e) => e.preventDefault()}>
               <AnimatePresence mode="wait">
                 <motion.div key={currentStep} {...motionProps}>
-                  {currentStep === 0 && <Step1Empresa form={form} />}
-                  {currentStep === 1 && <Step2Responsavel form={form} />}
+                  {currentStep === 0 && <Step1Responsavel form={form} />}
+                  {currentStep === 1 && <Step2Concessionaria form={form} />}
                   {currentStep === 2 && (
                     <Step3Endereco
                       form={form}
@@ -456,9 +738,8 @@ export default function Onboarding() {
                       onCepBlur={handleCepBlur}
                     />
                   )}
-                  {currentStep === 3 && (
-                    <Step4Revisao form={form} referralCode={referralCode} />
-                  )}
+                  {currentStep === 3 && <Step4Integracoes form={form} />}
+                  {currentStep === 4 && <Step5Revisao form={form} />}
                 </motion.div>
               </AnimatePresence>
 
