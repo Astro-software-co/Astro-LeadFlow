@@ -18,6 +18,7 @@ import { Loader2 } from 'lucide-react';
 
 const Onboarding = lazy(() => import('@/pages/Onboarding'));
 const AdminOnboarding = lazy(() => import('@/pages/admin/AdminOnboarding'));
+const AdminDashboard = lazy(() => import('@/pages/admin/AdminDashboard'));
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
 const Leads = lazy(() => import('@/pages/Leads'));
 const Kanban = lazy(() => import('@/pages/Kanban'));
@@ -121,6 +122,16 @@ const App = () => (
                       </Route>
                     </Route>
                     <Route element={<AuthGuard />}>
+                      <Route
+                        path="/admin/dashboard"
+                        element={
+                          <Suspense fallback={<PageLoader />}>
+                            <RoleGate allowedRoles={['ASTRO_ADMIN']}>
+                              <AdminDashboard />
+                            </RoleGate>
+                          </Suspense>
+                        }
+                      />
                       <Route
                         path="/admin/onboarding"
                         element={
