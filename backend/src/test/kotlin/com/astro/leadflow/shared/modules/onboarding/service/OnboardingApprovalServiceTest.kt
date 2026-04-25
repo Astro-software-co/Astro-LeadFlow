@@ -14,11 +14,13 @@ import com.astro.leadflow.shared.modules.onboarding.domain.OnboardingApplication
 import com.astro.leadflow.shared.modules.onboarding.domain.OnboardingStatus
 import com.astro.leadflow.shared.modules.referrals.domain.ReferralRelationship
 import com.astro.leadflow.shared.modules.referrals.domain.ReferralRelationshipRepository
-import com.astro.leadflow.shared.modules.referrals.domain.ReferralStatus
+import com.astro.leadflow.shared.modules.saas.domain.BillingCycle
+import com.astro.leadflow.shared.modules.saas.domain.Plan
+import com.astro.leadflow.shared.modules.saas.domain.PlanRepository
+import com.astro.leadflow.shared.modules.saas.domain.Subscription
+import com.astro.leadflow.shared.modules.saas.domain.SubscriptionRepository
 import io.mockk.every
-import io.mockk.just
 import io.mockk.mockk
-import io.mockk.runs
 import io.mockk.slot
 import io.mockk.verify
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -27,6 +29,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.security.crypto.password.PasswordEncoder
+import java.math.BigDecimal
 import java.util.Optional
 import java.util.UUID
 
@@ -37,6 +40,8 @@ class OnboardingApprovalServiceTest {
     private lateinit var userRepository: UserRepository
     private lateinit var referralRepository: ReferralRelationshipRepository
     private lateinit var passwordEncoder: PasswordEncoder
+    private lateinit var planRepository: PlanRepository
+    private lateinit var subscriptionRepository: SubscriptionRepository
     private lateinit var service: OnboardingApprovalService
 
     private val applicationId = UUID.randomUUID()
@@ -48,6 +53,15 @@ class OnboardingApprovalServiceTest {
         name = "Referrer Org",
         slug = "referrer-org",
         referralCode = referrerCode
+    )
+
+    private val testPlan = Plan(
+        name = "Básico",
+        priceBrl = BigDecimal("99.90"),
+        messageLimit = 500,
+        marketplaceLimit = 2,
+        code = "BASICO_MONTHLY",
+        billingCycle = BillingCycle.MONTHLY
     )
 
     private fun pendingApplication(referralCode: String? = null) = OnboardingApplication(
@@ -70,14 +84,34 @@ class OnboardingApprovalServiceTest {
         userRepository = mockk()
         referralRepository = mockk()
         passwordEncoder = mockk()
+        planRepository = mockk()
+        subscriptionRepository = mockk()
 
         service = OnboardingApprovalService(
             onboardingRepository,
             organizationRepository,
             userRepository,
             referralRepository,
-            passwordEncoder
+            passwordEncoder,
+            planRepository,
+            subscriptionRepository
         )
+    }
+
+    private fun stubHappyPath(application: OnboardingApplication, hasReferrer: Boolean = false) {
+        every { onboardingRepository.findById(applicationId) } returns Optional.of(application)
+        every { userRepository.existsByEmail(application.ownerEmail) } returns false
+        every { organizationRepository.findByReferralCode(any()) } returns Optional.empty()
+        if (hasReferrer) {
+            every { organizationRepository.findByReferralCode(referrerCode) } returns Optional.of(referrerOrg)
+        }
+        every { organizationRepository.save(any()) } answers { firstArg() }
+        every { userRepository.save(any()) } answers { firstArg() }
+        every { planRepository.findByCode("BASICO_MONTHLY") } returns Optional.of(testPlan)
+        every { subscriptionRepository.save(any()) } answers { firstArg() }
+        every { referralRepository.save(any()) } answers { firstArg() }
+        every { onboardingRepository.save(any()) } answers { firstArg() }
+        every { passwordEncoder.encode(any()) } returns "hashed-password"
     }
 
     // ── approve ──────────────────────────────────────────────────────────
@@ -85,14 +119,7 @@ class OnboardingApprovalServiceTest {
     @Test
     fun `approve creates organization and owner user with PENDING_VERIFICATION`() {
         val application = pendingApplication()
-        every { onboardingRepository.findById(applicationId) } returns Optional.of(application)
-        every { userRepository.existsByEmail(application.ownerEmail) } returns false
-        // findByReferralCode called by generateUniqueReferralCode to check uniqueness
-        every { organizationRepository.findByReferralCode(any()) } returns Optional.empty()
-        every { organizationRepository.save(any()) } answers { firstArg() }
-        every { userRepository.save(any()) } answers { firstArg() }
-        every { onboardingRepository.save(any()) } answers { firstArg() }
-        every { passwordEncoder.encode(any()) } returns "hashed-password"
+        stubHappyPath(application)
 
         val response = service.approve(applicationId)
 
@@ -110,13 +137,7 @@ class OnboardingApprovalServiceTest {
     @Test
     fun `approve generates unique referral code on the organization`() {
         val application = pendingApplication()
-        every { onboardingRepository.findById(applicationId) } returns Optional.of(application)
-        every { userRepository.existsByEmail(application.ownerEmail) } returns false
-        every { organizationRepository.findByReferralCode(any()) } returns Optional.empty()
-        every { organizationRepository.save(any()) } answers { firstArg() }
-        every { userRepository.save(any()) } answers { firstArg() }
-        every { onboardingRepository.save(any()) } answers { firstArg() }
-        every { passwordEncoder.encode(any()) } returns "hashed-password"
+        stubHappyPath(application)
 
         val response = service.approve(applicationId)
 
@@ -125,18 +146,38 @@ class OnboardingApprovalServiceTest {
     }
 
     @Test
-    fun `approve creates ReferralRelationship when submitted referralCode matches existing org`() {
-        val application = pendingApplication(referralCode = referrerCode)
+    fun `approve creates Subscription linked to organization and plan`() {
+        val application = pendingApplication()
+        stubHappyPath(application)
+
+        service.approve(applicationId)
+
+        val subSlot = slot<Subscription>()
+        verify { subscriptionRepository.save(capture(subSlot)) }
+        assertNotNull(subSlot.captured.organization)
+        assertEquals(testPlan, subSlot.captured.plan)
+    }
+
+    @Test
+    fun `approve throws BusinessException when plan code is unknown`() {
+        val application = pendingApplication()
         every { onboardingRepository.findById(applicationId) } returns Optional.of(application)
         every { userRepository.existsByEmail(application.ownerEmail) } returns false
-        // For uniqueness check — return empty for any generated code (not the submitted referrerCode)
-        every { organizationRepository.findByReferralCode(neq(referrerCode)) } returns Optional.empty()
-        every { organizationRepository.findByReferralCode(referrerCode) } returns Optional.of(referrerOrg)
+        every { organizationRepository.findByReferralCode(any()) } returns Optional.empty()
         every { organizationRepository.save(any()) } answers { firstArg() }
         every { userRepository.save(any()) } answers { firstArg() }
-        every { referralRepository.save(any()) } answers { firstArg() }
-        every { onboardingRepository.save(any()) } answers { firstArg() }
+        every { planRepository.findByCode("BASICO_MONTHLY") } returns Optional.empty()
         every { passwordEncoder.encode(any()) } returns "hashed-password"
+
+        assertThrows<BusinessException> {
+            service.approve(applicationId)
+        }
+    }
+
+    @Test
+    fun `approve creates ReferralRelationship when submitted referralCode matches existing org`() {
+        val application = pendingApplication(referralCode = referrerCode)
+        stubHappyPath(application, hasReferrer = true)
 
         service.approve(applicationId)
 
@@ -149,13 +190,7 @@ class OnboardingApprovalServiceTest {
     @Test
     fun `approve does not create ReferralRelationship when no referralCode submitted`() {
         val application = pendingApplication(referralCode = null)
-        every { onboardingRepository.findById(applicationId) } returns Optional.of(application)
-        every { userRepository.existsByEmail(application.ownerEmail) } returns false
-        every { organizationRepository.findByReferralCode(any()) } returns Optional.empty()
-        every { organizationRepository.save(any()) } answers { firstArg() }
-        every { userRepository.save(any()) } answers { firstArg() }
-        every { onboardingRepository.save(any()) } answers { firstArg() }
-        every { passwordEncoder.encode(any()) } returns "hashed-password"
+        stubHappyPath(application)
 
         service.approve(applicationId)
 
@@ -165,13 +200,7 @@ class OnboardingApprovalServiceTest {
     @Test
     fun `approve does not create ReferralRelationship when submitted referralCode is unknown`() {
         val application = pendingApplication(referralCode = "UNKNOWN_CODE_XYZ")
-        every { onboardingRepository.findById(applicationId) } returns Optional.of(application)
-        every { userRepository.existsByEmail(application.ownerEmail) } returns false
-        every { organizationRepository.findByReferralCode(any()) } returns Optional.empty()
-        every { organizationRepository.save(any()) } answers { firstArg() }
-        every { userRepository.save(any()) } answers { firstArg() }
-        every { onboardingRepository.save(any()) } answers { firstArg() }
-        every { passwordEncoder.encode(any()) } returns "hashed-password"
+        stubHappyPath(application)
 
         service.approve(applicationId)
 

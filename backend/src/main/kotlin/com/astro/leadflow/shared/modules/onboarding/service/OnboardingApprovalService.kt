@@ -14,6 +14,9 @@ import com.astro.leadflow.shared.modules.onboarding.domain.OnboardingApplication
 import com.astro.leadflow.shared.modules.onboarding.domain.OnboardingStatus
 import com.astro.leadflow.shared.modules.referrals.domain.ReferralRelationship
 import com.astro.leadflow.shared.modules.referrals.domain.ReferralRelationshipRepository
+import com.astro.leadflow.shared.modules.saas.domain.PlanRepository
+import com.astro.leadflow.shared.modules.saas.domain.Subscription
+import com.astro.leadflow.shared.modules.saas.domain.SubscriptionRepository
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -26,7 +29,9 @@ class OnboardingApprovalService(
     private val organizationRepository: OrganizationRepository,
     private val userRepository: UserRepository,
     private val referralRepository: ReferralRelationshipRepository,
-    private val passwordEncoder: PasswordEncoder
+    private val passwordEncoder: PasswordEncoder,
+    private val planRepository: PlanRepository,
+    private val subscriptionRepository: SubscriptionRepository
 ) {
 
     @Transactional
@@ -70,7 +75,13 @@ class OnboardingApprovalService(
             )
         )
 
-        // 3. Link referral relationship if submitted referral code resolves to an existing org
+        // 3. Resolve plan and create SaaS subscription
+        val plan = planRepository.findByCode(application.planCode)
+            .orElseThrow { BusinessException("Código de plano inválido: ${application.planCode}") }
+
+        subscriptionRepository.save(Subscription(organization = organization, plan = plan))
+
+        // 4. Link referral relationship if submitted referral code resolves to an existing org
         val submittedReferralCode = application.referralCode
         if (!submittedReferralCode.isNullOrBlank()) {
             organizationRepository.findByReferralCode(submittedReferralCode).ifPresent { referrerOrg ->
