@@ -78,9 +78,14 @@ function fillStep1(
 }
 
 /** Step 2 — Concessionária */
-function fillStep2(companyName = 'Astro Motors', cnpj = '11.222.333/0001-81') {
+function fillStep2(
+  companyName = 'Astro Motors',
+  cnpj = '11.222.333/0001-81',
+) {
   fireEvent.change(screen.getByLabelText(/nome da empresa/i), { target: { value: companyName } });
   fireEvent.change(screen.getByLabelText(/cnpj/i), { target: { value: cnpj } });
+  // Select plan via native radio button
+  fireEvent.click(screen.getByRole('radio', { name: /básico.*mensal/i }));
 }
 
 /** Step 3 — Endereço */
@@ -111,7 +116,7 @@ describe('OnboardingPage (5-step flow)', () => {
   const mockSubmit = vi.mocked(onboardingService.submit);
 
   beforeEach(() => {
-    mockSubmit.mockResolvedValue({ id: 'app-1', status: 'PENDING_APPROVAL' });
+    mockSubmit.mockResolvedValue({ id: 'app-1' });
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({

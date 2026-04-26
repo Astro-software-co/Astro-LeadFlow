@@ -18,10 +18,9 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-
 import { OnboardingStepper } from '@/features/onboarding/OnboardingStepper';
 import { OnboardingSuccess } from '@/features/onboarding/OnboardingSuccess';
-import { onboardingSchema, stepFields } from '@/features/onboarding/schema';
+import { onboardingSchema, stepFields, PLAN_OPTIONS } from '@/features/onboarding/schema';
 import type { OnboardingFormValues } from '@/features/onboarding/schema';
 import { maskCNPJ, maskCPF, maskPhone, maskCEP, digitsOnly } from '@/features/onboarding/masks';
 import { fetchViaCEP } from '@/features/onboarding/viacep';
@@ -177,6 +176,35 @@ function Step2Concessionaria({ form }: StepProps) {
                 onBlur={field.onBlur}
               />
             </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="planCode"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Plano desejado *</FormLabel>
+            <div className="flex flex-col gap-2 mt-1">
+              {PLAN_OPTIONS.map((opt) => (
+                <label
+                  key={opt.value}
+                  className="flex items-center gap-3 cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    name="planCode"
+                    value={opt.value}
+                    checked={field.value === opt.value}
+                    onChange={() => field.onChange(opt.value)}
+                    className="accent-primary"
+                  />
+                  <span className="text-sm">{opt.label}</span>
+                </label>
+              ))}
+            </div>
             <FormMessage />
           </FormItem>
         )}
@@ -650,6 +678,7 @@ export default function Onboarding() {
         ...(values.ownerRole ? { ownerRole: values.ownerRole } : {}),
         companyName: values.companyName,
         cnpj: digitsOnly(values.cnpj),
+        planCode: values.planCode,
         ...(values.tradeName ? { tradeName: values.tradeName } : {}),
         ...(values.dealershipSegment ? { dealershipSegment: values.dealershipSegment } : {}),
         ...(values.branchCount ? { branchCount: parseInt(values.branchCount) } : {}),

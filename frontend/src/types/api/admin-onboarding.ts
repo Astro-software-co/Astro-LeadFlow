@@ -25,19 +25,24 @@ export interface OnboardingApplicationDTO {
   website?: string;
   cep?: string;
   street?: string;
+  number?: string;
+  complement?: string;
   neighborhood?: string;
   city?: string;
   state?: string;
   intendedMarketplaces?: string[];
   otherMarketplaces?: string;
   rejectionReason?: string;
+  approvedOrganizationId?: string;
   approvedAt?: string;
   rejectedAt?: string;
+  updatedAt?: string;
 }
 
 export interface ApproveOnboardingResponseDTO {
-  id: string;
-  status: 'APPROVED';
+  organizationId: string;
+  organizationName: string;
+  ownerEmail: string;
   referralCode: string;
 }
 

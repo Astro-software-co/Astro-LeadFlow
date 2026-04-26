@@ -16,11 +16,18 @@ export const step1Schema = z.object({
 });
 
 // ── Step 2 — Concessionária (dealership data) ────────────────────────────────
+export const PLAN_OPTIONS = [
+  { value: 'BASICO_MONTHLY', label: 'Básico — Mensal' },
+  { value: 'PROFISSIONAL_MONTHLY', label: 'Profissional — Mensal' },
+  { value: 'ENTERPRISE_MONTHLY', label: 'Enterprise — Mensal' },
+] as const;
+
 export const step2Schema = z.object({
   companyName: z.string().min(2, 'Nome da empresa é obrigatório'),
   cnpj: z
     .string()
     .refine((v) => digitsOnly(v).length === 14, 'CNPJ deve ter 14 dígitos'),
+  planCode: z.string().min(1, 'Selecione um plano'),
   tradeName: z.string().optional(),
   dealershipSegment: z.string().optional(),
   branchCount: z.string().optional(),
@@ -77,7 +84,7 @@ export const stepSchemas = [
 // Fields validated on each step before advancing (empty = all optional, skip trigger)
 export const stepFields: Array<(keyof OnboardingFormValues)[]> = [
   ['ownerName', 'ownerEmail', 'ownerCpf', 'ownerPhone'],
-  ['companyName', 'cnpj'],
+  ['companyName', 'cnpj', 'planCode'],
   ['cep', 'street', 'neighborhood', 'city', 'state'],
   [],
   [],

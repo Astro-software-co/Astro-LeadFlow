@@ -24,11 +24,13 @@ export interface AuthResponse {
   pendingTwoFactor: boolean;
 }
 
+export type UserRole = 'ADMIN' | 'MANAGER' | 'SELLER' | 'ASTRO_ADMIN' | 'SUPER_ADMIN';
+
 export interface UserProfile {
   id: string;
   name: string;
   email: string;
-  role: string;
+  role: UserRole | string;
   organizationId: string;
 }
 

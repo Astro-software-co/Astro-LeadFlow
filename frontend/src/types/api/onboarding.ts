@@ -1,5 +1,10 @@
 export type MarketplaceTypeDTO = 'WEBMOTORS' | 'MERCADO_LIVRE' | 'OLX';
 
+export type OnboardingPlanCode =
+  | 'BASICO_MONTHLY'
+  | 'PROFISSIONAL_MONTHLY'
+  | 'ENTERPRISE_MONTHLY';
+
 export interface SubmitOnboardingRequestDTO {
   // Step 1 — Responsável
   ownerName: string;
@@ -10,6 +15,7 @@ export interface SubmitOnboardingRequestDTO {
   // Step 2 — Concessionária
   companyName: string;
   cnpj: string;
+  planCode: string;
   tradeName?: string;
   dealershipSegment?: string;
   branchCount?: number;
@@ -35,6 +41,4 @@ export interface SubmitOnboardingRequestDTO {
 
 export interface SubmitOnboardingResponseDTO {
   id: string;
-  status: 'PENDING_APPROVAL' | 'PENDING' | 'APPROVED' | 'REJECTED';
-  message?: string;
 }
