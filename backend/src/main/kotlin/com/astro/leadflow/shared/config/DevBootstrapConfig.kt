@@ -140,4 +140,47 @@ class DevBootstrapConfig {
 
         logger.info("Dev bootstrap Astro Admin ready: {}", astroAdminEmail)
     }
+
+    @Bean
+    fun devBootstrapRoleUsersRunner(
+        organizationRepository: OrganizationRepository,
+        userRepository: UserRepository,
+        passwordEncoder: PasswordEncoder,
+        @Value("\${app.dev.bootstrap-admin.enabled:true}")
+        enabled: Boolean,
+        @Value("\${app.dev.bootstrap-admin.organization-slug:astro-demo}")
+        organizationSlug: String,
+    ) = ApplicationRunner {
+        if (!enabled) return@ApplicationRunner
+
+        val organization = organizationRepository.findBySlug(organizationSlug).orElse(null) ?: return@ApplicationRunner
+
+        data class Seed(val email: String, val name: String, val role: Role)
+
+        listOf(
+            Seed("manager@astro.dev", "Manager Demo", Role.MANAGER),
+            Seed("seller@astro.dev",  "Seller Demo",  Role.SELLER),
+        ).forEach { seed ->
+            userRepository.findByEmail(seed.email)
+                .map { existing ->
+                    existing.role   = seed.role
+                    existing.status = UserStatus.ACTIVE
+                    existing.updatePassword(passwordEncoder.encode("senha123"))
+                    userRepository.save(existing)
+                }
+                .orElseGet {
+                    userRepository.save(
+                        User(
+                            organization  = organization,
+                            name          = seed.name,
+                            email         = seed.email,
+                            passwordHash  = passwordEncoder.encode("senha123"),
+                            role          = seed.role,
+                            status        = UserStatus.ACTIVE,
+                        )
+                    )
+                }
+            logger.info("Dev bootstrap {} ready: {}", seed.role, seed.email)
+        }
+    }
 }
