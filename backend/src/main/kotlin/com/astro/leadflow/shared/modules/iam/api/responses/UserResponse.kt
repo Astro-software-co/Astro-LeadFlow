@@ -12,6 +12,7 @@ data class UserResponse(
     val phoneNumber: String?,
     val avatarUrl: String?,
     val role: Role,
+    val referralCode: String?,
     val status: UserStatus,
     val organizationId: UUID?,
     val organizationName: String?,

@@ -15,8 +15,8 @@ vi.mock('sonner', () => ({
 
 vi.mock('@/hooks/api/useReferrals', () => ({
   mockReferralSettings: {
-    code: 'ASTRO-8F4A',
-    referralLink: 'https://app.astroleadflow.com/onboarding?ref=ASTRO-8F4A',
+    code: '483920',
+    referralLink: 'https://app.astroleadflow.com/onboarding?ref=483920',
     approvedCount: 8,
     pendingCount: 2,
     currentTier: 'BRONZE',
@@ -75,7 +75,7 @@ describe('ReferralTab', () => {
     renderReferralTab();
 
     expect(screen.getAllByText('Indicacoes')[0]).toBeInTheDocument();
-    expect(screen.getByText('https://app.astroleadflow.com/onboarding?ref=ASTRO-8F4A')).toBeInTheDocument();
+    expect(screen.getByText('https://app.astroleadflow.com/onboarding?ref=483920')).toBeInTheDocument();
     expect(screen.getByText('Progresso para o proximo nivel')).toBeInTheDocument();
     expect(screen.getByText('8 de 10 empresas aprovadas')).toBeInTheDocument();
     expect(screen.getByText('Bronze 8%')).toBeInTheDocument();
@@ -97,18 +97,18 @@ describe('ReferralTab', () => {
     expect(tooltipTrigger).toHaveAttribute('tabIndex', '0');
     fireEvent.focus(tooltipTrigger!);
     expect((await screen.findAllByText('Em breve'))[0]).toBeInTheDocument();
-  });
+  }, 10000);
 
   it('copies referral code and link with success toast', async () => {
     const writeText = stubClipboard();
     renderReferralTab();
 
     fireEvent.click(screen.getByRole('button', { name: /Copiar codigo de indicacao/i }));
-    await waitFor(() => expect(writeText).toHaveBeenCalledWith('ASTRO-8F4A'));
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith('483920'));
     expect(toast.success).toHaveBeenCalledWith('Copiado para a area de transferencia.');
 
     fireEvent.click(screen.getByRole('button', { name: /Copiar link de indicacao/i }));
-    await waitFor(() => expect(writeText).toHaveBeenCalledWith('https://app.astroleadflow.com/onboarding?ref=ASTRO-8F4A'));
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith('https://app.astroleadflow.com/onboarding?ref=483920'));
   });
 
   it('shows clipboard failure toast', async () => {

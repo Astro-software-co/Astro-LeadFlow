@@ -95,7 +95,7 @@ describe('authService', () => {
         id: 'u-1',
         name: 'Jane',
         email: 'jane@astro.com',
-        role: 'ADMIN',
+        role: 'MANAGER',
         status: 'ACTIVE',
         organizationId: null,
         twoFactorEmailEnabled: false,
@@ -117,8 +117,9 @@ describe('authService', () => {
       id: 'u-1',
       name: 'Jane',
       email: 'jane@astro.com',
-      role: 'ADMIN',
+      role: 'MANAGER',
       organizationId: 'unknown',
+      avatarUrl: null,
     });
   });
 

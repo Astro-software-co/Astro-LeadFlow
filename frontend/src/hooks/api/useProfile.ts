@@ -16,7 +16,7 @@ function profileFromAuth(
     email: user?.email ?? 'demo@astro.com',
     phoneNumber: null,
     avatarUrl: null,
-    role: (user?.role as UserProfileResponseDTO['role']) ?? 'ADMIN',
+    role: (user?.role as UserProfileResponseDTO['role']) ?? 'MANAGER',
     status: 'ACTIVE',
     organizationId: user?.organizationId ?? fallbackOrgId,
     organizationName: null,

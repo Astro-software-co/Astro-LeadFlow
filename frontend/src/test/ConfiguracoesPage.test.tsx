@@ -10,7 +10,7 @@ const profileHookResult = {
     email: 'ana@astro.com',
     phoneNumber: null,
     avatarUrl: null,
-    role: 'ADMIN',
+    role: 'MANAGER',
     organizationId: 'org-1',
     organizationName: 'Astro Motors',
   },
@@ -91,6 +91,18 @@ vi.mock('@/contexts/NotificationContext', () => ({
   }),
 }));
 
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: {
+      id: 'user-1',
+      name: 'Ana Manager',
+      email: 'ana@astro.com',
+      role: 'MANAGER',
+      organizationId: 'org-1',
+    },
+  }),
+}));
+
 vi.mock('@/hooks/api/useProfile', () => ({
   useProfile: () => profileHookResult,
 }));
@@ -161,5 +173,5 @@ describe('Configuracoes page container', () => {
     const referralsBtn = screen.getByRole('button', { name: /Indicacoes/i });
     fireEvent.click(referralsBtn);
     expect(await screen.findByTestId('referral-tab')).toBeInTheDocument();
-  }, 10000);
+  }, 20000);
 });

@@ -31,7 +31,8 @@ class OnboardingApprovalService(
     private val referralRepository: ReferralRelationshipRepository,
     private val passwordEncoder: PasswordEncoder,
     private val planRepository: PlanRepository,
-    private val subscriptionRepository: SubscriptionRepository
+    private val subscriptionRepository: SubscriptionRepository,
+    private val userReferralCodeService: com.astro.leadflow.shared.modules.iam.service.UserReferralCodeService
 ) {
 
     @Transactional
@@ -49,8 +50,7 @@ class OnboardingApprovalService(
             throw DuplicateResourceException("User", "email", application.ownerEmail)
         }
 
-        // 1. Create organization with unique referral code
-        val referralCode = generateUniqueReferralCode()
+        // 1. Create organization. Referral codes are user-scoped.
         val slug = generateSlug(application.companyName)
 
         val organization = organizationRepository.save(
@@ -58,22 +58,22 @@ class OnboardingApprovalService(
                 name = application.companyName,
                 slug = slug,
                 cnpj = application.cnpj,
-                referralCode = referralCode
             )
         )
 
-        // 2. Create owner user with ADMIN role and PENDING_VERIFICATION status
+        // 2. Create owner user with MANAGER role and PENDING_VERIFICATION status
         val tempPassword = UUID.randomUUID().toString().replace("-", "").take(16)
-        userRepository.save(
+        val manager = userRepository.save(
             User(
                 organization = organization,
                 name = application.ownerName,
                 email = application.ownerEmail,
                 passwordHash = passwordEncoder.encode(tempPassword),
-                role = Role.ADMIN,
+                role = Role.MANAGER,
                 status = UserStatus.PENDING_VERIFICATION
             )
         )
+        val referralCode = userReferralCodeService.ensureReferralCode(manager)
 
         // 3. Resolve plan and create SaaS subscription
         val plan = planRepository.findByCode(application.planCode)
@@ -84,7 +84,7 @@ class OnboardingApprovalService(
         // 4. Link referral relationship if submitted referral code resolves to an existing org
         val submittedReferralCode = application.referralCode
         if (!submittedReferralCode.isNullOrBlank()) {
-            organizationRepository.findByReferralCode(submittedReferralCode).ifPresent { referrerOrg ->
+            resolveReferrerOrganization(submittedReferralCode)?.let { referrerOrg ->
                 referralRepository.save(
                     ReferralRelationship(
                         referrerOrganization = referrerOrg,
@@ -132,12 +132,13 @@ class OnboardingApprovalService(
 
     // ── Helpers ──────────────────────────────────────────────────────────
 
-    private fun generateUniqueReferralCode(): String {
-        var code: String
-        do {
-            code = UUID.randomUUID().toString().replace("-", "").take(16).uppercase()
-        } while (organizationRepository.findByReferralCode(code).isPresent)
-        return code
+    private fun resolveReferrerOrganization(referralCode: String): Organization? {
+        val userReferrer = userRepository.findByReferralCode(referralCode).orElse(null)
+        if (userReferrer?.organization != null) {
+            return userReferrer.organization
+        }
+
+        return organizationRepository.findByReferralCode(referralCode).orElse(null)
     }
 
     private fun generateSlug(companyName: String): String {

@@ -49,7 +49,7 @@ class VehicleController(private val vehicleService: VehicleService) {
         ApiResponse(responseCode = "400", description = "Dados inválidos"),
         ApiResponse(responseCode = "403", description = "Sem permissão")
     )
-    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    @PreAuthorize("hasRole('MANAGER')")
     fun create(@Valid @RequestBody request: VehicleCreateRequest): VehicleResponse =
         vehicleService.create(request)
 
@@ -101,7 +101,7 @@ class VehicleController(private val vehicleService: VehicleService) {
         ApiResponse(responseCode = "404", description = "Veículo não encontrado"),
         ApiResponse(responseCode = "422", description = "Operação inválida — ex: desfazer venda")
     )
-    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    @PreAuthorize("hasRole('MANAGER')")
     fun update(
         @PathVariable id: UUID,
         @Valid @RequestBody request: VehicleUpdateRequest
@@ -114,7 +114,7 @@ class VehicleController(private val vehicleService: VehicleService) {
         ApiResponse(responseCode = "204", description = "Veículo removido"),
         ApiResponse(responseCode = "422", description = "Veículo reservado ou vendido não pode ser removido")
     )
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('MANAGER')")
     fun delete(@PathVariable id: UUID) = vehicleService.delete(id)
 
     @GetMapping("/summary")

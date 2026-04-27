@@ -86,7 +86,7 @@ describe('AuthContext', () => {
     expect(tokenStore.accessToken).toBe('mock-token');
   });
 
-  it('register sets VENDEDOR user in mock mode', async () => {
+  it('register sets MANAGER user in mock mode', async () => {
     const Wrapper = makeWrapper();
     render(
       <Wrapper>
@@ -131,7 +131,7 @@ describe('AuthContext', () => {
       id: 'u-1',
       name: 'Real User',
       email: 'real@astro.test',
-      role: 'ADMIN',
+      role: 'MANAGER',
       organizationId: 'org-real',
     });
 
@@ -177,7 +177,7 @@ describe('AuthContext', () => {
       id: 'u-2',
       name: 'API User',
       email: 'api@astro.test',
-      role: 'ADMIN',
+      role: 'MANAGER',
       organizationId: 'org-api',
     });
 
@@ -208,7 +208,7 @@ describe('AuthContext', () => {
       id: 'u-3',
       name: 'Novo Admin',
       email: 'novo@astro.test',
-      role: 'ADMIN',
+      role: 'MANAGER',
       organizationId: 'org-new',
     });
 
@@ -246,7 +246,7 @@ describe('AuthContext', () => {
       id: 'u-4',
       name: 'Logout User',
       email: 'logout@astro.test',
-      role: 'ADMIN',
+      role: 'MANAGER',
       organizationId: 'org-logout',
     });
     vi.mocked(authService.logout).mockResolvedValueOnce(undefined);
@@ -279,7 +279,7 @@ describe('AuthContext', () => {
       id: 'u-5',
       name: 'Restored User',
       email: 'restored@astro.test',
-      role: 'ADMIN',
+      role: 'MANAGER',
       organizationId: 'org-restored',
     });
 

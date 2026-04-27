@@ -11,10 +11,13 @@ import { AuthGuard } from '@/components/layout/AuthGuard';
 import { RoleGate } from '@/components/layout/RoleGate';
 import { LandingLayout } from '@/components/landing/LandingLayout';
 import { AppLayout } from '@/components/layout/AppLayout';
+import { AdminLayout } from '@/components/layout/AdminLayout';
 import LandingPage from '@/pages/LandingPage';
 import NotFound from './pages/NotFound';
 import { ErrorBoundary } from '@/components/layout/ErrorBoundary';
 import { Loader2 } from 'lucide-react';
+import { getHomePathForRole } from '@/lib/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Onboarding = lazy(() => import('@/pages/Onboarding'));
 const AdminOnboarding = lazy(() => import('@/pages/admin/AdminOnboarding'));
@@ -35,6 +38,11 @@ const PageLoader = () => (
     <Loader2 className="h-8 w-8 animate-spin text-primary" />
   </div>
 );
+
+const HomeRedirect = () => {
+  const { user } = useAuth();
+  return <Navigate to={getHomePathForRole(user?.role)} replace />;
+};
 
 const App = () => (
   <HelmetProvider>
@@ -59,8 +67,15 @@ const App = () => (
                       }
                     />
                     <Route element={<AuthGuard />}>
-                      <Route path="/app" element={<AppLayout />}>
-                        <Route index element={<Navigate to="/app/dashboard" replace />} />
+                      <Route
+                        path="/app"
+                        element={
+                          <RoleGate allowedRoles={['MANAGER', 'SELLER']} fallback={<Navigate to="/admin/onboarding" replace />}>
+                            <AppLayout />
+                          </RoleGate>
+                        }
+                      >
+                        <Route index element={<HomeRedirect />} />
                         <Route
                           path="dashboard"
                           element={
@@ -113,7 +128,7 @@ const App = () => (
                           path="configuracoes"
                           element={
                             <Suspense fallback={<PageLoader />}>
-                              <RoleGate allowedRoles={['ADMIN', 'MANAGER']}>
+                              <RoleGate allowedRoles={['MANAGER', 'SELLER']}>
                                 <Configuracoes />
                               </RoleGate>
                             </Suspense>
@@ -123,25 +138,31 @@ const App = () => (
                     </Route>
                     <Route element={<AuthGuard />}>
                       <Route
-                        path="/admin/dashboard"
+                        path="/admin"
                         element={
-                          <Suspense fallback={<PageLoader />}>
-                            <RoleGate allowedRoles={['ASTRO_ADMIN']}>
+                          <RoleGate allowedRoles={['ASTRO_ADMIN']} fallback={<Navigate to="/app/dashboard" replace />}>
+                            <AdminLayout />
+                          </RoleGate>
+                        }
+                      >
+                        <Route index element={<Navigate to="/admin/onboarding" replace />} />
+                        <Route
+                          path="dashboard"
+                          element={
+                            <Suspense fallback={<PageLoader />}>
                               <AdminDashboard />
-                            </RoleGate>
-                          </Suspense>
-                        }
-                      />
-                      <Route
-                        path="/admin/onboarding"
-                        element={
-                          <Suspense fallback={<PageLoader />}>
-                            <RoleGate allowedRoles={['ASTRO_ADMIN']}>
+                            </Suspense>
+                          }
+                        />
+                        <Route
+                          path="onboarding"
+                          element={
+                            <Suspense fallback={<PageLoader />}>
                               <AdminOnboarding />
-                            </RoleGate>
-                          </Suspense>
-                        }
-                      />
+                            </Suspense>
+                          }
+                        />
+                      </Route>
                     </Route>
                     <Route
                       path="/app/login"

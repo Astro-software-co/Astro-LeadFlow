@@ -9,7 +9,7 @@ function buildConfig(): InternalAxiosRequestConfig {
 }
 
 async function runRequestInterceptor(config: InternalAxiosRequestConfig) {
-  const interceptor = api.interceptors.request.handlers[0];
+  const interceptor = api.interceptors.request.handlers?.[0];
   if (!interceptor?.fulfilled) {
     throw new Error('Request interceptor not configured');
   }

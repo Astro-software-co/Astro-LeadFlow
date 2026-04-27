@@ -5,6 +5,7 @@ import {
   RegisterOrganizationRequestDTO,
   UserProfileResponseDTO,
 } from '@/types/api/auth';
+import type { UserRole } from '@/lib/rbac';
 
 export interface LoginRequest {
   email: string;
@@ -24,14 +25,13 @@ export interface AuthResponse {
   pendingTwoFactor: boolean;
 }
 
-export type UserRole = 'ADMIN' | 'MANAGER' | 'SELLER' | 'ASTRO_ADMIN' | 'SUPER_ADMIN';
-
 export interface UserProfile {
   id: string;
   name: string;
   email: string;
   role: UserRole | string;
   organizationId: string;
+  avatarUrl?: string | null;
 }
 
 function mapTokenResponse(dto: AuthResponseDTO): AuthResponse {
@@ -52,6 +52,7 @@ function mapUserProfile(dto: UserProfileResponseDTO): UserProfile {
     email: dto.email,
     role: dto.role,
     organizationId: dto.organizationId ?? 'unknown',
+    avatarUrl: dto.avatarUrl ?? null,
   };
 }
 

@@ -2,6 +2,8 @@ package com.astro.leadflow.shared.modules.referrals.service
 
 import com.astro.leadflow.shared.modules.iam.domain.Organization
 import com.astro.leadflow.shared.modules.iam.domain.OrganizationRepository
+import com.astro.leadflow.shared.modules.iam.domain.UserRepository
+import com.astro.leadflow.shared.modules.iam.service.UserReferralCodeService
 import com.astro.leadflow.shared.modules.referrals.domain.CommissionRecord
 import com.astro.leadflow.shared.modules.referrals.domain.CommissionRecordRepository
 import com.astro.leadflow.shared.modules.referrals.domain.ReferralRelationship
@@ -28,6 +30,8 @@ class ReferralServiceTest {
     private lateinit var referralRepository: ReferralRelationshipRepository
     private lateinit var commissionRepository: CommissionRecordRepository
     private lateinit var organizationRepository: OrganizationRepository
+    private lateinit var userRepository: UserRepository
+    private lateinit var userReferralCodeService: UserReferralCodeService
     private lateinit var service: ReferralService
 
     private val orgId = UUID.randomUUID()
@@ -57,7 +61,15 @@ class ReferralServiceTest {
         referralRepository = mockk()
         commissionRepository = mockk()
         organizationRepository = mockk()
-        service = ReferralService(referralRepository, commissionRepository, organizationRepository)
+        userRepository = mockk(relaxed = true)
+        userReferralCodeService = mockk(relaxed = true)
+        service = ReferralService(
+            referralRepository,
+            commissionRepository,
+            organizationRepository,
+            userRepository,
+            userReferralCodeService
+        )
     }
 
     // ── Tier thresholds ───────────────────────────────────────────────────

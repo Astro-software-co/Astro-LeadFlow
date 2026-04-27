@@ -263,7 +263,7 @@ export default function VehicleDetail() {
               </AlertDialogContent>
             </AlertDialog>
 
-            <RoleGate allowedRoles={['ADMIN']} fallback={<></>}>
+            <RoleGate allowedRoles={['MANAGER']} fallback={<></>}>
               <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                 <AlertDialogTrigger asChild>
                   <Button variant="outline" className="text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/30" disabled={deleteVehicle.isPending}>
@@ -470,7 +470,7 @@ export default function VehicleDetail() {
           <p className="text-sm font-medium text-muted-foreground">Preco de venda</p>
           <p className="mt-1 text-3xl font-bold text-foreground">{formatCurrency(vehicle.preco)}</p>
 
-          <RoleGate allowedRoles={['MANAGER', 'ADMIN']} fallback={<></>}>
+          <RoleGate allowedRoles={['MANAGER']} fallback={<></>}>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <div className="rounded-lg border bg-muted/20 p-4">
                 <p className="text-xs text-muted-foreground">Custo</p>

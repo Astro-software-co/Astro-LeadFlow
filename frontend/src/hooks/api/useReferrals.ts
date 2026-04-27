@@ -6,8 +6,8 @@ import type { ReferralSettingsDTO } from '@/types/api/referrals';
 const useMocks = import.meta.env.VITE_USE_MOCKS === 'true';
 
 export const mockReferralSettings: ReferralSettingsDTO = {
-  code: 'ASTRO-8F4A',
-  referralLink: 'https://app.astroleadflow.com/onboarding?ref=ASTRO-8F4A',
+  code: '483920',
+  referralLink: 'https://app.astroleadflow.com/onboarding?ref=483920',
   approvedCount: 8,
   pendingCount: 2,
   currentTier: 'BRONZE',

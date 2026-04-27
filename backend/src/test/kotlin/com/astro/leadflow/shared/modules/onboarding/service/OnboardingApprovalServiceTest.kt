@@ -9,6 +9,7 @@ import com.astro.leadflow.shared.modules.iam.domain.Role
 import com.astro.leadflow.shared.modules.iam.domain.User
 import com.astro.leadflow.shared.modules.iam.domain.UserRepository
 import com.astro.leadflow.shared.modules.iam.domain.UserStatus
+import com.astro.leadflow.shared.modules.iam.service.UserReferralCodeService
 import com.astro.leadflow.shared.modules.onboarding.domain.OnboardingApplication
 import com.astro.leadflow.shared.modules.onboarding.domain.OnboardingApplicationRepository
 import com.astro.leadflow.shared.modules.onboarding.domain.OnboardingStatus
@@ -42,6 +43,7 @@ class OnboardingApprovalServiceTest {
     private lateinit var passwordEncoder: PasswordEncoder
     private lateinit var planRepository: PlanRepository
     private lateinit var subscriptionRepository: SubscriptionRepository
+    private lateinit var userReferralCodeService: UserReferralCodeService
     private lateinit var service: OnboardingApprovalService
 
     private val applicationId = UUID.randomUUID()
@@ -86,6 +88,7 @@ class OnboardingApprovalServiceTest {
         passwordEncoder = mockk()
         planRepository = mockk()
         subscriptionRepository = mockk()
+        userReferralCodeService = mockk()
 
         service = OnboardingApprovalService(
             onboardingRepository,
@@ -94,13 +97,15 @@ class OnboardingApprovalServiceTest {
             referralRepository,
             passwordEncoder,
             planRepository,
-            subscriptionRepository
+            subscriptionRepository,
+            userReferralCodeService
         )
     }
 
     private fun stubHappyPath(application: OnboardingApplication, hasReferrer: Boolean = false) {
         every { onboardingRepository.findById(applicationId) } returns Optional.of(application)
         every { userRepository.existsByEmail(application.ownerEmail) } returns false
+        every { userRepository.findByReferralCode(any()) } returns Optional.empty()
         every { organizationRepository.findByReferralCode(any()) } returns Optional.empty()
         if (hasReferrer) {
             every { organizationRepository.findByReferralCode(referrerCode) } returns Optional.of(referrerOrg)
@@ -112,6 +117,7 @@ class OnboardingApprovalServiceTest {
         every { referralRepository.save(any()) } answers { firstArg() }
         every { onboardingRepository.save(any()) } answers { firstArg() }
         every { passwordEncoder.encode(any()) } returns "hashed-password"
+        every { userReferralCodeService.ensureReferralCode(any()) } returns "483920"
     }
 
     // ── approve ──────────────────────────────────────────────────────────
@@ -130,19 +136,18 @@ class OnboardingApprovalServiceTest {
 
         val userSlot = slot<User>()
         verify { userRepository.save(capture(userSlot)) }
-        assertEquals(Role.ADMIN, userSlot.captured.role)
+        assertEquals(Role.MANAGER, userSlot.captured.role)
         assertEquals(UserStatus.PENDING_VERIFICATION, userSlot.captured.status)
     }
 
     @Test
-    fun `approve generates unique referral code on the organization`() {
+    fun `approve returns owner user referral code`() {
         val application = pendingApplication()
         stubHappyPath(application)
 
         val response = service.approve(applicationId)
 
-        assertNotNull(response.referralCode, "referralCode must not be null on approve response")
-        assert(response.referralCode.isNotBlank()) { "referralCode must not be blank" }
+        assertEquals("483920", response.referralCode)
     }
 
     @Test
@@ -168,6 +173,7 @@ class OnboardingApprovalServiceTest {
         every { userRepository.save(any()) } answers { firstArg() }
         every { planRepository.findByCode("BASICO_MONTHLY") } returns Optional.empty()
         every { passwordEncoder.encode(any()) } returns "hashed-password"
+        every { userReferralCodeService.ensureReferralCode(any()) } returns "483920"
 
         assertThrows<BusinessException> {
             service.approve(applicationId)

@@ -55,7 +55,7 @@ class SecurityConfig(
 
                     // ── Actuator (health público, demais restritos) ─
                     .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
-                    .requestMatchers("/actuator/**").hasRole("SUPER_ADMIN")
+                    .requestMatchers("/actuator/**").hasRole("ASTRO_ADMIN")
 
                     // ── Admin Astro (onboarding + finance dashboard + referral summary)
                     .requestMatchers("/api/v1/admin/**").hasRole("ASTRO_ADMIN")
@@ -64,6 +64,12 @@ class SecurityConfig(
                     // ── Referral dealership endpoints ──────────────
                     .requestMatchers("/api/referral/**").hasRole("DEALERSHIP")
                     .requestMatchers("/api/v1/referral/**").hasRole("DEALERSHIP")
+
+                    // ── Perfil do usuario autenticado ──────────────
+                    .requestMatchers(
+                        "/api/v1/users/me",
+                        "/api/v1/users/me/**"
+                    ).authenticated()
 
                     // ── APIs de concessionária ─────────────────────
                     .requestMatchers(
@@ -79,7 +85,7 @@ class SecurityConfig(
 
                     // ── Operações restritas ────────────────────────
                     .requestMatchers(HttpMethod.DELETE, "/**")
-                    .hasAnyRole("ADMIN", "SUPER_ADMIN")
+                    .hasRole("MANAGER")
 
                     // ── Tudo mais requer autenticação ──────────────
                     .anyRequest().authenticated()

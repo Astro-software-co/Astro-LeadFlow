@@ -71,7 +71,7 @@ class AbacatePaySubscriptionServiceTest {
         email = "admin@astro.test",
         passwordHash = "hash",
         phoneNumber = "(11) 99999-0000",
-        role = Role.ADMIN,
+        role = Role.MANAGER,
     )
     private val subscription = Subscription(
         organization = organization,

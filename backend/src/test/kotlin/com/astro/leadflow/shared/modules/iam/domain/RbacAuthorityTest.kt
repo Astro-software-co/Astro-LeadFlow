@@ -1,5 +1,6 @@
 package com.astro.leadflow.shared.modules.iam.domain
 
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -14,14 +15,6 @@ class RbacAuthorityTest {
         passwordHash = "hash",
         role = role,
     )
-
-    @Test
-    fun `ADMIN user should have ROLE_ADMIN and ROLE_DEALERSHIP`() {
-        val user = makeUser(Role.ADMIN)
-        val authorities = user.getAuthorities().map { it.authority }
-        assertTrue(authorities.contains("ROLE_ADMIN"), "Expected ROLE_ADMIN")
-        assertTrue(authorities.contains("ROLE_DEALERSHIP"), "Expected ROLE_DEALERSHIP for ADMIN")
-    }
 
     @Test
     fun `MANAGER user should have ROLE_MANAGER and ROLE_DEALERSHIP`() {
@@ -48,16 +41,8 @@ class RbacAuthorityTest {
     }
 
     @Test
-    fun `SUPER_ADMIN user should have ROLE_SUPER_ADMIN and not ROLE_DEALERSHIP`() {
-        val user = makeUser(Role.SUPER_ADMIN)
-        val authorities = user.getAuthorities().map { it.authority }
-        assertTrue(authorities.contains("ROLE_SUPER_ADMIN"), "Expected ROLE_SUPER_ADMIN")
-        assertFalse(authorities.contains("ROLE_DEALERSHIP"), "SUPER_ADMIN should not have ROLE_DEALERSHIP")
-    }
-
-    @Test
-    fun `Role enum contains ASTRO_ADMIN`() {
+    fun `Role enum contains only supported roles`() {
         val roleNames = Role.entries.map { it.name }
-        assertTrue(roleNames.contains("ASTRO_ADMIN"), "Role enum must contain ASTRO_ADMIN")
+        assertEquals(listOf("ASTRO_ADMIN", "MANAGER", "SELLER"), roleNames)
     }
 }

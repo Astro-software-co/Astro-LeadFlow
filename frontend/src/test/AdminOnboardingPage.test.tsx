@@ -15,7 +15,6 @@ import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import React from 'react';
 
 // ── Mock toast ──────────────────────────────────────────────────────────────
 vi.mock('sonner', () => ({ toast: Object.assign(vi.fn(), { success: vi.fn(), error: vi.fn() }) }));
@@ -57,9 +56,13 @@ vi.mock('@/hooks/api/useAdminOnboarding', () => ({
 // ── Mock useAuth ────────────────────────────────────────────────────────────
 vi.mock('@/contexts/AuthContext', () => ({
   useAuth: vi.fn(() => ({
-    user: { id: 'user-1', name: 'Astro Admin', email: 'admin@astro.com', role: 'ASTRO_ADMIN' },
+    user: { id: 'user-1', name: 'Astro Admin', email: 'admin@astro.com', role: 'ASTRO_ADMIN', organizationId: 'platform' },
     isAuthenticated: true,
     isLoading: false,
+    login: vi.fn(),
+    register: vi.fn(),
+    refreshUser: vi.fn(),
+    logout: vi.fn(),
   })),
 }));
 
@@ -86,11 +89,12 @@ function renderAdmin() {
 
 function renderAdminWithRoleGate(role = 'ASTRO_ADMIN') {
   vi.mocked(useAuth).mockReturnValue({
-    user: { id: 'user-1', name: 'Test User', email: 'test@example.com', role },
+    user: { id: 'user-1', name: 'Test User', email: 'test@example.com', role, organizationId: 'platform' },
     isAuthenticated: true,
     isLoading: false,
     login: vi.fn(),
     register: vi.fn(),
+    refreshUser: vi.fn(),
     logout: vi.fn(),
   });
 
@@ -123,7 +127,7 @@ describe('AdminOnboardingPage', () => {
 
   // ── 1. Route protection — non-Astro role ──────────────────────────────────
   it('shows access-restricted fallback for non-ASTRO_ADMIN role', () => {
-    renderAdminWithRoleGate('ADMIN');
+    renderAdminWithRoleGate('MANAGER');
     expect(screen.getByText(/acesso restrito/i)).toBeInTheDocument();
     expect(screen.queryByText(/onboarding/i)).not.toBeInTheDocument();
   });

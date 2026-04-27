@@ -20,6 +20,7 @@ export interface SettingsTeamMember {
   email: string;
   avatarUrl?: string | null;
   role: string;
+  status: string;
 }
 
 export type BillingHistoryStatus = 'PAID' | 'PENDING' | 'FAILED';

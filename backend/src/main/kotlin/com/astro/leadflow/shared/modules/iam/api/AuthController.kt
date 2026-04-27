@@ -33,7 +33,7 @@ class AuthController(
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(
         summary = "Registra nova organização",
-        description = "Cria a organização e o usuário ADMIN. Retorna tokens JWT."
+        description = "Cria a organização e o usuário MANAGER. Retorna tokens JWT."
     )
     @ApiResponses(
         ApiResponse(responseCode = "201", description = "Organização criada com sucesso"),

@@ -38,7 +38,7 @@ function NotificationConsumer() {
 
 describe("NotificationContext", () => {
   beforeEach(() => {
-    vi.spyOn(globalThis.crypto, "randomUUID").mockReturnValue("mock-notification-id");
+    vi.spyOn(globalThis.crypto, "randomUUID").mockReturnValue("00000000-0000-4000-8000-000000000000");
   });
 
   it("starts with seeded notifications and unread count", () => {

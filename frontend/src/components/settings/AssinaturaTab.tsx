@@ -18,6 +18,13 @@ import {
   usageProgressClass,
 } from './settings.helpers';
 
+function checkoutErrorMessage(error: unknown): string {
+  const responseMessage = (error as { response?: { data?: { message?: string; error?: string } } }).response?.data;
+  return responseMessage?.message
+    ?? responseMessage?.error
+    ?? (error instanceof Error ? error.message : 'Nao foi possivel iniciar o checkout da assinatura.');
+}
+
 function AssinaturaContent() {
   const { data: subscription, isLoading: subLoading, error: subError, refetch: subRefetch } = useSubscription();
   const { data: usage, isLoading: usageLoading, error: usageError, refetch: usageRefetch } = useUsage();
@@ -65,8 +72,8 @@ function AssinaturaContent() {
         completionUrl: baseUrl,
       });
       window.location.assign(checkout.checkoutUrl);
-    } catch {
-      toast.error('Nao foi possivel iniciar o checkout da assinatura.');
+    } catch (error) {
+      toast.error(checkoutErrorMessage(error));
     } finally {
       setCheckoutPlanId(null);
     }
@@ -120,7 +127,7 @@ function AssinaturaContent() {
             </div>
             <div className="flex flex-col gap-2">
               {subscription?.checkoutUrl ? (
-                <Button variant="default" size="sm" onClick={() => window.location.assign(subscription.checkoutUrl)}>
+                <Button variant="default" size="sm" onClick={() => window.location.assign(subscription.checkoutUrl ?? '')}>
                   Concluir pagamento
                 </Button>
               ) : (
@@ -268,11 +275,11 @@ function AssinaturaContent() {
 export function AssinaturaTab() {
   return (
     <RoleGate
-      allowedRoles={['ADMIN']}
+      allowedRoles={['MANAGER']}
       fallback={
         <div className="flex flex-col items-center justify-center gap-3 py-16 text-center animate-fade-in">
           <PackageCheck className="h-12 w-12 text-muted-foreground/30" />
-          <p className="text-sm text-muted-foreground">Apenas administradores podem ver as informacoes de assinatura.</p>
+          <p className="text-sm text-muted-foreground">Apenas managers podem ver as informacoes de assinatura.</p>
         </div>
       }
     >

@@ -30,9 +30,9 @@ class OrganizationController(
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "Organização atualizada"),
         ApiResponse(responseCode = "400", description = "Dados inválidos"),
-        ApiResponse(responseCode = "403", description = "Apenas ADMIN pode alterar a organização")
+        ApiResponse(responseCode = "403", description = "Apenas MANAGER pode alterar a organização")
     )
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('MANAGER')")
     fun update(@Valid @RequestBody request: UpdateOrganizationRequest): OrganizationResponse =
         organizationService.update(request)
 
@@ -43,9 +43,9 @@ class OrganizationController(
     )
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "Credenciais atualizadas"),
-        ApiResponse(responseCode = "403", description = "Apenas ADMIN pode alterar credenciais")
+        ApiResponse(responseCode = "403", description = "Apenas MANAGER pode alterar credenciais")
     )
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('MANAGER')")
     fun updateWhatsapp(
         @Valid @RequestBody request: UpdateWhatsappCredentialsRequest
     ): OrganizationResponse =

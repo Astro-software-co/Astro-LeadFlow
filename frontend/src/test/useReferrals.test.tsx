@@ -19,7 +19,7 @@ vi.mock('@/contexts/AuthContext', () => ({
       id: 'user-1',
       name: 'Ana Admin',
       email: 'ana@astro.com',
-      role: 'ADMIN',
+      role: 'MANAGER',
       organizationId: 'org-1',
     },
   }),
@@ -48,8 +48,8 @@ describe('useReferrals', () => {
 
   it('composes referral settings data from prompt endpoints', async () => {
     vi.mocked(referralsService.getMyCode).mockResolvedValueOnce({
-      code: 'ASTRO-1234',
-      referralLink: 'https://app.astroleadflow.com/onboarding?ref=ASTRO-1234',
+      code: '483920',
+      referralLink: 'https://app.astroleadflow.com/onboarding?ref=483920',
       approvedCount: 3,
       pendingCount: 1,
       currentTier: 'BRONZE',
@@ -83,7 +83,7 @@ describe('useReferrals', () => {
     expect(referralsService.getMyReferrals).toHaveBeenCalledTimes(1);
     expect(referralsService.getMyBalance).toHaveBeenCalledTimes(1);
     expect(result.current.data).toMatchObject({
-      code: 'ASTRO-1234',
+      code: '483920',
       approvedCount: 3,
       balanceBrl: 23.92,
       pendingBrl: 12,
@@ -102,7 +102,7 @@ describe('useReferrals', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(result.current.data?.code).toBe('ASTRO-8F4A');
+    expect(result.current.data?.code).toBe('483920');
     expect(result.current.data?.approvedCount).toBe(8);
     expect(result.current.data?.nextTierThreshold).toBe(10);
     expect(referralsService.getMyCode).not.toHaveBeenCalled();

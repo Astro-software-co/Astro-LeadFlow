@@ -36,6 +36,9 @@ class User(
     @Column(nullable = false)
     var role: Role = Role.SELLER,
 
+    @Column(name = "referral_code", length = 6, unique = true)
+    var referralCode: String? = null,
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     var status: UserStatus = UserStatus.ACTIVE,
@@ -83,12 +86,10 @@ class User(
     override fun getAuthorities(): Collection<GrantedAuthority> {
         val base = SimpleGrantedAuthority("ROLE_${role.name}")
         return when (role) {
-            Role.ADMIN, Role.MANAGER, Role.SELLER ->
+            Role.MANAGER, Role.SELLER ->
                 listOf(base, SimpleGrantedAuthority("ROLE_DEALERSHIP"))
             Role.ASTRO_ADMIN ->
                 listOf(SimpleGrantedAuthority("ROLE_ASTRO_ADMIN"))
-            Role.SUPER_ADMIN ->
-                listOf(SimpleGrantedAuthority("ROLE_SUPER_ADMIN"))
         }
     }
 

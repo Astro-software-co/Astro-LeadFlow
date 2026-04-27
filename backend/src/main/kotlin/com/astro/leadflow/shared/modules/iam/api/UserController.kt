@@ -3,12 +3,13 @@ package com.astro.leadflow.shared.modules.iam.api
 import com.astro.leadflow.shared.modules.iam.api.requests.ChangePasswordRequest
 import com.astro.leadflow.shared.modules.iam.api.requests.CreateUserRequest
 import com.astro.leadflow.shared.modules.iam.api.requests.UpdateNotificationsRequest
+import com.astro.leadflow.shared.modules.iam.api.requests.UpdateTeamUserRequest
 import com.astro.leadflow.shared.modules.iam.api.requests.UpdateTwoFactorRequest
 import com.astro.leadflow.shared.modules.iam.api.requests.UpdateUserRequest
 import com.astro.leadflow.shared.modules.iam.api.requests.UpdateUserRoleRequest
 import com.astro.leadflow.shared.modules.iam.api.responses.AssignableUserResponse
 import com.astro.leadflow.shared.modules.iam.api.responses.UserResponse
-import com.astro.leadflow.shared.modules.crm.api.responses.UserSummaryResponse
+import com.astro.leadflow.shared.modules.iam.api.responses.UserSummaryResponse
 import com.astro.leadflow.shared.modules.iam.service.UserService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -72,7 +73,7 @@ class UserController(private val userService: UserService) {
     @GetMapping
     @Operation(summary = "Lista usuários da organização")
     @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
-    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    @PreAuthorize("hasRole('MANAGER')")
     fun listUsers(): List<UserSummaryResponse> =
         userService.listOrganizationUsers()
 
@@ -88,7 +89,7 @@ class UserController(private val userService: UserService) {
         ApiResponse(responseCode = "200", description = "Usuário encontrado"),
         ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     )
-    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    @PreAuthorize("hasRole('MANAGER')")
     fun findById(
         @Parameter(description = "ID do usuário") @PathVariable id: UUID
     ): UserResponse = userService.findById(id)
@@ -103,9 +104,21 @@ class UserController(private val userService: UserService) {
         ApiResponse(responseCode = "201", description = "Usuário criado com sucesso"),
         ApiResponse(responseCode = "409", description = "E-mail já cadastrado")
     )
-    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    @PreAuthorize("hasRole('MANAGER')")
     fun invite(@Valid @RequestBody request: CreateUserRequest): UserResponse =
         userService.inviteUser(request)
+
+    @PatchMapping("/{id}")
+    @Operation(summary = "Atualiza dados de um seller da organização")
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "Usuário atualizado com sucesso"),
+        ApiResponse(responseCode = "403", description = "Sem permissão para esta operação")
+    )
+    @PreAuthorize("hasRole('MANAGER')")
+    fun updateTeamUser(
+        @PathVariable id: UUID,
+        @Valid @RequestBody request: UpdateTeamUserRequest
+    ): UserResponse = userService.updateTeamUser(id, request)
 
     @PatchMapping("/{id}/role")
     @Operation(summary = "Altera role de um usuário")
@@ -113,7 +126,7 @@ class UserController(private val userService: UserService) {
         ApiResponse(responseCode = "200", description = "Role alterada com sucesso"),
         ApiResponse(responseCode = "403", description = "Sem permissão para esta operação")
     )
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('MANAGER')")
     fun updateRole(
         @PathVariable id: UUID,
         @Valid @RequestBody request: UpdateUserRoleRequest
@@ -125,7 +138,7 @@ class UserController(private val userService: UserService) {
         ApiResponse(responseCode = "200", description = "Usuário suspenso com sucesso"),
         ApiResponse(responseCode = "422", description = "Usuário já suspenso")
     )
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('MANAGER')")
     fun suspend(@PathVariable id: UUID): UserResponse =
         userService.suspendUser(id)
 
@@ -135,7 +148,7 @@ class UserController(private val userService: UserService) {
         ApiResponse(responseCode = "200", description = "Usuário reativado com sucesso"),
         ApiResponse(responseCode = "422", description = "Usuário já está ativo")
     )
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('MANAGER')")
     fun reactivate(@PathVariable id: UUID): UserResponse =
         userService.reactivateUser(id)
 
@@ -146,7 +159,7 @@ class UserController(private val userService: UserService) {
         ApiResponse(responseCode = "204", description = "Usuário removido com sucesso"),
         ApiResponse(responseCode = "422", description = "Não é possível remover a própria conta")
     )
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('MANAGER')")
     fun delete(@PathVariable id: UUID) =
         userService.deleteUser(id)
 }

@@ -16,10 +16,16 @@ import {
   YAxis,
 } from 'recharts';
 import type { ReactNode } from 'react';
-import { AlertCircle, RefreshCw, TrendingUp } from 'lucide-react';
+import { AlertCircle, Info, RefreshCw, TrendingUp } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import {
   Table,
   TableBody,
@@ -50,12 +56,22 @@ function date(value: string | null): string {
   return new Date(value).toLocaleDateString('pt-BR');
 }
 
-function MetricCard({ label, value }: { label: string; value: string }) {
+function MetricCard({ label, value, description }: { label: string; value: string; description: string }) {
   return (
-    <div className="rounded-lg border bg-card p-4">
-      <p className="text-xs font-medium text-muted-foreground">{label}</p>
-      <p className="mt-2 text-2xl font-semibold">{value}</p>
-    </div>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div className="rounded-lg border bg-card p-4 outline-none transition-colors hover:border-primary/40 focus-visible:ring-2 focus-visible:ring-ring" tabIndex={0}>
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-medium text-muted-foreground">{label}</p>
+            <Info className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+          </div>
+          <p className="mt-2 text-2xl font-semibold">{value}</p>
+        </div>
+      </TooltipTrigger>
+      <TooltipContent className="max-w-64 text-xs leading-relaxed">
+        {description}
+      </TooltipContent>
+    </Tooltip>
   );
 }
 
@@ -184,12 +200,36 @@ function DashboardContent({ data }: { data: AdminDashboardDTO }) {
       </div>
 
       <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6">
-        <MetricCard label="MRR atual" value={money(data.metrics.mrrAtual)} />
-        <MetricCard label="Receita do mes" value={money(data.metrics.receitaDoMes)} />
-        <MetricCard label="Assinaturas ativas" value={String(data.metrics.assinaturasAtivas)} />
-        <MetricCard label="Churn mensal" value={percent(data.metrics.churnMensal)} />
-        <MetricCard label="ARPA" value={money(data.metrics.arpa)} />
-        <MetricCard label="Projecao 12m" value={money(data.metrics.projecao12m)} />
+        <MetricCard
+          label="MRR atual"
+          value={money(data.metrics.mrrAtual)}
+          description="Receita recorrente mensal estimada a partir das assinaturas ativas."
+        />
+        <MetricCard
+          label="Receita do mes"
+          value={money(data.metrics.receitaDoMes)}
+          description="Total faturado no mes corrente considerando pagamentos confirmados."
+        />
+        <MetricCard
+          label="Assinaturas ativas"
+          value={String(data.metrics.assinaturasAtivas)}
+          description="Quantidade de organizações com assinatura ativa no LeadFlow."
+        />
+        <MetricCard
+          label="Churn mensal"
+          value={percent(data.metrics.churnMensal)}
+          description="Percentual de assinaturas canceladas no mes em relacao a base ativa."
+        />
+        <MetricCard
+          label="ARPA"
+          value={money(data.metrics.arpa)}
+          description="Receita media por conta ativa. Ajuda a acompanhar expansao, upgrades e mix de planos."
+        />
+        <MetricCard
+          label="Projecao 12m"
+          value={money(data.metrics.projecao12m)}
+          description="Estimativa de receita recorrente mensal em 12 meses com base no ritmo atual de crescimento."
+        />
       </div>
 
       <div className="flex flex-wrap gap-2 text-xs">
@@ -279,14 +319,16 @@ export default function AdminDashboard() {
   const { data, isLoading, isError, refetch } = useAdminDashboard();
 
   return (
-    <main className="container mx-auto max-w-7xl px-4 py-6">
-      {isLoading ? (
-        <LoadingState />
-      ) : isError || !data ? (
-        <ErrorState onRetry={() => refetch()} />
-      ) : (
-        <DashboardContent data={data} />
-      )}
-    </main>
+    <TooltipProvider>
+      <main className="container mx-auto max-w-7xl px-4 py-6">
+        {isLoading ? (
+          <LoadingState />
+        ) : isError || !data ? (
+          <ErrorState onRetry={() => refetch()} />
+        ) : (
+          <DashboardContent data={data} />
+        )}
+      </main>
+    </TooltipProvider>
   );
 }

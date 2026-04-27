@@ -1,6 +1,9 @@
 package com.astro.leadflow.shared.modules.referrals.service
 
 import com.astro.leadflow.shared.modules.iam.domain.OrganizationRepository
+import com.astro.leadflow.shared.modules.iam.domain.Role
+import com.astro.leadflow.shared.modules.iam.domain.UserRepository
+import com.astro.leadflow.shared.modules.iam.service.UserReferralCodeService
 import com.astro.leadflow.shared.modules.referrals.api.responses.AdminReferralSummaryResponse
 import com.astro.leadflow.shared.modules.referrals.api.responses.ReferralBalanceResponse
 import com.astro.leadflow.shared.modules.referrals.api.responses.ReferralSummaryResponse
@@ -38,7 +41,9 @@ enum class ReferralTier(val rate: BigDecimal, val nextThreshold: Int) {
 class ReferralService(
     private val referralRepository: ReferralRelationshipRepository,
     private val commissionRepository: CommissionRecordRepository,
-    private val organizationRepository: OrganizationRepository
+    private val organizationRepository: OrganizationRepository,
+    private val userRepository: UserRepository,
+    private val userReferralCodeService: UserReferralCodeService
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -54,11 +59,13 @@ class ReferralService(
     fun listReferrals(organizationId: UUID): List<ReferralRelationship> =
         referralRepository.findAllByReferrerOrganizationId(organizationId)
 
-    @Transactional(readOnly = true)
-    fun getSummary(organizationId: UUID): ReferralSummaryResponse {
-        val org = organizationRepository.findById(organizationId)
+    @Transactional
+    fun getSummary(userId: UUID, organizationId: UUID): ReferralSummaryResponse {
+        organizationRepository.findById(organizationId)
             .orElseThrow { IllegalStateException("Organization not found") }
-        val code = org.referralCode ?: ""
+        val user = userRepository.findById(userId)
+            .orElseThrow { IllegalStateException("User not found") }
+        val code = userReferralCodeService.ensureReferralCode(user)
         val referrals = referralRepository.findAllByReferrerOrganizationId(organizationId)
         val approvedCount = referrals.count { it.status == ReferralStatus.APPROVED }.toLong()
         val tier = tierForCount(approvedCount)
@@ -95,7 +102,7 @@ class ReferralService(
         )
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     fun getAdminSummary(): AdminReferralSummaryResponse {
         val allRelationships = referralRepository.findAll()
         val allCommissions = commissionRepository.findAll()
@@ -111,7 +118,7 @@ class ReferralService(
                     .sumOf { it.amountBrl }
                 TopReferrerResponse(
                     companyName = org.name,
-                    referralCode = org.referralCode ?: "",
+                    referralCode = referralCodeForOrganization(org.id),
                     approvedCount = approved,
                     tier = tier.name,
                     totalCommissionBrl = commissionTotal
@@ -185,4 +192,13 @@ class ReferralService(
         commissionBrl = commissionAmountBrl,
         approvedAt = approvedAt
     )
+
+    private fun referralCodeForOrganization(organizationId: UUID): String =
+        userRepository.findFirstByOrganizationIdAndRoleOrderByCreatedAtAsc(organizationId, Role.MANAGER)
+            .map { userReferralCodeService.ensureReferralCode(it) }
+            .orElseGet {
+                organizationRepository.findById(organizationId)
+                    .map { it.referralCode ?: "" }
+                    .orElse("")
+            }
 }

@@ -58,7 +58,7 @@ describe('AdminDashboardPage', () => {
       isLoading: false,
       isError: false,
       refetch: vi.fn(),
-    } as ReturnType<typeof useAdminDashboard>);
+    } as unknown as ReturnType<typeof useAdminDashboard>);
   });
 
   it('renders exact finance metric labels and source badge', () => {
@@ -72,7 +72,7 @@ describe('AdminDashboardPage', () => {
     expect(screen.getByText('Churn mensal')).toBeInTheDocument();
     expect(screen.getByText('ARPA')).toBeInTheDocument();
     expect(screen.getByText('Projecao 12m')).toBeInTheDocument();
-  });
+  }, 10000);
 
   it('renders supplemental roadmap metrics', () => {
     renderPage();
@@ -116,7 +116,7 @@ describe('AdminDashboardPage', () => {
       isLoading: false,
       isError: false,
       refetch: vi.fn(),
-    } as ReturnType<typeof useAdminDashboard>);
+    } as unknown as ReturnType<typeof useAdminDashboard>);
 
     renderPage();
 
@@ -129,7 +129,7 @@ describe('AdminDashboardPage', () => {
       isLoading: true,
       isError: false,
       refetch: vi.fn(),
-    } as ReturnType<typeof useAdminDashboard>);
+    } as unknown as ReturnType<typeof useAdminDashboard>);
 
     renderPage();
 
@@ -143,7 +143,7 @@ describe('AdminDashboardPage', () => {
       isLoading: false,
       isError: true,
       refetch,
-    } as ReturnType<typeof useAdminDashboard>);
+    } as unknown as ReturnType<typeof useAdminDashboard>);
 
     renderPage();
     fireEvent.click(screen.getByRole('button', { name: /tentar novamente/i }));

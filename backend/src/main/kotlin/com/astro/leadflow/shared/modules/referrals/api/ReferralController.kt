@@ -19,8 +19,9 @@ class ReferralController(private val referralService: ReferralService) {
 
     @GetMapping("/my-code")
     fun getMyCode(): ReferralSummaryResponse {
+        val user = SecurityUtils.getCurrentUser()
         val orgId = SecurityUtils.getCurrentOrganizationId()
-        return referralService.getSummary(orgId)
+        return referralService.getSummary(user.id, orgId)
     }
 
     @GetMapping("/my-referrals")

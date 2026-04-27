@@ -146,12 +146,17 @@ const mockPlans: PlanDTO[] = [
   },
 ];
 
-export function useSubscription() {
+interface UseSaasOptions {
+  enabled?: boolean;
+}
+
+export function useSubscription(options: UseSaasOptions = {}) {
   const { user } = useAuth();
   const orgId = user?.organizationId ?? 'unknown';
 
   return useQuery({
     queryKey: [orgId, 'subscription'],
+    enabled: options.enabled ?? true,
     staleTime: 30_000,
     queryFn: async (): Promise<SubscriptionDTO> => {
       if (useMocks) {
@@ -162,12 +167,13 @@ export function useSubscription() {
   });
 }
 
-export function useUsage() {
+export function useUsage(options: UseSaasOptions = {}) {
   const { user } = useAuth();
   const orgId = user?.organizationId ?? 'unknown';
 
   return useQuery({
     queryKey: [orgId, 'saas-usage'],
+    enabled: options.enabled ?? true,
     staleTime: 30_000,
     queryFn: async (): Promise<UsageSummaryDTO> => {
       if (useMocks) {
@@ -178,9 +184,10 @@ export function useUsage() {
   });
 }
 
-export function usePlans() {
+export function usePlans(options: UseSaasOptions = {}) {
   return useQuery({
     queryKey: ['plans'],
+    enabled: options.enabled ?? true,
     staleTime: 300_000,
     queryFn: async (): Promise<PlanDTO[]> => {
       if (useMocks) {

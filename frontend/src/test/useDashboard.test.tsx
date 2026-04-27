@@ -61,7 +61,7 @@ function makeLeadsQuery(content: Lead[]) {
     isLoading: false,
     error: null,
     refetch: vi.fn(),
-  } as ReturnType<typeof useLeads>;
+  } as unknown as ReturnType<typeof useLeads>;
 }
 
 describe("useDashboard hooks", () => {

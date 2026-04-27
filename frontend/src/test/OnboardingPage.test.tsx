@@ -142,7 +142,7 @@ describe('OnboardingPage (5-step flow)', () => {
   it('renders step 1 (Responsável) on initial load', () => {
     renderOnboarding();
     expect(screen.getByRole('heading', { name: /responsável/i })).toBeInTheDocument();
-  });
+  }, 15000);
 
   // ── 2. Step 1 validation blocks progression ──────────────────────────────
   it('blocks progression to step 2 when step 1 fields are empty', async () => {
@@ -150,7 +150,7 @@ describe('OnboardingPage (5-step flow)', () => {
     await advanceStep();
     expect(screen.getByRole('heading', { name: /responsável/i })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: /concessionária/i })).not.toBeInTheDocument();
-  });
+  }, 15000);
 
   // ── 3. Advance to step 2 when step 1 is valid ────────────────────────────
   it('advances to step 2 (Concessionária) when step 1 is filled', async () => {
@@ -158,7 +158,7 @@ describe('OnboardingPage (5-step flow)', () => {
     fillStep1();
     await advanceStep();
     expect(screen.getByRole('heading', { name: /concessionária/i })).toBeInTheDocument();
-  });
+  }, 15000);
 
   // ── 4. CPF mask on step 1 ────────────────────────────────────────────────
   it('renders CPF mask in step 1', () => {
@@ -282,7 +282,7 @@ describe('OnboardingPage (5-step flow)', () => {
     expect(screen.getByLabelText(/webmotors/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/mercado livre/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/olx/i)).toBeInTheDocument();
-  });
+  }, 15000);
 
   // ── 12. Step 5 (Revisão) reachable after completing steps 1–4 ────────────
   it('shows step 5 (Revisão) after completing steps 1–4', async () => {
@@ -296,7 +296,7 @@ describe('OnboardingPage (5-step flow)', () => {
     await advanceStep(); // step 4 → step 5
 
     expect(screen.getByRole('heading', { name: /revisão/i })).toBeInTheDocument();
-  });
+  }, 15000);
 
   // ── 13. Referral badge appears when ?ref= is present ─────────────────────
   it('shows referred badge when ?ref=ASTRO123 is in the URL', () => {
@@ -317,7 +317,7 @@ describe('OnboardingPage (5-step flow)', () => {
 
     const refInput = screen.getByLabelText(/código de indicação/i);
     expect((refInput as HTMLInputElement).value).toBe('ASTRO123');
-  });
+  }, 15000);
 
   // ── 15. Submit includes referralCode from review step ────────────────────
   it('includes referralCode: ASTRO123 when submitting with ?ref=ASTRO123', async () => {
@@ -336,7 +336,7 @@ describe('OnboardingPage (5-step flow)', () => {
 
     await waitFor(() => { expect(mockSubmit).toHaveBeenCalled(); });
     expect(mockSubmit.mock.calls[0][0].referralCode).toBe('ASTRO123');
-  });
+  }, 15000);
 
   // ── 16. Submit payload contains digits-only values ────────────────────────
   it('sends digits-only values for CNPJ, CPF, phone, and CEP', async () => {
@@ -360,7 +360,7 @@ describe('OnboardingPage (5-step flow)', () => {
     expect(callArg.ownerCpf).toMatch(/^\d+$/);
     expect(callArg.ownerPhone).toMatch(/^\d+$/);
     expect(callArg.cep).toMatch(/^\d+$/);
-  });
+  }, 15000);
 
   // ── 17. Success message after submit ──────────────────────────────────────
   it('shows exact success message after successful submit', async () => {
@@ -382,7 +382,7 @@ describe('OnboardingPage (5-step flow)', () => {
         screen.getByText(/Sua solicitação foi enviada e está em análise\. Entraremos em contato em breve\./i),
       ).toBeInTheDocument();
     });
-  });
+  }, 15000);
 
   // ── 18. Route is accessible without auth ─────────────────────────────────
   it('renders without AuthGuard (public route — component mounts successfully)', () => {

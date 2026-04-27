@@ -81,12 +81,17 @@ export interface UseBillingHistoryResult {
   refetch: () => Promise<unknown>;
 }
 
-export function useBillingHistory(): UseBillingHistoryResult {
+interface UseBillingHistoryOptions {
+  enabled?: boolean;
+}
+
+export function useBillingHistory(options: UseBillingHistoryOptions = {}): UseBillingHistoryResult {
   const { user } = useAuth();
   const orgId = user?.organizationId ?? 'unknown';
 
   const query = useQuery({
     queryKey: [orgId, 'settings', 'billing-history'],
+    enabled: options.enabled ?? true,
     staleTime: 30_000,
     queryFn: async (): Promise<BillingHistoryEntry[]> => {
       if (useMocks) {

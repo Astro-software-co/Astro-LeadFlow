@@ -1,6 +1,7 @@
 package com.astro.leadflow.shared.modules.saas.service
 
 import com.astro.leadflow.shared.exception.BusinessException
+import com.astro.leadflow.shared.exception.InvalidOperationException
 import com.astro.leadflow.shared.exception.ResourceNotFoundException
 import com.astro.leadflow.shared.modules.iam.domain.Organization
 import com.astro.leadflow.shared.modules.iam.domain.OrganizationRepository
@@ -146,31 +147,22 @@ class SubscriptionServiceTest {
     // ── changePlan ──────────────────────────────────────────────────────
 
     @Test
-    fun `should change plan successfully`() {
+    fun `should block direct plan change and require checkout confirmation`() {
         val newPlanId = UUID.randomUUID()
-        val newPlan = Plan(
-            id = newPlanId,
-            name = "Pro",
-            priceBrl = BigDecimal("299.00"),
-            messageLimit = 5000,
-            marketplaceLimit = 5
-        )
 
-        every { subscriptionRepository.findByOrganizationId(orgId) } returns Optional.of(subscription)
-        every { planRepository.findById(newPlanId) } returns Optional.of(newPlan)
-        every { subscriptionRepository.save(any()) } returns subscription
+        every { planRepository.existsById(newPlanId) } returns true
 
-        val response = service.changePlan(newPlanId)
+        assertThrows<InvalidOperationException> {
+            service.changePlan(newPlanId)
+        }
 
-        assertEquals("Pro", subscription.plan.name)
-        verify { subscriptionRepository.save(subscription) }
+        verify(exactly = 0) { subscriptionRepository.save(any()) }
     }
 
     @Test
     fun `should throw when target plan not found`() {
         val unknownPlanId = UUID.randomUUID()
-        every { subscriptionRepository.findByOrganizationId(orgId) } returns Optional.of(subscription)
-        every { planRepository.findById(unknownPlanId) } returns Optional.empty()
+        every { planRepository.existsById(unknownPlanId) } returns false
 
         assertThrows<ResourceNotFoundException> {
             service.changePlan(unknownPlanId)
