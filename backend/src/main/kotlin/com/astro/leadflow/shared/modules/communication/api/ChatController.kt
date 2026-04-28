@@ -2,6 +2,9 @@ package com.astro.leadflow.shared.modules.communication.api
 
 import com.astro.leadflow.shared.modules.communication.api.requests.SendMessageRequest
 import com.astro.leadflow.shared.modules.communication.api.responses.ChatMessageResponse
+import com.astro.leadflow.shared.modules.chatbot.controller.ChatbotResponseMapper
+import com.astro.leadflow.shared.modules.chatbot.controller.dto.BotSessionStatusResponse
+import com.astro.leadflow.shared.modules.chatbot.session.BotSessionRepository
 import com.astro.leadflow.shared.modules.communication.domain.ChatMessageRepository
 import com.astro.leadflow.shared.modules.communication.mapper.ChatMessageMapper
 import com.astro.leadflow.shared.modules.communication.service.MessageSenderService
@@ -27,7 +30,9 @@ class ChatController(
     private val messageSenderService: MessageSenderService,
     private val leadService: LeadService,
     private val organizationRepository: OrganizationRepository,
-    private val chatMessageMapper: ChatMessageMapper
+    private val chatMessageMapper: ChatMessageMapper,
+    private val botSessionRepository: BotSessionRepository,
+    private val chatbotResponseMapper: ChatbotResponseMapper
 ) {
 
     @GetMapping("/lead/{leadId}")
@@ -47,6 +52,18 @@ class ChatController(
         return chatMessageRepository
             .findAllByLeadIdOrderBySentAtAsc(leadId)
             .map { chatMessageMapper.toResponse(it) }
+    }
+
+    @GetMapping("/lead/{leadId}/bot-session")
+    @Operation(
+        summary = "Sessão de bot do lead",
+        description = "Retorna a sessão ativa ou a última sessão de bot associada ao lead."
+    )
+    fun getBotSession(@PathVariable leadId: UUID): BotSessionStatusResponse {
+        val orgId = SecurityUtils.getCurrentOrganizationId()
+        leadService.findLeadInOrg(leadId, orgId)
+        val session = botSessionRepository.findFirstByLeadIdOrderByUpdatedAtDesc(leadId).orElse(null)
+        return BotSessionStatusResponse(session?.let(chatbotResponseMapper::toSummary))
     }
 
     @PostMapping("/send")

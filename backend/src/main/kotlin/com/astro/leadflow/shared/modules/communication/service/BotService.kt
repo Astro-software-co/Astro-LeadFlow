@@ -2,6 +2,7 @@ package com.astro.leadflow.shared.modules.communication.service
 
 import com.astro.leadflow.shared.modules.communication.api.requests.MetaMessage
 import com.astro.leadflow.shared.modules.communication.domain.*
+import com.astro.leadflow.shared.modules.chatbot.routing.ChatbotRouter
 import com.astro.leadflow.shared.modules.iam.domain.OrganizationRepository
 import com.astro.leadflow.shared.modules.crm.domain.Lead
 import com.astro.leadflow.shared.modules.crm.domain.LeadRepository
@@ -11,11 +12,13 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
+@Deprecated("Use ChatbotRouter for bot conversations; this service remains as Meta webhook adapter.")
 class BotService(
     private val chatMessageRepository: ChatMessageRepository,
     private val leadRepository: LeadRepository,
     private val organizationRepository: OrganizationRepository,
-    private val messageSenderService: MessageSenderService
+    private val messageSenderService: MessageSenderService,
+    private val chatbotRouter: ChatbotRouter
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -54,49 +57,27 @@ class BotService(
                 lead = lead,
                 organization = organization,
                 direction = MessageDirection.INBOUND,
+                senderType = ChatMessageSenderType.USER,
                 content = content,
                 waMessageId = message.id,
                 status = MessageStatus.DELIVERED
             )
         )
 
-        val reply = buildBotReply(lead, content)
-        if (reply != null) {
+        if (lead.pipelineStage == PipelineStage.TALKING_TO_BOT) {
             try {
-                messageSenderService.sendText(lead, organization, reply)
+                val result = chatbotRouter.handle(lead.id, content)
+                messageSenderService.sendText(
+                    lead = lead,
+                    organization = organization,
+                    message = result.message,
+                    senderType = ChatMessageSenderType.BOT,
+                    botSessionId = result.sessionId,
+                    intentDetected = result.intent.name,
+                    engineUsed = result.engineUsed.name
+                )
             } catch (e: Exception) {
                 log.error("Falha ao enviar resposta automática para lead={}. error={}", lead.id, e.message)
-            }
-        }
-    }
-
-    private fun buildBotReply(lead: Lead, incomingMessage: String): String? {
-        return when (lead.pipelineStage) {
-            PipelineStage.TALKING_TO_BOT -> buildQualificationReply(lead, incomingMessage)
-            PipelineStage.WAITING_ATTENDANCE -> null
-            else -> null
-        }
-    }
-
-    private fun buildQualificationReply(lead: Lead, message: String): String {
-        return when {
-            lead.name == null -> {
-                lead.name = message.trim()
-                leadRepository.save(lead)
-                "Prazer, ${lead.name}! Qual veículo você está buscando?"
-            }
-            lead.vehicleInterest == null -> {
-                lead.vehicleInterest = message.trim()
-                leadRepository.save(lead)
-                "Ótima escolha! Você prefere compra à vista, financiamento ou troca?"
-            }
-            lead.interestType == null -> {
-                lead.pipelineStage = PipelineStage.WAITING_ATTENDANCE
-                leadRepository.save(lead)
-                "Perfeito! Um de nossos consultores entrará em contato em breve. 🚗"
-            }
-            else -> {
-                "Um de nossos consultores entrará em contato em breve. 🚗"
             }
         }
     }

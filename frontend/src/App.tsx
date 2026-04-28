@@ -22,6 +22,7 @@ import { useAuth } from '@/contexts/AuthContext';
 const Onboarding = lazy(() => import('@/pages/Onboarding'));
 const AdminOnboarding = lazy(() => import('@/pages/admin/AdminOnboarding'));
 const AdminDashboard = lazy(() => import('@/pages/admin/AdminDashboard'));
+const AdminSystem = lazy(() => import('@/pages/admin/AdminSystem'));
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
 const Leads = lazy(() => import('@/pages/Leads'));
 const Kanban = lazy(() => import('@/pages/Kanban'));
@@ -29,6 +30,7 @@ const Estoque = lazy(() => import('@/pages/Estoque'));
 const VehicleDetail = lazy(() => import('@/pages/VehicleDetail'));
 const Configuracoes = lazy(() => import('@/pages/Configuracoes'));
 const Comunicacao = lazy(() => import('@/pages/Comunicacao'));
+const Chatbot = lazy(() => import('@/pages/Chatbot'));
 const Login = lazy(() => import('@/pages/Login'));
 
 const queryClient = new QueryClient();
@@ -125,6 +127,16 @@ const App = () => (
                           }
                         />
                         <Route
+                          path="chatbot"
+                          element={
+                            <Suspense fallback={<PageLoader />}>
+                              <RoleGate allowedRoles={['MANAGER']}>
+                                <Chatbot />
+                              </RoleGate>
+                            </Suspense>
+                          }
+                        />
+                        <Route
                           path="configuracoes"
                           element={
                             <Suspense fallback={<PageLoader />}>
@@ -159,6 +171,14 @@ const App = () => (
                           element={
                             <Suspense fallback={<PageLoader />}>
                               <AdminOnboarding />
+                            </Suspense>
+                          }
+                        />
+                        <Route
+                          path="system"
+                          element={
+                            <Suspense fallback={<PageLoader />}>
+                              <AdminSystem />
                             </Suspense>
                           }
                         />

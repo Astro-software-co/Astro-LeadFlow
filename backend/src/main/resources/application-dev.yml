@@ -46,7 +46,8 @@ marketplace:
     enabled: true
 
 app:
-  base-url: http://localhost:8080
+  base-url: ${APP_BASE_URL:http://localhost:3001}
+  public-api-url: ${PUBLIC_API_URL:http://localhost:8080}
   auth:
     refresh-cookie:
       secure: false

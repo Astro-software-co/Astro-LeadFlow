@@ -5,7 +5,7 @@ import com.astro.leadflow.shared.modules.communication.domain.ChatMessageReposit
 import com.astro.leadflow.shared.modules.communication.domain.MessageDirection
 import com.astro.leadflow.shared.modules.communication.domain.MessageStatus
 import com.astro.leadflow.shared.modules.communication.domain.MessageType
-import com.astro.leadflow.shared.modules.communication.infra.MetaClient
+import com.astro.leadflow.shared.modules.communication.meta.MetaApiClient
 import com.astro.leadflow.shared.modules.crm.domain.Lead
 import com.astro.leadflow.shared.modules.crm.domain.PipelineStage
 import com.astro.leadflow.shared.exception.ExternalServiceException
@@ -21,7 +21,7 @@ import java.util.UUID
 
 class MessageSenderServiceTest {
 
-    private lateinit var metaClient: MetaClient
+    private lateinit var metaClient: MetaApiClient
     private lateinit var chatMessageRepository: ChatMessageRepository
     private lateinit var usageLimitService: UsageLimitService
     private lateinit var failureLogger: MessageDeliveryFailureLogger
@@ -53,7 +53,10 @@ class MessageSenderServiceTest {
             metaClient,
             chatMessageRepository,
             usageLimitService,
-            failureLogger
+            failureLogger,
+            "real",
+            "",
+            ""
         )
     }
 
@@ -65,7 +68,7 @@ class MessageSenderServiceTest {
         val waMessageId = "wamid.abc123"
         every { usageLimitService.canSendMessage(orgId, null) } returns true
         every {
-            metaClient.sendTextMessage(
+            metaClient.sendText(
                 phoneNumberId = "123456789",
                 accessToken = "test-token",
                 toPhone = "5511999999999",
@@ -86,7 +89,7 @@ class MessageSenderServiceTest {
         assertEquals(MessageStatus.SENT, result.status)
         verify(exactly = 1) { chatMessageRepository.save(any<ChatMessage>()) }
         verify(exactly = 1) {
-            metaClient.sendTextMessage(
+            metaClient.sendText(
                 phoneNumberId = "123456789",
                 accessToken = "test-token",
                 toPhone = "5511999999999",
@@ -100,7 +103,7 @@ class MessageSenderServiceTest {
         // Given
         every { usageLimitService.canSendMessage(orgId, null) } returns true
         every {
-            metaClient.sendTextMessage(any(), any(), any(), any())
+            metaClient.sendText(any(), any(), any(), any())
         } returns "wamid.xyz"
         every { chatMessageRepository.save(any<ChatMessage>()) } answers { firstArg() }
         every { usageLimitService.incrementUsage(orgId, null) } just runs
@@ -122,7 +125,7 @@ class MessageSenderServiceTest {
             messageSenderService.sendText(lead, organization, "Hello")
         }
 
-        verify(exactly = 0) { metaClient.sendTextMessage(any(), any(), any(), any()) }
+        verify(exactly = 0) { metaClient.sendText(any(), any(), any(), any()) }
         verify(exactly = 0) { chatMessageRepository.save(any<ChatMessage>()) }
         verify(exactly = 0) { usageLimitService.incrementUsage(any(), any()) }
     }
@@ -132,7 +135,7 @@ class MessageSenderServiceTest {
         // Given
         every { usageLimitService.canSendMessage(orgId, null) } returns true
         every {
-            metaClient.sendTextMessage(any(), any(), any(), any())
+            metaClient.sendText(any(), any(), any(), any())
         } throws ExternalServiceException("Meta/WhatsApp", "Erro HTTP 500")
 
         // When / Then
@@ -151,7 +154,7 @@ class MessageSenderServiceTest {
         val marketplaceName = "WEBMOTORS"
         every { usageLimitService.canSendMessage(orgId, marketplaceName) } returns true
         every {
-            metaClient.sendTextMessage(any(), any(), any(), any())
+            metaClient.sendText(any(), any(), any(), any())
         } returns "wamid.mkt"
         every { chatMessageRepository.save(any<ChatMessage>()) } answers { firstArg() }
         every { usageLimitService.incrementUsage(orgId, marketplaceName) } just runs
@@ -172,7 +175,7 @@ class MessageSenderServiceTest {
         val waMessageId = "wamid.tmpl123"
         every { usageLimitService.canSendMessage(orgId, null) } returns true
         every {
-            metaClient.sendTemplateMessage(
+            metaClient.sendTemplate(
                 phoneNumberId = "123456789",
                 accessToken = "test-token",
                 toPhone = "5511999999999",
@@ -210,7 +213,7 @@ class MessageSenderServiceTest {
             messageSenderService.sendTemplate(lead, orgWithoutPhone, "welcome_msg")
         }
 
-        verify(exactly = 0) { metaClient.sendTemplateMessage(any(), any(), any(), any()) }
+        verify(exactly = 0) { metaClient.sendTemplate(any(), any(), any(), any()) }
         verify(exactly = 0) { chatMessageRepository.save(any<ChatMessage>()) }
     }
 }

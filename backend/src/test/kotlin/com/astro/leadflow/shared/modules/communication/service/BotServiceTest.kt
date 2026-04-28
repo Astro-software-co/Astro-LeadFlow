@@ -3,6 +3,10 @@ package com.astro.leadflow.shared.modules.communication.service
 import com.astro.leadflow.shared.modules.communication.api.requests.MetaMessage
 import com.astro.leadflow.shared.modules.communication.api.requests.MetaTextContent
 import com.astro.leadflow.shared.modules.communication.domain.*
+import com.astro.leadflow.shared.modules.chatbot.domain.enums.BotIntent
+import com.astro.leadflow.shared.modules.chatbot.domain.enums.EngineType
+import com.astro.leadflow.shared.modules.chatbot.routing.ChatbotResult
+import com.astro.leadflow.shared.modules.chatbot.routing.ChatbotRouter
 import com.astro.leadflow.shared.modules.crm.domain.Lead
 import com.astro.leadflow.shared.modules.crm.domain.LeadRepository
 import com.astro.leadflow.shared.modules.crm.domain.PipelineStage
@@ -21,6 +25,7 @@ class BotServiceTest {
     private lateinit var leadRepository: LeadRepository
     private lateinit var organizationRepository: OrganizationRepository
     private lateinit var messageSenderService: MessageSenderService
+    private lateinit var chatbotRouter: ChatbotRouter
     private lateinit var botService: BotService
 
     private val orgId = UUID.randomUUID()
@@ -33,12 +38,14 @@ class BotServiceTest {
         leadRepository = mockk(relaxed = true)
         organizationRepository = mockk()
         messageSenderService = mockk(relaxed = true)
+        chatbotRouter = mockk()
 
         botService = BotService(
             chatMessageRepository,
             leadRepository,
             organizationRepository,
-            messageSenderService
+            messageSenderService,
+            chatbotRouter
         )
 
         every { chatMessageRepository.save(any<ChatMessage>()) } answers { firstArg() }
@@ -47,28 +54,39 @@ class BotServiceTest {
     // ---- handleIncoming ----
 
     @Test
-    fun `should save lead name and ask for vehicle interest when lead exists in TALKING_TO_BOT stage with null name`() {
+    fun `should route TALKING_TO_BOT inbound message through ChatbotRouter`() {
         // Given
         val lead = buildLead(name = null, vehicleInterest = null)
         val message = buildMetaMessage(body = "João Silva")
+        val result = ChatbotResult(
+            message = "Resposta do bot",
+            sessionId = UUID.randomUUID(),
+            intent = BotIntent.GREETING,
+            engineUsed = EngineType.LEX,
+            handoff = false
+        )
 
         every { organizationRepository.findByWhatsappPhoneNumberId(phoneNumberId) } returns organization
         every {
             leadRepository.findByOrganizationIdAndPhoneNumber(orgId, "+5511999999999")
         } returns Optional.of(lead)
-        every { leadRepository.save(lead) } returns lead
+        every { chatbotRouter.handle(lead.id, "João Silva") } returns result
 
         // When
         botService.handleIncoming(phoneNumberId, message, null)
 
         // Then
-        assertEquals("João Silva", lead.name)
-        verify { leadRepository.save(lead) }
+        verify { chatbotRouter.handle(lead.id, "João Silva") }
         verify {
             messageSenderService.sendText(
                 lead,
                 organization,
-                "Prazer, João Silva! Qual veículo você está buscando?"
+                "Resposta do bot",
+                null,
+                ChatMessageSenderType.BOT,
+                result.sessionId,
+                "GREETING",
+                "LEX"
             )
         }
         verify { chatMessageRepository.save(any()) }
@@ -85,6 +103,13 @@ class BotServiceTest {
             leadRepository.findByOrganizationIdAndPhoneNumber(orgId, "+5511999999999")
         } returns Optional.empty()
         every { leadRepository.save(any()) } returns savedLead
+        every { chatbotRouter.handle(savedLead.id, "Olá") } returns ChatbotResult(
+            message = "Olá! Sou o bot.",
+            sessionId = UUID.randomUUID(),
+            intent = BotIntent.GREETING,
+            engineUsed = EngineType.LEX,
+            handoff = false
+        )
 
         // When
         botService.handleIncoming(phoneNumberId, message, "Contact Name")
@@ -120,7 +145,7 @@ class BotServiceTest {
         // Then
         verify(exactly = 0) { chatMessageRepository.save(any()) }
         verify(exactly = 0) { leadRepository.findByOrganizationIdAndPhoneNumber(any(), any()) }
-        verify(exactly = 0) { messageSenderService.sendText(any(), any(), any(), any()) }
+        verify(exactly = 0) { messageSenderService.sendText(any(), any(), any(), any(), any(), any(), any(), any()) }
     }
 
     @Test
@@ -136,7 +161,7 @@ class BotServiceTest {
         // Then
         verify(exactly = 0) { leadRepository.findByOrganizationIdAndPhoneNumber(any(), any()) }
         verify(exactly = 0) { chatMessageRepository.save(any()) }
-        verify(exactly = 0) { messageSenderService.sendText(any(), any(), any(), any()) }
+        verify(exactly = 0) { messageSenderService.sendText(any(), any(), any(), any(), any(), any(), any(), any()) }
     }
 
     @Test
@@ -159,7 +184,7 @@ class BotServiceTest {
 
         // Then
         verify { chatMessageRepository.save(any()) }
-        verify(exactly = 0) { messageSenderService.sendText(any(), any(), any(), any()) }
+        verify(exactly = 0) { messageSenderService.sendText(any(), any(), any(), any(), any(), any(), any(), any()) }
     }
 
     @Test
@@ -172,9 +197,15 @@ class BotServiceTest {
         every {
             leadRepository.findByOrganizationIdAndPhoneNumber(orgId, "+5511999999999")
         } returns Optional.of(lead)
-        every { leadRepository.save(lead) } returns lead
+        every { chatbotRouter.handle(lead.id, "João Silva") } returns ChatbotResult(
+            message = "Resposta do bot",
+            sessionId = UUID.randomUUID(),
+            intent = BotIntent.GREETING,
+            engineUsed = EngineType.LEX,
+            handoff = false
+        )
         every {
-            messageSenderService.sendText(any(), any(), any(), any())
+            messageSenderService.sendText(any(), any(), any(), any(), any(), any(), any(), any())
         } throws RuntimeException("Meta API unavailable")
 
         // When / Then - should not throw

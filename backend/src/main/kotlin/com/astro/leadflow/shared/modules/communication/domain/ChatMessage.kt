@@ -26,6 +26,10 @@ class ChatMessage(
     @Column(nullable = false)
     val direction: MessageDirection,
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "sender_type", nullable = false)
+    val senderType: ChatMessageSenderType = ChatMessageSenderType.USER,
+
     @Column(nullable = false, columnDefinition = "TEXT")
     val content: String,
 
@@ -39,6 +43,15 @@ class ChatMessage(
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     var status: MessageStatus = MessageStatus.SENT,
+
+    @Column(name = "bot_session_id")
+    val botSessionId: UUID? = null,
+
+    @Column(name = "intent_detected")
+    val intentDetected: String? = null,
+
+    @Column(name = "engine_used")
+    val engineUsed: String? = null,
 
     @Column(name = "sent_at", nullable = false, updatable = false)
     val sentAt: LocalDateTime = LocalDateTime.now()
