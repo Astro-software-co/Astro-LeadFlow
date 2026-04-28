@@ -26,6 +26,7 @@ const navItems = [
   { label: 'Kanban', path: '/app/kanban' },
   { label: 'Estoque', path: '/app/estoque' },
   { label: 'Comunicacao', path: '/app/comunicacao' },
+  { label: 'Chatbot', path: '/app/chatbot' },
   { label: 'Configurações', path: '/app/configuracoes' },
 ];
 

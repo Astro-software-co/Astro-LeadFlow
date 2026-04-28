@@ -20,6 +20,8 @@ interface UserRepository : JpaRepository<User, UUID> {
         roles: Collection<Role>,
     ): List<User>
 
+    fun findAllByRoleAndStatus(role: Role, status: UserStatus): List<User>
+
     @EntityGraph(attributePaths = ["organization"])
     @Query("SELECT u FROM User u WHERE u.id = :id")
     fun findByIdWithOrganization(id: UUID): Optional<User>

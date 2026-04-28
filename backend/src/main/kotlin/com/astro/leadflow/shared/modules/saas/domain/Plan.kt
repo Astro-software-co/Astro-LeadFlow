@@ -43,6 +43,13 @@ class Plan(
     @Column(name = "abacate_product_external_id")
     var abacateProductExternalId: String? = null,
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "ai_engine_tier", nullable = false)
+    var aiEngineTier: AiEngineTier = AiEngineTier.NONE,
+
+    @Column(name = "max_ai_tokens_per_month")
+    var maxAiTokensPerMonth: Int? = null,
+
     @Column(name = "created_at", nullable = false, updatable = false)
     val createdAt: LocalDateTime = LocalDateTime.now()
 ) {

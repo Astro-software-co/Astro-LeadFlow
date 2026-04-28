@@ -1,4 +1,4 @@
-import { BarChart3, ClipboardCheck, LogOut, Sparkles } from 'lucide-react';
+import { BarChart3, ClipboardCheck, LogOut, ServerCog, Sparkles } from 'lucide-react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 const adminNavItems = [
   { label: 'Solicitacoes', path: '/admin/onboarding', icon: ClipboardCheck },
   { label: 'Dashboard', path: '/admin/dashboard', icon: BarChart3 },
+  { label: 'Sistema', path: '/admin/system', icon: ServerCog },
 ];
 
 export function AdminLayout() {

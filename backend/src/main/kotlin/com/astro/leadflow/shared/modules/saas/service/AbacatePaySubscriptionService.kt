@@ -42,7 +42,7 @@ class AbacatePaySubscriptionService(
     private val abacatePayGateway: AbacatePayGateway,
     private val referralService: ReferralService,
     private val saasMapper: SaasMapper,
-    @Value("\${app.base-url:http://localhost:8080}") private val appBaseUrl: String,
+    @Value("\${app.base-url:http://localhost:3001}") private val appBaseUrl: String,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 

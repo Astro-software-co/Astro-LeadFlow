@@ -10,7 +10,7 @@ import java.util.UUID
     name = "usage_logs",
     uniqueConstraints = [
         UniqueConstraint(
-            columnNames = ["organization_id", "marketplace_name", "period_month", "period_year"]
+            columnNames = ["organization_id", "marketplace_name", "period_month", "period_year", "metric_type"]
         )
     ]
 )
@@ -29,6 +29,10 @@ class UsageLog(
 
     @Column(name = "messages_sent", nullable = false)
     var messagesSent: Int = 0,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "metric_type", nullable = false)
+    var metricType: UsageMetricType = UsageMetricType.MESSAGE_SENT,
 
     @Column(name = "period_month", nullable = false)
     val periodMonth: Int,

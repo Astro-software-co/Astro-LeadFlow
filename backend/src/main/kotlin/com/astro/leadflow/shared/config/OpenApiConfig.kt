@@ -14,7 +14,8 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 class OpenApiConfig(
-    @Value("\${app.base-url:http://localhost:8080}") private val baseUrl: String
+    @Value("\${app.base-url:http://localhost:3001}") private val baseUrl: String,
+    @Value("\${app.public-api-url:http://localhost:8080}") private val publicApiUrl: String
 ) {
 
     @Bean
@@ -48,7 +49,8 @@ class OpenApiConfig(
                         .name("Proprietary")
                 )
         )
-        .addServersItem(Server().url(baseUrl).description("Servidor atual"))
+        .addServersItem(Server().url(publicApiUrl).description("API pública configurada para webhooks e integrações"))
+        .addServersItem(Server().url(baseUrl).description("Frontend/callbacks configurados"))
         .addServersItem(Server().url("http://localhost:8080").description("Local"))
         .addSecurityItem(SecurityRequirement().addList("Bearer Authentication"))
         .components(

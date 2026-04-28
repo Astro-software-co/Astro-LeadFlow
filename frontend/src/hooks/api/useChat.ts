@@ -24,6 +24,9 @@ const mockChatMessages: ChatMessageDTO[] = [
     messageType: 'TEXT',
     status: 'DELIVERED',
     sentAt: new Date(Date.now() - 3300000).toISOString(),
+    senderType: 'BOT',
+    intentDetected: 'VEHICLE_INQUIRY',
+    engineUsed: 'LEX',
   },
   {
     id: 'mock-msg-3',
