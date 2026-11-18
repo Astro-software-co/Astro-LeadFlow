@@ -12,13 +12,62 @@ export const mockVehicles: Vehicle[] = [
 ];
 
 export const mockLeads: Lead[] = [
-  { id: '1', nome: 'João Silva', telefone: '(11) 98765-4321', origem: 'OLX', dataCriacao: new Date(), ultimaInteracao: new Date() },
-  { id: '2', nome: 'Maria Santos', telefone: '(11) 98765-4322', origem: 'Instagram', dataCriacao: new Date(), ultimaInteracao: new Date() },
-  { id: '3', nome: 'Pedro Costa', telefone: '(11) 98765-4323', origem: 'Mercado Livre', dataCriacao: new Date(), ultimaInteracao: new Date() },
-  { id: '4', nome: 'Ana Oliveira', telefone: '(11) 98765-4324', origem: 'WebMotors', dataCriacao: new Date(), ultimaInteracao: new Date() },
-  { id: '5', nome: 'Lucas Ferreira', telefone: '(11) 98765-4325', origem: 'Facebook', dataCriacao: new Date(), ultimaInteracao: new Date() },
-  { id: '6', nome: 'Juliana Lima', telefone: '(11) 98765-4326', origem: 'Napista', dataCriacao: new Date(), ultimaInteracao: new Date() },
-  { id: '7', nome: 'Fernanda Rocha', telefone: '(11) 98765-4328', origem: 'Direto', dataCriacao: new Date(), ultimaInteracao: new Date() },
+  {
+    id: '1',
+    nome: 'João Silva',
+    telefone: '(11) 98765-4321',
+    origem: 'OLX',
+    dataCriacao: new Date(),
+    ultimaInteracao: new Date(),
+  },
+  {
+    id: '2',
+    nome: 'Maria Santos',
+    telefone: '(11) 98765-4322',
+    origem: 'Instagram',
+    dataCriacao: new Date(),
+    ultimaInteracao: new Date(),
+  },
+  {
+    id: '3',
+    nome: 'Pedro Costa',
+    telefone: '(11) 98765-4323',
+    origem: 'Mercado Livre',
+    dataCriacao: new Date(),
+    ultimaInteracao: new Date(),
+  },
+  {
+    id: '4',
+    nome: 'Ana Oliveira',
+    telefone: '(11) 98765-4324',
+    origem: 'WebMotors',
+    dataCriacao: new Date(),
+    ultimaInteracao: new Date(),
+  },
+  {
+    id: '5',
+    nome: 'Lucas Ferreira',
+    telefone: '(11) 98765-4325',
+    origem: 'Facebook',
+    dataCriacao: new Date(),
+    ultimaInteracao: new Date(),
+  },
+  {
+    id: '6',
+    nome: 'Juliana Lima',
+    telefone: '(11) 98765-4326',
+    origem: 'Napista',
+    dataCriacao: new Date(),
+    ultimaInteracao: new Date(),
+  },
+  {
+    id: '7',
+    nome: 'Fernanda Rocha',
+    telefone: '(11) 98765-4328',
+    origem: 'Direto',
+    dataCriacao: new Date(),
+    ultimaInteracao: new Date(),
+  },
 ];
 
 export const mockKanbanCards: KanbanCard[] = [

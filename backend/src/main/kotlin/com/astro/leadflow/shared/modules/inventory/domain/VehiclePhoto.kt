@@ -8,10 +8,6 @@ import java.util.UUID
 @Table(name = "vehicle_photos")
 class VehiclePhoto(
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    val id: UUID = UUID.randomUUID(),
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vehicle_id", nullable = false)
     val vehicle: Vehicle,
@@ -24,4 +20,9 @@ class VehiclePhoto(
 
     @Column(name = "created_at", nullable = false, updatable = false)
     val createdAt: LocalDateTime = LocalDateTime.now()
-)
+
+) {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    var id: UUID? = null
+}

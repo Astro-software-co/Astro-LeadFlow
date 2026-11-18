@@ -4,7 +4,8 @@ import com.astro.leadflow.shared.modules.inventory.api.requests.VehicleCreateReq
 import com.astro.leadflow.shared.modules.inventory.api.requests.VehicleUpdateRequest
 import com.astro.leadflow.shared.modules.inventory.api.responses.VehicleResponse
 import com.astro.leadflow.shared.modules.inventory.api.responses.VehicleStockSummary
-import com.astro.leadflow.shared.modules.crm.service.VehicleStatus
+import com.astro.leadflow.shared.modules.inventory.domain.VehicleCategory
+import com.astro.leadflow.shared.modules.inventory.domain.VehicleStatus
 import com.astro.leadflow.shared.modules.inventory.service.VehicleService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -12,6 +13,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -24,12 +28,18 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import java.math.BigDecimal
 import java.util.UUID
 
 @RestController
 @RequestMapping("/api/v1/vehicles")
 @Tag(name = "Inventory — Veículos", description = "Gestão de estoque de veículos")
 class VehicleController(private val vehicleService: VehicleService) {
+    companion object {
+        private const val DEFAULT_PAGE = 0
+        private const val DEFAULT_SIZE = 20
+        private const val MAX_SIZE = 100
+    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -46,15 +56,33 @@ class VehicleController(private val vehicleService: VehicleService) {
     @GetMapping
     @Operation(
         summary = "Lista veículos do estoque",
-        description = "Suporta filtro por texto (marca/modelo) e por status"
+        description = "Suporta filtro por texto (marca/modelo), status, categoria, ano, faixa de preco e paginação"
     )
     @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
     fun findAll(
         @Parameter(description = "Termo de busca por marca ou modelo")
         @RequestParam(required = false) search: String?,
         @Parameter(description = "Filtrar por status")
-        @RequestParam(required = false) status: VehicleStatus?
-    ): List<VehicleResponse> = vehicleService.findAll(search, status)
+        @RequestParam(required = false) status: VehicleStatus?,
+        @Parameter(description = "Filtrar por categoria")
+        @RequestParam(required = false) category: VehicleCategory?,
+        @Parameter(description = "Filtrar por ano")
+        @RequestParam(required = false) year: Int?,
+        @Parameter(description = "Preco minimo")
+        @RequestParam(required = false) minPrice: BigDecimal?,
+        @Parameter(description = "Preco maximo")
+        @RequestParam(required = false) maxPrice: BigDecimal?,
+        @Parameter(description = "Página (inicia em 0)")
+        @RequestParam(required = false, defaultValue = "$DEFAULT_PAGE") page: Int,
+        @Parameter(description = "Itens por página (máx. 100)")
+        @RequestParam(required = false, defaultValue = "$DEFAULT_SIZE") size: Int
+    ): Page<VehicleResponse> {
+        val safePage = page.coerceAtLeast(0)
+        val safeSize = size.coerceIn(1, MAX_SIZE)
+        val pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "updatedAt"))
+
+        return vehicleService.findAll(search, status, category, year, minPrice, maxPrice, pageable)
+    }
 
     @GetMapping("/{id}")
     @Operation(summary = "Busca veículo por ID")

@@ -3,6 +3,7 @@ package com.astro.leadflow.shared.modules.inventory.service
 import com.astro.leadflow.shared.exception.BusinessException
 import com.astro.leadflow.shared.exception.ResourceNotFoundException
 import com.astro.leadflow.shared.modules.inventory.api.responses.VehiclePhotoResponse
+import com.astro.leadflow.shared.modules.inventory.domain.VehiclePhoto
 import com.astro.leadflow.shared.modules.inventory.domain.VehiclePhotoRepository
 import com.astro.leadflow.shared.util.SecurityUtils
 import org.springframework.beans.factory.annotation.Value
@@ -11,17 +12,20 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.model.CreateBucketRequest
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
+import software.amazon.awssdk.services.s3.model.HeadBucketRequest
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
+import software.amazon.awssdk.services.s3.model.S3Exception
 import java.util.UUID
 
 @Service
 class VehiclePhotoService(
     private val vehicleService: VehicleService,
     private val vehiclePhotoRepository: VehiclePhotoRepository,
+    private val vehiclePhotoUrlService: VehiclePhotoUrlService,
     private val s3Client: S3Client,
-    @Value("\${aws.s3.bucket-name}") private val bucketName: String,
-    @Value("\${aws.s3.region}") private val region: String
+    @Value("\${app.aws.s3.bucket}") private val bucketName: String
 ) {
 
     companion object {
@@ -46,24 +50,24 @@ class VehiclePhotoService(
 
         val key = "vehicles/${orgId}/${vehicleId}/${UUID.randomUUID()}.jpg"
 
-        s3Client.putObject(
-            PutObjectRequest.builder()
-                .bucket(bucketName)
-                .key(key)
-                .contentType(file.contentType)
-                .build(),
-            RequestBody.fromBytes(file.bytes)
-        )
+        try {
+            ensureBucketExists()
+            s3Client.putObject(
+                PutObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(key)
+                    .contentType(file.contentType)
+                    .build(),
+                RequestBody.fromBytes(file.bytes)
+            )
+        } catch (ex: Exception) {
+            throw BusinessException("Não foi possível armazenar a foto do veículo. Verifique o serviço de arquivos local.")
+        }
 
-        val s3Url = "https://$bucketName.s3.$region.amazonaws.com/$key"
-        vehicle.addPhoto(s3Url, position)
-        vehiclePhotoRepository.save(vehicle.photos.last())
+        vehicle.addPhoto(key, position)
 
-        return VehiclePhotoResponse(
-            id = vehicle.photos.last().id,
-            s3Url = s3Url,
-            position = position
-        )
+        val savedPhoto = vehiclePhotoRepository.save(vehicle.photos.last())
+        return toResponse(savedPhoto)
     }
 
     @Transactional(readOnly = true)
@@ -72,7 +76,7 @@ class VehiclePhotoService(
         val vehicle = vehicleService.findVehicleInOrg(vehicleId, orgId)
         return vehicle.photos
             .sortedBy { it.position }
-            .map { VehiclePhotoResponse(it.id, it.s3Url, it.position) }
+            .map(::toResponse)
     }
 
     @Transactional
@@ -83,7 +87,7 @@ class VehiclePhotoService(
         val photo = vehicle.photos.find { it.id == photoId }
             ?: throw ResourceNotFoundException("VehiclePhoto", photoId)
 
-        val key = photo.s3Url.substringAfter(".amazonaws.com/")
+        val key = vehiclePhotoUrlService.extractObjectKey(photo.s3Url)
         s3Client.deleteObject(
             DeleteObjectRequest.builder().bucket(bucketName).key(key).build()
         )
@@ -107,6 +111,33 @@ class VehiclePhotoService(
 
         return vehicle.photos
             .sortedBy { it.position }
-            .map { VehiclePhotoResponse(it.id, it.s3Url, it.position) }
+            .map(::toResponse)
+    }
+
+    private fun toResponse(photo: VehiclePhoto): VehiclePhotoResponse =
+        VehiclePhotoResponse(
+            id = photo.id!!,
+            s3Url = vehiclePhotoUrlService.buildAccessUrl(photo),
+            position = photo.position
+        )
+
+    private fun ensureBucketExists() {
+        try {
+            s3Client.headBucket(
+                HeadBucketRequest.builder()
+                    .bucket(bucketName)
+                    .build()
+            )
+        } catch (ex: S3Exception) {
+            if (ex.statusCode() != 404) {
+                throw ex
+            }
+
+            s3Client.createBucket(
+                CreateBucketRequest.builder()
+                    .bucket(bucketName)
+                    .build()
+            )
+        }
     }
 }

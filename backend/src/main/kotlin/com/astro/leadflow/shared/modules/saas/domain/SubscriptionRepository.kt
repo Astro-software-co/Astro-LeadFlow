@@ -6,4 +6,5 @@ import java.util.UUID
 
 interface SubscriptionRepository : JpaRepository<Subscription, UUID> {
     fun findByOrganizationId(organizationId: UUID): Optional<Subscription>
+    fun findByAbacateSubscriptionId(abacateSubscriptionId: String): Optional<Subscription>
 }

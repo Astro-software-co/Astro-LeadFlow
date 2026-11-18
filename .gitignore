@@ -19,8 +19,11 @@ build
 
 # Environment variables
 .env
+.env.*
 .env.local
 .env.*.local
+**/.env
+**/.env.*
 
 # Editor directories and files
 .vscode/*
@@ -61,3 +64,10 @@ ENV/
 *~
 
 out/
+
+# GSD planning and AI context artifacts
+.planning/
+.planning/ROADMAP.md
+.codex
+CLAUDE.md
+.claude

@@ -1,10 +1,14 @@
 package com.astro.leadflow.shared.modules.saas.api
 
 import com.astro.leadflow.shared.modules.saas.api.requests.AddMarketplaceRequest
+import com.astro.leadflow.shared.modules.saas.api.requests.CreateSubscriptionCheckoutRequest
 import com.astro.leadflow.shared.modules.saas.api.requests.UpdateMarketplaceRequest
+import com.astro.leadflow.shared.modules.saas.api.responses.BillingHistoryResponse
 import com.astro.leadflow.shared.modules.saas.api.responses.MarketplaceConfigResponse
+import com.astro.leadflow.shared.modules.saas.api.responses.SubscriptionCheckoutResponse
 import com.astro.leadflow.shared.modules.saas.api.responses.SubscriptionResponse
 import com.astro.leadflow.shared.modules.saas.api.responses.UsageSummaryResponse
+import com.astro.leadflow.shared.modules.saas.service.AbacatePaySubscriptionService
 import com.astro.leadflow.shared.modules.saas.service.SubscriptionService
 import com.astro.leadflow.shared.modules.saas.service.UsageLimitService
 import com.astro.leadflow.shared.util.SecurityUtils
@@ -24,7 +28,8 @@ import java.util.UUID
 @PreAuthorize("hasRole('ADMIN')")
 class SubscriptionController(
     private val subscriptionService: SubscriptionService,
-    private val usageLimitService: UsageLimitService
+    private val usageLimitService: UsageLimitService,
+    private val abacatePaySubscriptionService: AbacatePaySubscriptionService,
 ) {
 
     @GetMapping("/subscription")
@@ -42,6 +47,31 @@ class SubscriptionController(
     fun changePlan(@PathVariable planId: UUID): SubscriptionResponse =
         subscriptionService.changePlan(planId)
 
+    @PostMapping("/subscription/checkout/{planId}")
+    @Operation(summary = "Cria checkout self-service da assinatura via AbacatePay")
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "Checkout criado com sucesso"),
+        ApiResponse(responseCode = "404", description = "Plano não encontrado"),
+        ApiResponse(responseCode = "422", description = "Plano indisponível para self-service")
+    )
+    fun createSubscriptionCheckout(
+        @PathVariable planId: UUID,
+        @Valid @RequestBody(required = false) request: CreateSubscriptionCheckoutRequest?,
+    ): SubscriptionCheckoutResponse =
+        abacatePaySubscriptionService.createCheckout(
+            planId = planId,
+            request = request ?: CreateSubscriptionCheckoutRequest(),
+        )
+
+    @PostMapping("/subscription/cancel")
+    @Operation(summary = "Cancela assinatura ativa via AbacatePay")
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "Assinatura cancelada com sucesso"),
+        ApiResponse(responseCode = "400", description = "Não há assinatura externa ativa para cancelar")
+    )
+    fun cancelSubscription(): SubscriptionResponse =
+        abacatePaySubscriptionService.cancelCurrentSubscription()
+
     @GetMapping("/usage")
     @Operation(summary = "Resumo de uso de mensagens do mês atual")
     @ApiResponse(responseCode = "200", description = "Uso retornado com sucesso")
@@ -49,6 +79,12 @@ class SubscriptionController(
         val orgId = SecurityUtils.getCurrentOrganizationId()
         return usageLimitService.getUsageSummary(orgId)
     }
+
+    @GetMapping("/billing-history")
+    @Operation(summary = "Historico de cobrancas da organizacao")
+    @ApiResponse(responseCode = "200", description = "Historico retornado com sucesso")
+    fun getBillingHistory(): List<BillingHistoryResponse> =
+        subscriptionService.listBillingHistory()
 
     @GetMapping("/marketplaces")
     @Operation(summary = "Lista marketplaces configurados")

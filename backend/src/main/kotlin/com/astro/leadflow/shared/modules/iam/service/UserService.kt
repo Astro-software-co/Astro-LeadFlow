@@ -6,8 +6,9 @@ import com.astro.leadflow.shared.modules.iam.api.requests.UpdateNotificationsReq
 import com.astro.leadflow.shared.modules.iam.api.requests.UpdateTwoFactorRequest
 import com.astro.leadflow.shared.modules.iam.api.requests.UpdateUserRequest
 import com.astro.leadflow.shared.modules.iam.api.requests.UpdateUserRoleRequest
+import com.astro.leadflow.shared.modules.iam.api.responses.AssignableUserResponse
 import com.astro.leadflow.shared.modules.iam.api.responses.UserResponse
-import com.astro.leadflow.shared.modules.iam.api.responses.UserSummaryResponse
+import com.astro.leadflow.shared.modules.crm.api.responses.UserSummaryResponse
 import com.astro.leadflow.shared.modules.iam.domain.OrganizationRepository
 import com.astro.leadflow.shared.modules.iam.domain.Role
 import com.astro.leadflow.shared.modules.iam.domain.User
@@ -34,15 +35,19 @@ class UserService(
 ) {
 
     @Transactional(readOnly = true)
-    fun getMe(): UserResponse =
-        userMapper.toResponse(SecurityUtils.getCurrentUser())
+    fun getMe(): UserResponse {
+        val userId = SecurityUtils.getCurrentUser().id
+        val user = userRepository.findById(userId)
+            .orElseThrow { ResourceNotFoundException("User", userId) }
+        return userMapper.toResponse(user)
+    }
 
     @Transactional
     fun updateMe(request: UpdateUserRequest): UserResponse {
         val user = SecurityUtils.getCurrentUser()
-        request.name?.let { user.name = it }
-        request.phoneNumber?.let { user.phoneNumber = it }
-        request.avatarUrl?.let { user.avatarUrl = it }
+        request.name?.let { value -> user.name = value }
+        request.phoneNumber?.let { value -> user.phoneNumber = value }
+        request.avatarUrl?.let { value -> user.avatarUrl = value }
         return userMapper.toResponse(userRepository.save(user))
     }
 
@@ -60,20 +65,20 @@ class UserService(
     @Transactional
     fun updateNotifications(request: UpdateNotificationsRequest): UserResponse {
         val user = SecurityUtils.getCurrentUser()
-        request.notifyNewLead?.let { user.notifyNewLead = it }
-        request.notifyLeadWaiting?.let { user.notifyLeadWaiting = it }
-        request.notifySaleCompleted?.let { user.notifySaleCompleted = it }
-        request.notifyCardMoved?.let { user.notifyCardMoved = it }
-        request.notifyViaEmail?.let { user.notifyViaEmail = it }
-        request.notifyViaPush?.let { user.notifyViaPush = it }
+        request.notifyNewLead?.let { value -> user.notifyNewLead = value }
+        request.notifyLeadWaiting?.let { value -> user.notifyLeadWaiting = value }
+        request.notifySaleCompleted?.let { value -> user.notifySaleCompleted = value }
+        request.notifyCardMoved?.let { value -> user.notifyCardMoved = value }
+        request.notifyViaEmail?.let { value -> user.notifyViaEmail = value }
+        request.notifyViaPush?.let { value -> user.notifyViaPush = value }
         return userMapper.toResponse(userRepository.save(user))
     }
 
     @Transactional
     fun updateTwoFactor(request: UpdateTwoFactorRequest): UserResponse {
         val user = SecurityUtils.getCurrentUser()
-        request.emailEnabled?.let { user.twoFactorEmailEnabled = it }
-        request.smsEnabled?.let { user.twoFactorSmsEnabled = it }
+        request.emailEnabled?.let { value -> user.twoFactorEmailEnabled = value }
+        request.smsEnabled?.let { value -> user.twoFactorSmsEnabled = value }
         return userMapper.toResponse(userRepository.save(user))
     }
 
@@ -108,7 +113,19 @@ class UserService(
     fun listOrganizationUsers(): List<UserSummaryResponse> {
         val orgId = SecurityUtils.getCurrentOrganizationId()
         return userRepository.findAllByOrganizationId(orgId)
-            .map { userMapper.toSummary(it) }
+            .map { user -> userMapper.toSummary(user) }
+    }
+
+    @Transactional(readOnly = true)
+    fun listAssignableUsers(): List<AssignableUserResponse> {
+        val orgId = SecurityUtils.getCurrentOrganizationId()
+        return userRepository.findAllByOrganizationIdAndStatusAndRoleIn(
+            organizationId = orgId,
+            status = UserStatus.ACTIVE,
+            roles = listOf(Role.SELLER, Role.MANAGER),
+        )
+            .sortedBy { it.name.lowercase() }
+            .map(userMapper::toAssignable)
     }
 
     @Transactional(readOnly = true)

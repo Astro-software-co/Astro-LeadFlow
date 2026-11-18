@@ -15,9 +15,20 @@ export interface Vehicle {
   quilometragem?: number;
   ipvaPago?: boolean;
   fotos?: string[];
+  organizationId?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
-export type LeadOrigin = 'OLX' | 'Mercado Livre' | 'Instagram' | 'WebMotors' | 'Facebook' | 'Mobiauto' | 'Napista' | 'Direto';
+export type LeadOrigin =
+  | 'OLX'
+  | 'Mercado Livre'
+  | 'Instagram'
+  | 'WebMotors'
+  | 'Facebook'
+  | 'Mobiauto'
+  | 'Napista'
+  | 'Direto';
 
 export interface Lead {
   id: string;
@@ -34,11 +45,16 @@ export interface Lead {
   observacoes?: string;
   endereco?: string;
   profissao?: string;
+  estagio?: KanbanColumn;
+  assignedToId?: string;
+  assignedToName?: string;
+  organizationId?: string;
+  isDuplicado?: boolean;
 }
 
 export type KanbanColumn = 'chatbot' | 'aguardando' | 'aguardando_documentacao' | 'negociacao' | 'concluido';
 
-export type CardTag = 
+export type CardTag =
   | { type: 'vehicle'; label: string }
   | { type: 'seller'; label: string }
   | { type: 'status'; label: string; variant: 'negotiation' | 'reserved' | 'completed' | 'waiting' };
@@ -96,7 +112,7 @@ export interface CategorySalesData {
 export interface RecentSale {
   cliente: string;
   veiculo: string;
-  valor: number;
+  valor?: number;
   data: string;
   vendedor: string;
 }

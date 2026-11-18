@@ -2,6 +2,7 @@ package com.astro.leadflow.shared.config
 
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
@@ -12,6 +13,6 @@ class JacksonConfig {
     @Bean
     fun objectMapperBuilder(): Jackson2ObjectMapperBuilder =
         Jackson2ObjectMapperBuilder()
-            .modules(JavaTimeModule())
+            .modules(JavaTimeModule(), KotlinModule.Builder().build())
             .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
 }

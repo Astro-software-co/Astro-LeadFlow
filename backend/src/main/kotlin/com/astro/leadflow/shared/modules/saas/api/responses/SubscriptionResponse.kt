@@ -12,5 +12,8 @@ data class SubscriptionResponse(
     val messageLimit: Int,
     val marketplaceLimit: Int,
     val status: SubscriptionStatus,
-    val renewsAt: LocalDate?
+    val renewsAt: LocalDate?,
+    val paymentProvider: String? = null,
+    val checkoutUrl: String? = null,
+    val canCancel: Boolean = false,
 )

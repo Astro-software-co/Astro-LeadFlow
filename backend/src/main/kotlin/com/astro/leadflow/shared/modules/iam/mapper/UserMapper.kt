@@ -1,7 +1,8 @@
 package com.astro.leadflow.shared.modules.iam.mapper
 
 import com.astro.leadflow.shared.modules.iam.api.responses.UserResponse
-import com.astro.leadflow.shared.modules.iam.api.responses.UserSummaryResponse
+import com.astro.leadflow.shared.modules.iam.api.responses.AssignableUserResponse
+import com.astro.leadflow.shared.modules.crm.api.responses.UserSummaryResponse
 import com.astro.leadflow.shared.modules.iam.domain.User
 import org.springframework.stereotype.Component
 
@@ -35,5 +36,12 @@ class UserMapper {
         email = user.email,
         avatarUrl = user.avatarUrl,
         role = user.role
+    )
+
+    fun toAssignable(user: User): AssignableUserResponse = AssignableUserResponse(
+        id = user.id,
+        name = user.name,
+        avatarUrl = user.avatarUrl,
+        role = user.role,
     )
 }

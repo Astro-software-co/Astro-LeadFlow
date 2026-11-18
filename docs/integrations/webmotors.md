@@ -191,3 +191,11 @@ L8 (devolver mudança de etapa do Kanban à Webmotors com `/status`; o cliente j
 
 ### 7.5 Como validar
 Testes em `backend/src/test/kotlin/.../integrations/webmotors/` (47): cifra, extrator, cliente HTTP (sem rede), sync, importador, decisões, lease, adaptador e repositórios em H2.
+
+## 8. Relação com o fluxo por webhook que já existe na `develop`
+
+A `develop` já traz uma integração Webmotors **por webhook** (módulo `ingestion`: `MarketplaceWebhookController`, `WebmotorsLeadFetcher`, `WebmotorsAuthService`, tabela `marketplace_credentials`, reconciliação diária). Ela assume outro contrato da Webmotors: notificação `IdLead/Cnpj/IdTipoLead`, auth em dois passos com e-mail do integrador e detalhe em `/leads/v1/{id}`.
+
+O módulo deste documento implementa a **API de Consulta de Leads** (a do formulário/collection Postman): *password grant*, polling em `/lead/v1/leads` e aceite/recusa. São contratos distintos e hoje coexistem sem se tocar: tabelas separadas (`V5` vs `V3`), nenhum bean compartilhado, rotas diferentes (`/api/v1/integrations/webmotors` vs `/api/v1/webhooks/webmotors`).
+
+Pendente de decisão: se os dois fluxos serão mantidos (e como evitar o mesmo lead entrar duas vezes, já que o dedupe é por telefone no CRM e por id externo em cada fluxo) ou se um substitui o outro depois da homologação. A migration deste módulo é `V5` porque `V2`–`V4` já existem na `develop`.

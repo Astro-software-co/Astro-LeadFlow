@@ -4,10 +4,13 @@ import com.astro.leadflow.shared.modules.inventory.api.responses.VehicleResponse
 import com.astro.leadflow.shared.modules.inventory.api.responses.VehicleStockSummary
 import com.astro.leadflow.shared.modules.inventory.domain.Vehicle
 import com.astro.leadflow.shared.modules.inventory.domain.VehicleStatus
+import com.astro.leadflow.shared.modules.inventory.service.VehiclePhotoUrlService
 import org.springframework.stereotype.Component
 
 @Component
-class VehicleMapper {
+class VehicleMapper(
+    private val vehiclePhotoUrlService: VehiclePhotoUrlService
+) {
 
     fun toResponse(vehicle: Vehicle): VehicleResponse = VehicleResponse(
         id = vehicle.id,
@@ -24,7 +27,7 @@ class VehicleMapper {
         status = vehicle.status,
         photos = vehicle.photos
             .sortedBy { it.position }
-            .map { it.s3Url },
+            .map(vehiclePhotoUrlService::buildAccessUrl),
         organizationId = vehicle.organization.id,
         createdAt = vehicle.createdAt,
         updatedAt = vehicle.updatedAt

@@ -4,6 +4,62 @@ spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
 
+  datasource:
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        default_schema: public
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+    out-of-order: false
+
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+    time-zone: UTC
+
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.h2.H2ConsoleAutoConfiguration
+
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: /
+  error:
+    include-message: always
+    include-binding-errors: always
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  health:
+    redis:
+      enabled: true
+    db:
+      enabled: true
+
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
@@ -15,3 +71,82 @@ springdoc:
 
 app:
   base-url: ${APP_BASE_URL:http://localhost:8080}
+  auth:
+    refresh-cookie:
+      name: ${AUTH_REFRESH_COOKIE_NAME:astro_refresh_token}
+      path: ${AUTH_REFRESH_COOKIE_PATH:/api/v1/auth}
+      same-site: ${AUTH_REFRESH_COOKIE_SAME_SITE:Lax}
+      secure: ${AUTH_REFRESH_COOKIE_SECURE:true}
+    session:
+      idle-timeout-ms: ${AUTH_SESSION_IDLE_TIMEOUT_MS:900000}
+  jwt:
+    secret: ${JWT_SECRET:dev-secret-change-in-production-min-256-bits}
+    expiration-ms: ${JWT_EXPIRATION_MS:300000}
+    refresh-expiration-ms: ${JWT_REFRESH_MS:900000}
+  meta:
+    api-url: ${META_API_URL:https://graph.facebook.com/v18.0}
+    access-token: ${META_ACCESS_TOKEN:}
+    phone-number-id: ${META_PHONE_NUMBER_ID:}
+    webhook-verify-token: ${META_WEBHOOK_TOKEN:dev-webhook-token}
+    webhook-secret: ${META_WEBHOOK_SECRET:}
+  abacatepay:
+    api-url: ${ABACATEPAY_API_URL:https://api.abacatepay.com/v2}
+    api-key: ${ABACATEPAY_API_KEY:}
+    webhook-secret: ${ABACATEPAY_WEBHOOK_SECRET:}
+    webhook-public-key: ${ABACATEPAY_WEBHOOK_PUBLIC_KEY:t9dXRhHHo3yDEj5pVDYz0frf7q6bMKyMRmxxCPIPp3RCplBfXRxqlC6ZpiWmOqj4L63qEaeUOtrCI8P0VMUgo6iIga2ri9ogaHFs0WIIywSMg0q7RmBfybe1E5XJcfC4IW3alNqym0tXoAKkzvfEjZxV6bE0oG2zJrNNYmUCKZyV0KZ3JS8Votf9EAWWYdiDkMkpbMdPggfh1EqHlVkMiTady6jOR3hyzGEHrIz2Ret0xHKMbiqkr9HS1JhNHDX9}
+  rate-limit:
+    enabled: ${RATE_LIMIT_ENABLED:true}
+    webhook-per-minute: ${RATE_LIMIT_WEBHOOK:100}
+    auth-per-minute: ${RATE_LIMIT_AUTH:10}
+    general-per-minute: ${RATE_LIMIT_GENERAL:500}
+  saas:
+    default-plan: ${DEFAULT_PLAN:free}
+    trial-days: ${TRIAL_DAYS:14}
+  aws:
+    enabled: ${APP_AWS_ENABLED:false}
+    endpoint: ${AWS_ENDPOINT:http://localhost:4566}
+    region: ${AWS_REGION:us-east-1}
+    access-key: ${AWS_ACCESS_KEY_ID:test}
+    secret-key: ${AWS_SECRET_ACCESS_KEY:test}
+    s3:
+      bucket: ${AWS_S3_BUCKET:leadflow-files}
+    sqs:
+      lead-queue: ${AWS_SQS_LEAD_QUEUE:leadflow-leads}
+      marketplace-queue: ${AWS_SQS_MARKETPLACE_QUEUE:marketplace-leads.fifo}
+
+marketplace:
+  webhook-token: ${MARKETPLACE_WEBHOOK_TOKEN:}
+  webmotors:
+    base-url: ${WEBMOTORS_BASE_URL:https://api-webmotors.sensedia.com}
+    oauth-url: ${WEBMOTORS_OAUTH_URL:https://api-webmotors.sensedia.com/oauth/v1/access-token}
+    client-id: ${WEBMOTORS_CLIENT_ID:}
+    client-secret: ${WEBMOTORS_CLIENT_SECRET:}
+  mercadolivre:
+    base-url: ${ML_BASE_URL:https://api.mercadolibre.com}
+    oauth-url: ${ML_OAUTH_URL:https://api.mercadolibre.com/oauth/token}
+    auth-url: ${ML_AUTH_URL:https://auth.mercadolivre.com.br/authorization}
+    app-id: ${ML_APP_ID:}
+    client-secret: ${ML_CLIENT_SECRET:}
+    redirect-uri: ${ML_REDIRECT_URI:http://localhost:8080/api/v1/auth/mercadolivre/callback}
+  reconciliation:
+    cron: ${MARKETPLACE_RECONCILIATION_CRON:0 0 3 * * *}
+
+logging:
+  level:
+    root: INFO
+    com.astro.leadflow: INFO
+    org.flywaydb: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# ── Integração Webmotors (API de Consulta de Leads, por polling) ─────
+# Defaults apontam para HOMOLOGAÇÃO. Em produção, sobrescrever auth-url e api-base-url.
+integrations:
+  webmotors:
+    enabled: ${WEBMOTORS_ENABLED:false}
+    auth-url: ${WEBMOTORS_LEADS_AUTH_URL:https://hlg-webmotors.sensedia.com/oauth/v1/access-token}
+    api-base-url: ${WEBMOTORS_LEADS_API_URL:https://hlg-webmotors.sensedia.com}
+    poll-interval-ms: ${WEBMOTORS_POLL_INTERVAL_MS:300000}
+    page-param: ${WEBMOTORS_PAGE_PARAM:pagina}
+    # AES-256 em Base64 (32 bytes). Gerar com: openssl rand -base64 32
+    secrets-key: ${WEBMOTORS_SECRETS_KEY:}

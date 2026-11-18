@@ -1,13 +1,16 @@
 ﻿package com.astro.leadflow.shared.modules.ingestion.service
 
-import com.astro.leadflow.shared.modules.ingestion.api.requests.ScrapedLeadDTO
 import com.astro.leadflow.shared.modules.communication.service.MessageSenderService
 import com.astro.leadflow.shared.modules.iam.domain.OrganizationRepository
 import com.astro.leadflow.shared.modules.ingestion.infra.SqsProducer
+import com.astro.leadflow.shared.modules.saas.service.UsageLimitService
 import com.astro.leadflow.shared.modules.crm.domain.Lead
 import com.astro.leadflow.shared.modules.crm.domain.LeadRepository
 import com.astro.leadflow.shared.modules.crm.domain.PipelineStage
+import com.astro.leadflow.shared.exception.ExternalServiceException
+import com.astro.leadflow.shared.exception.QuotaExceededException
 import com.astro.leadflow.shared.exception.ResourceNotFoundException
+import com.astro.leadflow.shared.modules.ingestion.dto.ScrapedLeadDTO
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -20,6 +23,7 @@ class LeadIngestionService(
     private val normalizationService: NormalizationService,
     private val sqsProducer: SqsProducer,
     private val messageSenderService: MessageSenderService,
+    private val usageLimitService: UsageLimitService,
     @Value("\${app.aws.enabled:false}") private val awsEnabled: Boolean
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -27,7 +31,7 @@ class LeadIngestionService(
     @Transactional
     fun ingestFromWebhook(dto: ScrapedLeadDTO) {
         val normalizedPhone = normalizationService.normalizePhone(dto.phoneNumber)
-        val normalizedMarketplace = normalizationService.normalizeMarketplace(dto.marketplace)
+        val normalizedMarketplace = normalizationService.normalizeMarketplace(dto.marketplaceType)
 
         val organization = organizationRepository.findBySlug(dto.organizationSlug)
             .orElseThrow { ResourceNotFoundException("Organization", dto.organizationSlug) }
@@ -37,13 +41,38 @@ class LeadIngestionService(
         )
 
         if (isDuplicate) {
-            log.info("Lead duplicado ignorado: {} | org: {}", normalizedPhone, dto.organizationSlug)
+            log.info("Lead duplicado recebido: {} | org: {}", normalizedPhone, dto.organizationSlug)
+            val duplicateLead = leadRepository.save(
+                Lead(
+                    organization = organization,
+                    phoneNumber = normalizedPhone,
+                    name = dto.name,
+                    email = dto.email,
+                    origin = normalizationService.normalizeMarketplace(dto.marketplaceType),
+                    vehicleInterest = dto.vehicleInterest,
+                    pipelineStage = PipelineStage.TALKING_TO_BOT,
+                    isDuplicate = true
+                )
+            )
+
+            usageLimitService.incrementUsage(organization.id, normalizedMarketplace)
+
+            try {
+                messageSenderService.sendTemplate(
+                    lead = duplicateLead,
+                    organization = organization,
+                    templateName = "welcome_lead",
+                    marketplaceName = dto.marketplaceType
+                )
+            } catch (e: Exception) {
+                log.warn("Erro ao enviar WhatsApp para lead duplicado. leadId={} error={}", duplicateLead.id, e.message)
+            }
             return
         }
 
         val normalizedLead = dto.copy(
             phoneNumber = normalizedPhone,
-            marketplace = normalizedMarketplace
+            marketplaceType = normalizedMarketplace
         )
 
         if (awsEnabled) {
@@ -63,7 +92,10 @@ class LeadIngestionService(
         val alreadyExists = leadRepository.existsByOrganizationIdAndPhoneNumber(
             organization.id, dto.phoneNumber
         )
-        if (alreadyExists) return
+        if (alreadyExists) {
+            log.debug("Lead já existe na fila. phone={} org={}", dto.phoneNumber, dto.organizationSlug)
+            return
+        }
 
         val lead = leadRepository.save(
             Lead(
@@ -71,22 +103,37 @@ class LeadIngestionService(
                 phoneNumber = dto.phoneNumber,
                 name = dto.name,
                 email = dto.email,
-                origin = dto.marketplace,
+                origin = dto.marketplaceType,
                 vehicleInterest = dto.vehicleInterest,
                 pipelineStage = PipelineStage.TALKING_TO_BOT
             )
         )
+
+        log.info("Lead salvo com sucesso. id={} phone={} org={}", lead.id, dto.phoneNumber, dto.organizationSlug)
 
         try {
             messageSenderService.sendTemplate(
                 lead = lead,
                 organization = organization,
                 templateName = "welcome_lead",
-                marketplaceName = dto.marketplace
+                marketplaceName = dto.marketplaceType
             )
             log.info("Mensagem de boas-vindas enviada para {}", dto.phoneNumber)
+        } catch (e: QuotaExceededException) {
+            log.warn(
+                "Quota excedida ao enviar boas-vindas. Lead salvo sem mensagem. leadId={} org={} marketplace={}",
+                lead.id, dto.organizationSlug, dto.marketplaceType
+            )
+        } catch (e: ExternalServiceException) {
+            log.error(
+                "Erro Meta API ao enviar boas-vindas. Lead salvo sem mensagem. leadId={} error={}",
+                lead.id, e.message
+            )
         } catch (e: Exception) {
-            log.error("Falha ao enviar mensagem de boas-vindas: {}", e.message)
+            log.error(
+                "Erro inesperado ao enviar boas-vindas. Lead salvo sem mensagem. leadId={} error={}",
+                lead.id, e.message, e
+            )
         }
     }
 }

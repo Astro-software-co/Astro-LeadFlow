@@ -5,22 +5,29 @@ import com.astro.leadflow.shared.modules.inventory.api.requests.VehicleUpdateReq
 import com.astro.leadflow.shared.modules.inventory.api.responses.VehicleResponse
 import com.astro.leadflow.shared.modules.inventory.api.responses.VehicleStockSummary
 import com.astro.leadflow.shared.modules.inventory.domain.Vehicle
+import com.astro.leadflow.shared.modules.inventory.domain.VehicleCategory
 import com.astro.leadflow.shared.modules.inventory.domain.VehicleRepository
 import com.astro.leadflow.shared.modules.inventory.domain.VehicleStatus
 import com.astro.leadflow.shared.modules.inventory.mapper.VehicleMapper
 import com.astro.leadflow.shared.modules.iam.domain.OrganizationRepository
+import com.astro.leadflow.shared.modules.crm.domain.LeadRepository
+import com.astro.leadflow.shared.modules.crm.domain.PipelineStage
 import com.astro.leadflow.shared.exception.InvalidOperationException
 import com.astro.leadflow.shared.exception.ResourceNotFoundException
 import com.astro.leadflow.shared.util.SecurityUtils
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.math.BigDecimal
 import java.util.UUID
 
 @Service
 class VehicleService(
     private val vehicleRepository: VehicleRepository,
     private val organizationRepository: OrganizationRepository,
-    private val vehicleMapper: VehicleMapper
+    private val vehicleMapper: VehicleMapper,
+    private val leadRepository: LeadRepository
 ) {
 
     @Transactional
@@ -92,6 +99,32 @@ class VehicleService(
     }
 
     @Transactional(readOnly = true)
+    fun findAll(
+        search: String?,
+        status: VehicleStatus?,
+        category: VehicleCategory?,
+        year: Int?,
+        minPrice: BigDecimal?,
+        maxPrice: BigDecimal?,
+        pageable: Pageable
+    ): Page<VehicleResponse> {
+        val orgId = SecurityUtils.getCurrentOrganizationId()
+        val normalizedSearch = search?.trim()?.takeIf { it.isNotBlank() }
+
+        return vehicleRepository.findPageByOrganization(
+            orgId = orgId,
+            search = normalizedSearch,
+            status = status,
+            category = category,
+            year = year,
+            minPrice = minPrice,
+            maxPrice = maxPrice,
+            pageable = pageable
+        )
+            .map { vehicle -> vehicleMapper.toResponse(vehicle) }
+    }
+
+    @Transactional(readOnly = true)
     fun getStockSummary(): VehicleStockSummary {
         val orgId = SecurityUtils.getCurrentOrganizationId()
         val counts = vehicleRepository.countByStatus(orgId)
@@ -111,6 +144,9 @@ class VehicleService(
             throw InvalidOperationException("Veículo em manutenção não pode ser removido.")
         if (vehicle.status == VehicleStatus.SOLD)
             throw InvalidOperationException("Veículos vendidos não podem ser removidos.")
+        val activeStages = listOf(PipelineStage.COMPLETED, PipelineStage.ARCHIVED)
+        if (leadRepository.existsByVehicleIdAndPipelineStageNotIn(vehicleId, activeStages))
+            throw InvalidOperationException("Veículo possui leads ativos e não pode ser removido. Finalize ou arquive os leads primeiro.")
         vehicleRepository.delete(vehicle)
     }
 

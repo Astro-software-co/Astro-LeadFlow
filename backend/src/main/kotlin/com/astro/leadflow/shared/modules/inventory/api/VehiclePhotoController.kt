@@ -6,6 +6,8 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.validation.Valid
+import jakarta.validation.constraints.NotEmpty
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
@@ -54,9 +56,11 @@ class VehiclePhotoController(
     @Operation(summary = "Reordena fotos do veículo")
     fun reorder(
         @PathVariable vehicleId: UUID,
-        @RequestBody request: ReorderPhotosRequest
+        @Valid @RequestBody request: ReorderPhotosRequest
     ): List<VehiclePhotoResponse> =
         vehiclePhotoService.reorder(vehicleId, request.photoIds)
 }
 
-data class ReorderPhotosRequest(val photoIds: List<UUID>)
+data class ReorderPhotosRequest(
+    @field:NotEmpty val photoIds: List<UUID>
+)

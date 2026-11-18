@@ -1,26 +1,36 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Car, Eye, EyeOff, Mail, Lock, User, Phone } from 'lucide-react';
+import { useNavigate, Navigate } from 'react-router-dom';
+import { Car, Eye, EyeOff, Mail, Lock, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Login() {
   const navigate = useNavigate();
-  const [isLogin, setIsLogin] = useState(true);
+  const { login, isAuthenticated } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
-  const [form, setForm] = useState({ nome: '', email: '', telefone: '', senha: '', confirmarSenha: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [form, setForm] = useState({ email: '', senha: '' });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  if (isAuthenticated) {
+    return <Navigate to="/app/dashboard" replace />;
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isLogin && form.senha !== form.confirmarSenha) {
-      toast.error('As senhas não coincidem');
-      return;
+    setIsSubmitting(true);
+    try {
+      await login(form.email, form.senha);
+      toast.success('Login realizado com sucesso!');
+      navigate('/app/dashboard');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Erro ao autenticar';
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
     }
-    toast.success(isLogin ? 'Login realizado com sucesso!' : 'Conta criada com sucesso!');
-    navigate('/');
   };
 
   return (
@@ -32,68 +42,14 @@ export default function Login() {
             <Car className="h-8 w-8 text-primary-foreground" />
           </div>
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-foreground">V3 Motors</h1>
+            <h1 className="text-2xl font-bold text-foreground">Astro LeadFlow</h1>
             <p className="text-sm text-muted-foreground">CRM Automotivo</p>
           </div>
         </div>
 
         {/* Card */}
         <div className="rounded-2xl border border-border bg-card p-8 shadow-lg">
-          {/* Tabs */}
-          <div className="mb-6 flex rounded-lg bg-muted p-1">
-            <button
-              onClick={() => setIsLogin(true)}
-              className={cn(
-                'flex-1 rounded-md py-2 text-sm font-medium transition-all',
-                isLogin ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
-              )}
-            >
-              Entrar
-            </button>
-            <button
-              onClick={() => setIsLogin(false)}
-              className={cn(
-                'flex-1 rounded-md py-2 text-sm font-medium transition-all',
-                !isLogin ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
-              )}
-            >
-              Cadastrar
-            </button>
-          </div>
-
           <form onSubmit={handleSubmit} className="space-y-4">
-            {!isLogin && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="nome">Nome Completo</Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      id="nome"
-                      placeholder="Seu nome completo"
-                      value={form.nome}
-                      onChange={(e) => setForm({ ...form, nome: e.target.value })}
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="telefone">Telefone</Label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      id="telefone"
-                      placeholder="(11) 99999-9999"
-                      value={form.telefone}
-                      onChange={(e) => setForm({ ...form, telefone: e.target.value })}
-                      className="pl-10"
-                    />
-                  </div>
-                </div>
-              </>
-            )}
-
             <div className="space-y-2">
               <Label htmlFor="email">E-mail</Label>
               <div className="relative">
@@ -106,6 +62,7 @@ export default function Login() {
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                   className="pl-10"
                   required
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -122,9 +79,11 @@ export default function Login() {
                   onChange={(e) => setForm({ ...form, senha: e.target.value })}
                   className="pl-10 pr-10"
                   required
+                  disabled={isSubmitting}
                 />
                 <button
                   type="button"
+                  aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
@@ -133,40 +92,21 @@ export default function Login() {
               </div>
             </div>
 
-            {!isLogin && (
-              <div className="space-y-2">
-                <Label htmlFor="confirmarSenha">Confirmar Senha</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="confirmarSenha"
-                    type="password"
-                    placeholder="••••••••"
-                    value={form.confirmarSenha}
-                    onChange={(e) => setForm({ ...form, confirmarSenha: e.target.value })}
-                    className="pl-10"
-                    required
-                  />
-                </div>
-              </div>
-            )}
+            <div className="flex justify-end">
+              <button type="button" className="text-xs text-primary hover:underline">
+                Esqueceu a senha?
+              </button>
+            </div>
 
-            {isLogin && (
-              <div className="flex justify-end">
-                <button type="button" className="text-xs text-primary hover:underline">
-                  Esqueceu a senha?
-                </button>
-              </div>
-            )}
-
-            <Button type="submit" className="w-full">
-              {isLogin ? 'Entrar' : 'Criar Conta'}
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Entrar
             </Button>
           </form>
         </div>
 
         <p className="text-center text-xs text-muted-foreground">
-          © 2026 V3 Motors. Todos os direitos reservados.
+          &copy; 2026 Astro Software Co. Todos os direitos reservados.
         </p>
       </div>
     </div>

@@ -2,39 +2,34 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { User, Phone, Mail, MapPin, Briefcase, Car, DollarSign, Clock, AlertCircle, MessageSquare, X } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { User, Car, MessageSquare } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { toast } from 'sonner';
 import { KanbanCard, Lead } from '@/types';
 import { cn } from '@/lib/utils';
 import { ChevronDown } from 'lucide-react';
+import { formatDateTime } from '@/lib/formatters';
 
 const leadSchema = z.object({
   nome: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
   telefone: z.string().min(10, 'Telefone inválido'),
   email: z.string().email('E-mail inválido').optional().or(z.literal('')),
-  origem: z.enum(['OLX', 'Mercado Livre', 'Instagram', 'WebMotors', 'Facebook', 'Mobiauto', 'Napista', 'Direto'] as const),
+  origem: z.enum([
+    'OLX',
+    'Mercado Livre',
+    'Instagram',
+    'WebMotors',
+    'Facebook',
+    'Mobiauto',
+    'Napista',
+    'Direto',
+  ] as const),
   interesse: z.string().optional(),
   orcamento: z.number().optional(),
   urgencia: z.enum(['baixa', 'media', 'alta']).optional(),
@@ -70,11 +65,9 @@ function Section({ title, icon, children, defaultOpen = true }: SectionProps) {
           {icon}
           <span className="font-medium text-foreground">{title}</span>
         </div>
-        <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", isOpen && "rotate-180")} />
+        <ChevronDown className={cn('h-4 w-4 text-muted-foreground transition-transform', isOpen && 'rotate-180')} />
       </CollapsibleTrigger>
-      <CollapsibleContent className="px-4 py-4 space-y-4">
-        {children}
-      </CollapsibleContent>
+      <CollapsibleContent className="px-4 py-4 space-y-4">{children}</CollapsibleContent>
     </Collapsible>
   );
 }
@@ -125,16 +118,6 @@ export function CardDetailModal({ open, onOpenChange, card, onUpdate }: CardDeta
     onOpenChange(false);
   };
 
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(new Date(date));
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
@@ -147,7 +130,7 @@ export function CardDetailModal({ open, onOpenChange, card, onUpdate }: CardDeta
               <div>
                 <span className="block">Detalhes do Lead</span>
                 <span className="text-xs font-normal text-muted-foreground">
-                  Criado em {formatDate(card.lead.dataCriacao)}
+                  Criado em {formatDateTime(card.lead.dataCriacao)}
                 </span>
               </div>
             </div>
@@ -156,11 +139,7 @@ export function CardDetailModal({ open, onOpenChange, card, onUpdate }: CardDeta
 
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4 mt-4">
           {/* Seção 1: Informações Essenciais */}
-          <Section 
-            title="Informações Essenciais" 
-            icon={<User className="h-4 w-4 text-primary" />}
-            defaultOpen={true}
-          >
+          <Section title="Informações Essenciais" icon={<User className="h-4 w-4 text-primary" />} defaultOpen={true}>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="nome">Nome *</Label>
@@ -170,9 +149,7 @@ export function CardDetailModal({ open, onOpenChange, card, onUpdate }: CardDeta
                   {...register('nome')}
                   className={errors.nome ? 'border-destructive' : ''}
                 />
-                {errors.nome && (
-                  <p className="text-xs text-destructive">{errors.nome.message}</p>
-                )}
+                {errors.nome && <p className="text-xs text-destructive">{errors.nome.message}</p>}
               </div>
 
               <div className="space-y-2">
@@ -183,9 +160,7 @@ export function CardDetailModal({ open, onOpenChange, card, onUpdate }: CardDeta
                   {...register('telefone')}
                   className={errors.telefone ? 'border-destructive' : ''}
                 />
-                {errors.telefone && (
-                  <p className="text-xs text-destructive">{errors.telefone.message}</p>
-                )}
+                {errors.telefone && <p className="text-xs text-destructive">{errors.telefone.message}</p>}
               </div>
             </div>
 
@@ -199,16 +174,14 @@ export function CardDetailModal({ open, onOpenChange, card, onUpdate }: CardDeta
                   {...register('email')}
                   className={errors.email ? 'border-destructive' : ''}
                 />
-                {errors.email && (
-                  <p className="text-xs text-destructive">{errors.email.message}</p>
-                )}
+                {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
               </div>
 
               <div className="space-y-2">
                 <Label>Origem *</Label>
                 <Select
                   value={origem}
-                  onValueChange={(value: any) => setValue('origem', value)}
+                  onValueChange={(value: string) => setValue('origem', value as LeadFormData['origem'])}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione" />
@@ -229,19 +202,15 @@ export function CardDetailModal({ open, onOpenChange, card, onUpdate }: CardDeta
           </Section>
 
           {/* Seção 2: Informações de Qualificação */}
-          <Section 
-            title="Informações de Qualificação" 
+          <Section
+            title="Informações de Qualificação"
             icon={<Car className="h-4 w-4 text-kanban-negotiation" />}
             defaultOpen={true}
           >
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="interesse">Veículo de Interesse</Label>
-                <Input
-                  id="interesse"
-                  placeholder="Ex: Toyota Corolla 2023"
-                  {...register('interesse')}
-                />
+                <Input id="interesse" placeholder="Ex: Toyota Corolla 2023" {...register('interesse')} />
               </div>
 
               <div className="space-y-2">
@@ -260,7 +229,9 @@ export function CardDetailModal({ open, onOpenChange, card, onUpdate }: CardDeta
                 <Label>Urgência</Label>
                 <Select
                   value={urgencia || ''}
-                  onValueChange={(value: any) => setValue('urgencia', value || undefined)}
+                  onValueChange={(value: string) =>
+                    setValue('urgencia', (value || undefined) as LeadFormData['urgencia'])
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione" />
@@ -275,38 +246,26 @@ export function CardDetailModal({ open, onOpenChange, card, onUpdate }: CardDeta
 
               <div className="space-y-2">
                 <Label htmlFor="tempoCompra">Previsão de Compra</Label>
-                <Input
-                  id="tempoCompra"
-                  placeholder="Ex: 30 dias"
-                  {...register('tempoCompra')}
-                />
+                <Input id="tempoCompra" placeholder="Ex: 30 dias" {...register('tempoCompra')} />
               </div>
             </div>
           </Section>
 
           {/* Seção 3: Informações Complementares */}
-          <Section 
-            title="Informações Complementares" 
+          <Section
+            title="Informações Complementares"
             icon={<MessageSquare className="h-4 w-4 text-kanban-completed" />}
             defaultOpen={false}
           >
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="profissao">Profissão</Label>
-                <Input
-                  id="profissao"
-                  placeholder="Ex: Engenheiro"
-                  {...register('profissao')}
-                />
+                <Input id="profissao" placeholder="Ex: Engenheiro" {...register('profissao')} />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="endereco">Endereço</Label>
-                <Input
-                  id="endereco"
-                  placeholder="Cidade, Estado"
-                  {...register('endereco')}
-                />
+                <Input id="endereco" placeholder="Cidade, Estado" {...register('endereco')} />
               </div>
             </div>
 

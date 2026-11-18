@@ -1,16 +1,9 @@
 import { TrendingUp } from 'lucide-react';
 import { RecentSale } from '@/types';
+import { formatCurrency } from '@/lib/formatters';
 
 interface RecentSalesTableProps {
   sales: RecentSale[];
-}
-
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-    minimumFractionDigits: 0,
-  }).format(value);
 }
 
 export function RecentSalesTable({ sales }: RecentSalesTableProps) {
@@ -45,25 +38,25 @@ export function RecentSalesTable({ sales }: RecentSalesTableProps) {
             </tr>
           </thead>
           <tbody className="divide-y">
-            {sales.map((sale, index) => (
-              <tr key={index} className="hover:bg-muted/20 transition-colors">
-                <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-foreground">
-                  {sale.cliente}
-                </td>
-                <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">
-                  {sale.veiculo}
-                </td>
-                <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-chart-primary">
-                  {formatCurrency(sale.valor)}
-                </td>
-                <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">
-                  {sale.data}
-                </td>
-                <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">
-                  {sale.vendedor}
+            {sales.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-6 py-12 text-center text-sm text-muted-foreground">
+                  Nenhuma venda registrada ainda.
                 </td>
               </tr>
-            ))}
+            ) : (
+              sales.map((sale, index) => (
+                <tr key={index} className="hover:bg-muted/20 transition-colors">
+                  <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-foreground">{sale.cliente}</td>
+                  <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">{sale.veiculo}</td>
+                  <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-chart-primary">
+                    {typeof sale.valor === 'number' ? formatCurrency(sale.valor) : '—'}
+                  </td>
+                  <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">{sale.data}</td>
+                  <td className="whitespace-nowrap px-6 py-4 text-sm text-muted-foreground">{sale.vendedor}</td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

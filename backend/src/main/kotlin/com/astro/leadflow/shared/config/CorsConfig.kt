@@ -9,14 +9,17 @@ import org.springframework.web.filter.CorsFilter
 
 @Configuration
 class CorsConfig(
-    @Value("\${app.cors.allowed-origins:http://localhost:3000,http://localhost:4321}")
-    private val allowedOrigins: String
+    @Value("\${app.cors.allowed-origins:}")
+    private val allowedOrigins: String,
+    @Value("\${app.cors.allowed-origin-patterns:http://localhost:*,http://127.0.0.1:*}")
+    private val allowedOriginPatterns: String,
 ) {
 
     @Bean
     fun corsFilter(): CorsFilter {
         val config = CorsConfiguration()
-        config.allowedOrigins = allowedOrigins.split(",").map { it.trim() }
+        parseCsv(allowedOrigins).takeIf { it.isNotEmpty() }?.let { config.allowedOrigins = it }
+        parseCsv(allowedOriginPatterns).takeIf { it.isNotEmpty() }?.let { config.allowedOriginPatterns = it }
         config.allowedMethods = listOf("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
         config.allowedHeaders = listOf("*")
         config.allowCredentials = true
@@ -27,4 +30,9 @@ class CorsConfig(
 
         return CorsFilter(source)
     }
+
+    private fun parseCsv(value: String): List<String> =
+        value.split(",")
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
 }

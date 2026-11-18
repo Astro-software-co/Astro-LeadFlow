@@ -45,23 +45,18 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  const addNotification = useCallback(
-    (notification: Omit<Notification, 'id' | 'createdAt' | 'read'>) => {
-      const newNotification: Notification = {
-        ...notification,
-        id: crypto.randomUUID(),
-        read: false,
-        createdAt: new Date(),
-      };
-      setNotifications((prev) => [newNotification, ...prev]);
-    },
-    []
-  );
+  const addNotification = useCallback((notification: Omit<Notification, 'id' | 'createdAt' | 'read'>) => {
+    const newNotification: Notification = {
+      ...notification,
+      id: crypto.randomUUID(),
+      read: false,
+      createdAt: new Date(),
+    };
+    setNotifications((prev) => [newNotification, ...prev]);
+  }, []);
 
   const markAsRead = useCallback((id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
   }, []);
 
   const markAllAsRead = useCallback(() => {

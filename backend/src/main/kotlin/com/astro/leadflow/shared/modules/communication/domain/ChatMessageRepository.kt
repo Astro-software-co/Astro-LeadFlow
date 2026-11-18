@@ -12,12 +12,12 @@ interface ChatMessageRepository : JpaRepository<ChatMessage, UUID> {
     fun findByWaMessageId(waMessageId: String): ChatMessage?
 
     @Query("""
-        SELECT COUNT(m) FROM ChatMessage m
-        WHERE m.organization.id = :orgId
-        AND m.direction = 'OUTBOUND'
-        AND MONTH(m.sentAt) = :month
-        AND YEAR(m.sentAt) = :year
-    """)
+        SELECT COUNT(*) FROM chat_messages
+        WHERE organization_id = :orgId
+        AND direction = 'OUTBOUND'
+        AND EXTRACT(MONTH FROM sent_at) = :month
+        AND EXTRACT(YEAR FROM sent_at) = :year
+    """, nativeQuery = true)
     fun countOutboundByOrganizationAndPeriod(
         @Param("orgId") orgId: UUID,
         @Param("month") month: Int,
@@ -25,15 +25,13 @@ interface ChatMessageRepository : JpaRepository<ChatMessage, UUID> {
     ): Long
 
     @Query("""
-        SELECT AVG(
-            FUNCTION('TIMESTAMPDIFF', HOUR, inbound.sentAt, outbound.sentAt)
-        )
-        FROM ChatMessage inbound
-        JOIN ChatMessage outbound ON outbound.lead.id = inbound.lead.id
-        WHERE inbound.organization.id = :orgId
-        AND inbound.direction = 'INBOUND'
-        AND outbound.direction = 'OUTBOUND'
-        AND outbound.sentAt > inbound.sentAt
-    """)
+        SELECT AVG(EXTRACT(EPOCH FROM (o.sent_at - i.sent_at)) / 3600)
+        FROM chat_messages i
+        JOIN chat_messages o ON o.lead_id = i.lead_id
+        WHERE i.organization_id = :orgId
+        AND i.direction = 'INBOUND'
+        AND o.direction = 'OUTBOUND'
+        AND o.sent_at > i.sent_at
+    """, nativeQuery = true)
     fun avgResponseTimeHoursByOrganization(@Param("orgId") orgId: UUID): Double?
 }

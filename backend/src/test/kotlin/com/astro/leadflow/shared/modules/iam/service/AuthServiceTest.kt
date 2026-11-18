@@ -1,19 +1,27 @@
 package com.astro.leadflow.shared.modules.iam.service
 
-import com.astro.leadflow.modules.iam.api.requests.LoginRequest
-import com.astro.leadflow.modules.iam.api.requests.RegisterOrganizationRequest
-import com.astro.leadflow.modules.iam.domain.*
-import com.astro.leadflow.modules.iam.service.AuthService
-import com.astro.leadflow.modules.iam.service.TokenService
 import com.astro.leadflow.shared.exception.BusinessException
 import com.astro.leadflow.shared.exception.DuplicateResourceException
-import io.mockk.*
+import com.astro.leadflow.shared.modules.iam.api.requests.LoginRequest
+import com.astro.leadflow.shared.modules.iam.api.requests.RegisterOrganizationRequest
+import com.astro.leadflow.shared.modules.iam.domain.Organization
+import com.astro.leadflow.shared.modules.iam.domain.OrganizationRepository
+import com.astro.leadflow.shared.modules.iam.domain.Role
+import com.astro.leadflow.shared.modules.iam.domain.User
+import com.astro.leadflow.shared.modules.iam.domain.UserRepository
+import com.astro.leadflow.shared.modules.iam.domain.UserStatus
+import io.mockk.MockKAnnotations
+import io.mockk.every
+import io.mockk.just
+import io.mockk.runs
+import io.mockk.verify
 import io.mockk.impl.annotations.MockK
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.security.crypto.password.PasswordEncoder
+import java.time.Instant
 import java.util.Optional
 import java.util.UUID
 
@@ -24,6 +32,8 @@ class AuthServiceTest {
     @MockK lateinit var tokenService: TokenService
     @MockK lateinit var passwordEncoder: PasswordEncoder
     @MockK lateinit var twoFactorService: TwoFactorService
+    @MockK lateinit var refreshTokenBlocklistService: RefreshTokenBlocklistService
+    @MockK lateinit var authSessionService: AuthSessionService
 
     private lateinit var authService: AuthService
 
@@ -35,11 +45,11 @@ class AuthServiceTest {
             organizationRepository,
             tokenService,
             passwordEncoder,
-            twoFactorService
+            twoFactorService,
+            refreshTokenBlocklistService,
+            authSessionService,
         )
     }
-
-    // ── registerOrganization ─────────────────────────────────
 
     @Test
     fun `registerOrganization should create org and admin user`() {
@@ -48,7 +58,7 @@ class AuthServiceTest {
             slug = "test-motors",
             adminName = "Admin User",
             adminEmail = "admin@test.com",
-            password = "senha123"
+            password = "senha123",
         )
         val org = Organization(name = request.organizationName, slug = request.slug)
         val user = buildUser(organization = org)
@@ -58,8 +68,9 @@ class AuthServiceTest {
         every { passwordEncoder.encode(request.password) } returns "hashed_password"
         every { organizationRepository.save(any()) } returns org
         every { userRepository.save(any()) } returns user
-        every { tokenService.generateAccessToken(user) } returns "access_token"
-        every { tokenService.generateRefreshToken(user) } returns "refresh_token"
+        every { tokenService.generateAccessToken(user, any()) } returns "access_token"
+        every { tokenService.generateRefreshToken(user, any(), any()) } returns "refresh_token"
+        every { authSessionService.create(any(), user.id, org.id, user.role, any()) } returns buildSessionRecord("session-1", user, "refresh-jti-1")
 
         val result = authService.registerOrganization(request)
 
@@ -76,7 +87,7 @@ class AuthServiceTest {
             slug = "test",
             adminName = "Admin",
             adminEmail = "a@b.com",
-            password = "123"
+            password = "123",
         )
         every { organizationRepository.existsBySlug(request.slug) } returns true
 
@@ -93,7 +104,7 @@ class AuthServiceTest {
             slug = "test-new",
             adminName = "Admin",
             adminEmail = "existing@test.com",
-            password = "123"
+            password = "123",
         )
         every { organizationRepository.existsBySlug(request.slug) } returns false
         every { userRepository.existsByEmail(request.adminEmail) } returns true
@@ -103,8 +114,6 @@ class AuthServiceTest {
         }
     }
 
-    // ── login ────────────────────────────────────────────────
-
     @Test
     fun `login should return tokens when credentials are valid`() {
         val request = LoginRequest(email = "user@test.com", password = "senha123")
@@ -112,14 +121,15 @@ class AuthServiceTest {
 
         every { userRepository.findByEmail(request.email) } returns Optional.of(user)
         every { passwordEncoder.matches(request.password, user.password) } returns true
-        every { tokenService.generateAccessToken(user) } returns "access_token"
-        every { tokenService.generateRefreshToken(user) } returns "refresh_token"
+        every { tokenService.generateAccessToken(user, any()) } returns "access_token"
+        every { tokenService.generateRefreshToken(user, any(), any()) } returns "refresh_token"
+        every { authSessionService.create(any(), user.id, user.organization?.id, user.role, any()) } returns buildSessionRecord("session-1", user, "refresh-jti-1")
 
         val result = authService.login(request)
 
         Assertions.assertEquals("access_token", result.accessToken)
         Assertions.assertEquals("refresh_token", result.refreshToken)
-        Assertions.assertTrue(!result.pendingTwoFactor)
+        Assertions.assertFalse(result.pendingTwoFactor)
     }
 
     @Test
@@ -158,7 +168,7 @@ class AuthServiceTest {
         val user = buildUser(twoFactorEmailEnabled = true)
         every { userRepository.findByEmail(any()) } returns Optional.of(user)
         every { passwordEncoder.matches(any(), any()) } returns true
-        every { twoFactorService.sendCode(user) } just Runs
+        every { twoFactorService.sendCode(user) } just runs
 
         val result = authService.login(LoginRequest("user@test.com", "senha123"))
 
@@ -166,14 +176,80 @@ class AuthServiceTest {
         verify(exactly = 1) { twoFactorService.sendCode(user) }
     }
 
-    // ── helpers ──────────────────────────────────────────────
+    @Test
+    fun `refresh should throw BusinessException when token is revoked`() {
+        val refreshToken = "revoked_token"
+        every { tokenService.isTokenValid(refreshToken) } returns true
+        every { tokenService.isRefreshToken(refreshToken) } returns true
+        every { refreshTokenBlocklistService.isRevoked(refreshToken) } returns true
+
+        assertThrows<BusinessException> {
+            authService.refreshToken(refreshToken)
+        }
+    }
+
+    @Test
+    fun `refresh should provide new tokens when valid`() {
+        val refreshToken = "valid_token"
+        val sessionId = "session-1"
+        val refreshTokenId = "refresh-jti-1"
+        val refreshExpiresAt = Instant.now().plusSeconds(900)
+        val user = buildUser()
+        every { tokenService.isTokenValid(refreshToken) } returns true
+        every { tokenService.isRefreshToken(refreshToken) } returns true
+        every { refreshTokenBlocklistService.isRevoked(refreshToken) } returns false
+        every { tokenService.extractSessionId(refreshToken) } returns sessionId
+        every { tokenService.extractTokenId(refreshToken) } returns refreshTokenId
+        every { authSessionService.get(sessionId) } returns buildSessionRecord(sessionId, user, refreshTokenId)
+        every { tokenService.extractUserId(refreshToken) } returns user.id
+        every { userRepository.findById(user.id) } returns Optional.of(user)
+        every { tokenService.extractExpiration(refreshToken) } returns refreshExpiresAt
+        every { refreshTokenBlocklistService.revoke(refreshToken, refreshExpiresAt) } returns true
+        every { tokenService.generateAccessToken(user, sessionId) } returns "new_access"
+        every { tokenService.generateRefreshToken(user, sessionId, any()) } returns "new_refresh"
+        every { authSessionService.rotateRefreshToken(sessionId, any()) } returns buildSessionRecord(sessionId, user, "refresh-jti-2")
+
+        val response = authService.refreshToken(refreshToken)
+
+        Assertions.assertEquals("new_access", response.accessToken)
+        Assertions.assertEquals("new_refresh", response.refreshToken)
+    }
+
+    @Test
+    fun `logout should revoke token with extracted expiration`() {
+        val refreshToken = "token_to_logout"
+        val sessionId = "session-1"
+        val expiry = Instant.now().plusSeconds(3600)
+        every { tokenService.isTokenValid(refreshToken) } returns true
+        every { tokenService.isRefreshToken(refreshToken) } returns true
+        every { tokenService.extractSessionId(refreshToken) } returns sessionId
+        every { tokenService.extractExpiration(refreshToken) } returns expiry
+        every { authSessionService.revoke(sessionId) } just runs
+        every { refreshTokenBlocklistService.revoke(refreshToken, expiry) } returns true
+
+        authService.logout(refreshToken)
+
+        verify { authSessionService.revoke(sessionId) }
+        verify { refreshTokenBlocklistService.revoke(refreshToken, expiry) }
+    }
+
+    private fun buildSessionRecord(sessionId: String, user: User, refreshTokenId: String) = AuthSessionRecord(
+        sessionId = sessionId,
+        userId = user.id,
+        organizationId = user.organization?.id,
+        role = user.role,
+        refreshTokenId = refreshTokenId,
+        createdAt = Instant.now(),
+        lastActivityAt = Instant.now(),
+    )
 
     private fun buildUser(
         organization: Organization = Organization(
-            name = "Test Org", slug = "test-org"
+            name = "Test Org",
+            slug = "test-org",
         ),
         status: UserStatus = UserStatus.ACTIVE,
-        twoFactorEmailEnabled: Boolean = false
+        twoFactorEmailEnabled: Boolean = false,
     ) = User(
         id = UUID.randomUUID(),
         organization = organization,
@@ -182,6 +258,6 @@ class AuthServiceTest {
         passwordHash = "hashed_password",
         role = Role.ADMIN,
         status = status,
-        twoFactorEmailEnabled = twoFactorEmailEnabled
+        twoFactorEmailEnabled = twoFactorEmailEnabled,
     )
 }

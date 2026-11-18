@@ -1,6 +1,6 @@
 package com.astro.leadflow.shared.modules.ingestion.infra
 
-import com.astro.leadflow.shared.modules.ingestion.api.requests.ScrapedLeadDTO
+import com.astro.leadflow.shared.modules.ingestion.dto.ScrapedLeadDTO
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.ObjectProvider
@@ -13,7 +13,7 @@ import software.amazon.awssdk.services.sqs.model.SendMessageRequest
 class SqsProducer(
     private val objectMapper: ObjectMapper,
     private val sqsClientProvider: ObjectProvider<SqsClient>,
-    @Value("\${aws.sqs.new-leads-queue-url:}") private val queueUrl: String,
+    @Value("\${app.aws.sqs.lead-queue:}") private val queueUrl: String,
     @Value("\${app.aws.enabled:false}") private val awsEnabled: Boolean
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
