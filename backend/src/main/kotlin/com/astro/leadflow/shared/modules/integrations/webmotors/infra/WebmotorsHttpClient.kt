@@ -1,5 +1,11 @@
 package com.astro.leadflow.shared.modules.integrations.webmotors.infra
 
+import com.astro.leadflow.shared.modules.integrations.webmotors.infra.dto.WmStatusRequest
+import com.astro.leadflow.shared.modules.integrations.webmotors.infra.dto.WmDecisionRequest
+import com.astro.leadflow.shared.modules.integrations.webmotors.infra.dto.WmKeyValue
+import com.astro.leadflow.shared.modules.integrations.webmotors.infra.dto.WmEnvelope
+import com.astro.leadflow.shared.modules.integrations.webmotors.infra.dto.WmLeadPage
+import com.astro.leadflow.shared.modules.integrations.webmotors.infra.dto.WmTokenResponse
 import com.astro.leadflow.shared.modules.integrations.webmotors.config.WebmotorsProperties
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper

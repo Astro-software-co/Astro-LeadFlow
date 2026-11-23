@@ -1,17 +1,9 @@
 package com.astro.leadflow.shared.modules.integrations.webmotors.domain
 
-import com.astro.leadflow.shared.modules.iam.domain.Organization
 import jakarta.persistence.*
+import com.astro.leadflow.shared.modules.iam.domain.Organization
 import java.time.LocalDateTime
 import java.util.UUID
-
-enum class AcceptMode {
-    /** O lojista aceita/recusa cada proposta pela tela. Padrão (mais seguro). */
-    MANUAL,
-
-    /** O sistema aceita todas as propostas assim que chegam. */
-    AUTO
-}
 
 /** Credenciais e preferências da integração Webmotors de uma loja (1 por organização). */
 @Entity

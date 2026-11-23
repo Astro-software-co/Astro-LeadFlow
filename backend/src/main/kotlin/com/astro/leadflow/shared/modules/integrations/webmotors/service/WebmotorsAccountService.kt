@@ -4,7 +4,6 @@ import com.astro.leadflow.shared.exception.BusinessException
 import com.astro.leadflow.shared.exception.ExternalServiceException
 import com.astro.leadflow.shared.exception.ResourceNotFoundException
 import com.astro.leadflow.shared.modules.iam.domain.OrganizationRepository
-import com.astro.leadflow.shared.modules.integrations.webmotors.domain.AcceptMode
 import com.astro.leadflow.shared.modules.integrations.webmotors.domain.WebmotorsAccount
 import com.astro.leadflow.shared.modules.integrations.webmotors.domain.WebmotorsAccountRepository
 import com.astro.leadflow.shared.modules.integrations.webmotors.infra.WebmotorsApi
@@ -14,41 +13,6 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 import java.util.UUID
-
-/** Campos nulos/vazios de credencial mantêm o valor já salvo (permite editar sem reenviar segredos). */
-data class AccountCommand(
-    val clientId: String? = null,
-    val clientSecret: String? = null,
-    val username: String? = null,
-    val password: String? = null,
-    val storeId: String? = null,
-    val acceptMode: AcceptMode? = null,
-    val welcomeMessageEnabled: Boolean? = null,
-    val enabled: Boolean? = null
-)
-
-/** Visão segura (sem segredos) da conta. */
-data class AccountView(
-    val id: UUID,
-    val storeId: String?,
-    val clientIdHint: String,
-    val acceptMode: AcceptMode,
-    val welcomeMessageEnabled: Boolean,
-    val enabled: Boolean,
-    val lastSyncAt: LocalDateTime?,
-    val lastSyncOk: Boolean?,
-    val lastSyncError: String?
-)
-
-/** Tudo que o sync precisa de uma conta, já decifrado e sem entidades JPA. */
-data class AccountRuntime(
-    val id: UUID,
-    val organizationId: UUID,
-    val storeId: String?,
-    val acceptMode: AcceptMode,
-    val welcomeMessageEnabled: Boolean,
-    val credentials: WmCredentials
-)
 
 @Service
 class WebmotorsAccountService(

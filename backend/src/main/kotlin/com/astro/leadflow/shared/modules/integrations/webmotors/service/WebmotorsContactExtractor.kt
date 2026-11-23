@@ -2,8 +2,6 @@ package com.astro.leadflow.shared.modules.integrations.webmotors.service
 
 import com.fasterxml.jackson.databind.JsonNode
 
-data class WmContact(val name: String?, val email: String?, val phone: String?)
-
 /**
  * Extrai nome/e-mail/telefone do detalhe do lead.
  *

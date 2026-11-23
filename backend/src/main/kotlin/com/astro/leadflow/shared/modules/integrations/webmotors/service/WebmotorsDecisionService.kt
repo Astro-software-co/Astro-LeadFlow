@@ -6,7 +6,7 @@ import com.astro.leadflow.shared.exception.InvalidOperationException
 import com.astro.leadflow.shared.modules.integrations.webmotors.domain.InboxStatus
 import com.astro.leadflow.shared.modules.integrations.webmotors.infra.WebmotorsApi
 import com.astro.leadflow.shared.modules.integrations.webmotors.infra.WebmotorsApiException
-import com.astro.leadflow.shared.modules.integrations.webmotors.infra.WmKeyValue
+import com.astro.leadflow.shared.modules.integrations.webmotors.infra.dto.WmKeyValue
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.UUID

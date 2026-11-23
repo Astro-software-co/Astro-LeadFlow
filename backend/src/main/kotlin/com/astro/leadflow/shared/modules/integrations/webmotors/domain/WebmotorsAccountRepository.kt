@@ -35,23 +35,3 @@ interface WebmotorsAccountRepository : JpaRepository<WebmotorsAccount, UUID> {
     @Query("UPDATE WebmotorsAccount a SET a.leaseUntil = NULL WHERE a.id = :id")
     fun releaseLease(@Param("id") id: UUID): Int
 }
-
-interface WebmotorsLeadInboxRepository : JpaRepository<WebmotorsLeadInbox, UUID> {
-
-    fun findByOrganizationIdAndExternalIdAndLeadType(
-        organizationId: UUID,
-        externalId: String,
-        leadType: Int
-    ): Optional<WebmotorsLeadInbox>
-
-    fun findByOrganizationIdAndId(organizationId: UUID, id: UUID): Optional<WebmotorsLeadInbox>
-
-    fun findAllByOrganizationIdOrderByReceivedAtDesc(organizationId: UUID): List<WebmotorsLeadInbox>
-
-    fun findAllByOrganizationIdAndStatusOrderByReceivedAtDesc(
-        organizationId: UUID,
-        status: InboxStatus
-    ): List<WebmotorsLeadInbox>
-
-    fun findAllByAccountIdAndStatusIn(accountId: UUID, statuses: Collection<InboxStatus>): List<WebmotorsLeadInbox>
-}

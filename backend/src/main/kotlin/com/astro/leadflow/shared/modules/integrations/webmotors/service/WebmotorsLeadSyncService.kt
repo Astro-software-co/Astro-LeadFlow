@@ -9,15 +9,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.UUID
 
-data class SyncReport(
-    val fetched: Int = 0,
-    val newProposals: Int = 0,
-    val accepted: Int = 0,
-    val retried: Int = 0,
-    val skipped: Int = 0,
-    val error: String? = null
-)
-
 /**
  * Um ciclo de sincronização de uma conta: lê as propostas pendentes, grava as novas na caixa de
  * entrada, aceita automaticamente (se o modo for AUTO) e retenta importações pendentes.

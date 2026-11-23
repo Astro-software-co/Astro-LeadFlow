@@ -6,10 +6,10 @@ import com.astro.leadflow.shared.modules.integrations.webmotors.domain.AcceptMod
 import com.astro.leadflow.shared.modules.integrations.webmotors.domain.InboxStatus
 import com.astro.leadflow.shared.modules.integrations.webmotors.infra.WebmotorsApi
 import com.astro.leadflow.shared.modules.integrations.webmotors.infra.WebmotorsApiException
-import com.astro.leadflow.shared.modules.integrations.webmotors.infra.WmAnuncio
-import com.astro.leadflow.shared.modules.integrations.webmotors.infra.WmLeadItem
-import com.astro.leadflow.shared.modules.integrations.webmotors.infra.WmLeadPage
-import com.astro.leadflow.shared.modules.integrations.webmotors.infra.WmLoja
+import com.astro.leadflow.shared.modules.integrations.webmotors.infra.dto.WmAnuncio
+import com.astro.leadflow.shared.modules.integrations.webmotors.infra.dto.WmLeadItem
+import com.astro.leadflow.shared.modules.integrations.webmotors.infra.dto.WmLeadPage
+import com.astro.leadflow.shared.modules.integrations.webmotors.infra.dto.WmLoja
 import com.astro.leadflow.shared.modules.integrations.webmotors.service.WebmotorsAccountService
 import com.astro.leadflow.shared.modules.integrations.webmotors.service.WebmotorsDecisionService
 import com.astro.leadflow.shared.modules.integrations.webmotors.service.WebmotorsInboxService

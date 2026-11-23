@@ -1,24 +1,8 @@
 package com.astro.leadflow.shared.modules.integrations.webmotors.infra
 
+import com.astro.leadflow.shared.modules.integrations.webmotors.infra.dto.WmKeyValue
+import com.astro.leadflow.shared.modules.integrations.webmotors.infra.dto.WmLeadPage
 import com.fasterxml.jackson.databind.JsonNode
-import java.util.UUID
-
-/** Credenciais já decifradas de uma conta Webmotors. [accountId] só serve de chave para o cache de token. */
-data class WmCredentials(
-    val accountId: UUID,
-    val clientId: String,
-    val clientSecret: String,
-    val username: String,
-    val password: String
-) {
-    override fun toString() = "WmCredentials(accountId=$accountId, clientId=***)"
-}
-
-class WebmotorsApiException(
-    message: String,
-    val httpStatus: Int? = null,
-    cause: Throwable? = null
-) : RuntimeException(message, cause)
 
 /**
  * Porta para a API de Leads da Webmotors. Isolada em interface para o restante do módulo

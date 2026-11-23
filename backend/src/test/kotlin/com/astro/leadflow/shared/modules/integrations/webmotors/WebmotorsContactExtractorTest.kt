@@ -1,6 +1,6 @@
 package com.astro.leadflow.shared.modules.integrations.webmotors
 
-import com.astro.leadflow.shared.modules.integrations.webmotors.infra.WmLeadPage
+import com.astro.leadflow.shared.modules.integrations.webmotors.infra.dto.WmLeadPage
 import com.astro.leadflow.shared.modules.integrations.webmotors.service.WebmotorsContactExtractor
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
