@@ -51,7 +51,7 @@
 - **Card + Interesses:** um card ativo por telefone; interesses por anúncio (`CONSIDERANDO | DESCARTADO | ESCOLHIDO`); conversa salva de forma generalista e **etiquetada no fechamento** com o interesse mais recente; reabre em até 3 meses; conteúdo da conversa removido 3 meses após o fechamento; novo interesse em card ativo notifica o vendedor (se assumido) ou o dono da loja (se em aberto/com bot); um vendedor por card.
 - **Lead sem telefone:** card pendente visível, nunca descartado.
 - **Aceite Webmotors:** automático por padrão, manual por loja. A recusa automática por regra (veículo vendido, DDD fora da região) fica no backlog porque depende de ligar anúncio ao estoque.
-- **Mensagens e consentimento:** mensagem de abordagem com o veículo de interesse (só em card novo ou reaberto); se o cliente responder, **pedido de aceite dos termos** na hora; descadastro por `SAIR`. Detalhes em `MENSAGENS-WHATSAPP.md`.
+- **Mensagens e consentimento:** mensagem de abordagem com o veículo de interesse (só em card novo ou reaberto); se o cliente responder, **pedido de aceite dos termos** na hora; descadastro por `SAIR`. Detalhes em o Apêndice A do plano.
 - **LGPD:** registro + anonimização + página pública + e-mail; **exclusão manual de lead pelo dono da loja**.
 - **Dados de cards fechados são mantidos** para pós-venda e futuras campanhas; só o conteúdo das conversas expira.
 - **Cliente que escreve num card arquivado (≤ 3 meses):** o card é reaberto com o veículo da etiqueta e o bot pede confirmação.
@@ -81,7 +81,7 @@
 4. Registrar o app no Portal do Desenvolvedor da Webmotors.
 5. Revisar os padrões P7–P10 (ou aprová-los).
 6. Jurídico: política e termos, base legal da abordagem por WhatsApp, texto do consentimento, retenção de dados cadastrais para pós-venda/campanhas.
-7. Meta: submeter o template **`lead_first_contact`** (texto e variáveis em `MENSAGENS-WHATSAPP.md`); pode ser reclassificado como MARKETING.
+7. Meta: submeter o template **`lead_first_contact`** (texto e variáveis em o Apêndice A do plano); pode ser reclassificado como MARKETING.
 8. **Aprovar os textos M1–M9** e levar ao jurídico o consentimento (M2) e a abordagem inicial.
 
 **Execução com o CLI** (um comando por fase; cole o *prompt mestre* da seção 0 do plano)
@@ -102,7 +102,7 @@
 ## 6. Documentos
 
 - Plano executável: `docs/plano/PLANO-IMPLEMENTACAO.md`
-- Mensagens e consentimento: `docs/plano/MENSAGENS-WHATSAPP.md`
+- Mensagens e consentimento: o **Apêndice A** de `docs/plano/PLANO-IMPLEMENTACAO.md`
 - Rascunho do formulário: `docs/plano/FORMULARIO-WEBMOTORS.md`
 - Pesquisa e gaps Webmotors: `docs/integrations/webmotors.md`
 - Estado do produto e regras abertas: `openspec/STATUS.md`

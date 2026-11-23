@@ -1,30 +1,81 @@
-# Plano de implementação — maturidade para acesso às APIs de marketplace
+# Plano de implementação — maturidade para marketplaces (versão final · GSD)
 
-> Versão 2.1 · data-base 2026-11-23 · Branch de trabalho: `claude/marketplace-integrations-ynztxc` (parte de `develop`)
-> Leitor: um agente de código de alta capacidade (Claude CLI) trabalhando **dentro do repositório**.
-> Complementos: `docs/plano/RESUMO-EXECUTIVO.md` (visão gerencial) e `docs/plano/FORMULARIO-WEBMOTORS.md` (rascunho das respostas).
->
-> **O que mudou na v2:** (1) nova **Fase 4 — Modelo Card + Interesses** (decisões do Ruy de 2026-11-23); (2) **remoção do legado Webmotors** entra já na Fase 1; (3) **proteção de segredos** (credenciais, tokens, API keys) e **máscara de logs** ganham tarefas explícitas (Fases 1 e 6); (4) quatro **decisões ainda em discussão** estão isoladas na seção 1.4 com o padrão assumido.
->
-> **O que mudou na v2.1 (decisões P1–P6 do Ruy):** (1) fluxo de **mensagem de abordagem + consentimento + descadastro** (especificado em `docs/plano/MENSAGENS-WHATSAPP.md`; tarefas T4.13–T4.19); (2) **reabertura por mensagem do cliente** com confirmação do veículo da etiqueta; (3) **exclusão manual de lead** pelo dono da loja (T2.7); (4) **backlog pós-MVP** documentado (seção 9), incluindo a integração anúncio ↔ estoque; (5) P5: dados de cards fechados **são mantidos** para pós-venda e campanhas.
+> Data-base 2026-11-23 · Executor: Claude CLI com **Opus 5.5**, fluxo **GSD** · Branch de integração: `claude/marketplace-integrations-ynztxc`
+> Este arquivo é **autossuficiente**: a especificação das mensagens de WhatsApp, do consentimento e do descadastro está no **Apêndice A** (final do arquivo).
+> Decisões do Ruy de 2026-11-23 estão **travadas** (seção 1.3). Complementos para leitura humana: `docs/plano/RESUMO-EXECUTIVO.md` e `docs/plano/FORMULARIO-WEBMOTORS.md`.
 
 ---
 
-## 0. Prompt mestre (cole no CLI)
+## 0. Como executar com o GSD
 
+### 0.1 Pré-requisitos (verificar antes da primeira phase)
+```bash
+git fetch origin && git checkout claude/marketplace-integrations-ynztxc   # contém o módulo Webmotors e este plano
+export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
+export LC_ALL=C.UTF-8 LANG=C.UTF-8          # sem isso o Kotlin falha em testes com acento no nome
+docker compose -f backend/compose.yaml up -d  # Postgres + Redis para LeadflowApplicationTests (ou use os services do ci.yml)
 ```
-Leia na ordem: CLAUDE.md, openspec/config.yaml, openspec/STATUS.md e docs/plano/PLANO-IMPLEMENTACAO.md.
-Execute UMA fase por vez, na ordem do plano. Antes de codar cada fase, crie a change do OpenSpec
-correspondente (/openspec-propose) usando o texto da seção "Change OpenSpec" da fase. Siga as
-"Regras de trabalho" (seção 2) e o "Definition of Done" (seção 3). Ao terminar cada tarefa: rode os
-testes indicados, faça um commit pequeno e descritivo e atualize a checklist da fase neste arquivo.
-Ao terminar a fase: rode a suíte completa, atualize openspec/STATUS.md e PARE para eu revisar.
-Não altere .github/workflows/ nem infra/aws/ (CI/CD e AWS estão sob responsabilidade do Ruy).
-Se uma premissa da seção 1 ou um item marcado [VERIFICAR] não bater com o código, pare e me pergunte.
-Itens da seção 1.4 (decisões em discussão) usam o padrão assumido; não os trate como definitivos.
+- `.planning/` está no `.gitignore`: os artefatos do GSD (STATE, ROADMAP, planos) ficam **só na máquina local**. O progresso **visível no repositório** é a tabela de `openspec/STATUS.md` — atualize-a ao fim de cada phase.
+- O repositório usa **GSD para o fluxo de fases** e **OpenSpec para specs/mudanças** (`openspec/STATUS.md`, "Como usar o OpenSpec aqui"). Os dois convivem: ver 0.4.
+- A última phase mergeada na `develop` é a **15**; confirme em `.planning/ROADMAP.md` e numere a partir da seguinte.
+- Nome dos comandos: use o formato que o seu CLI aceita (`/gsd:discuss-phase` ou `/gsd-discuss-phase`; o repositório usa os dois em docs diferentes).
+
+### 0.2 Prompt de partida (cole no CLI)
+```
+Você vai executar o plano de docs/plano/PLANO-IMPLEMENTACAO.md usando o GSD. Leia o arquivo INTEIRO,
+incluindo o Apêndice A, antes de qualquer ação.
+
+1. Leia CLAUDE.md, openspec/config.yaml, openspec/STATUS.md, .planning/STATE.md e .planning/ROADMAP.md
+   (se existirem). Descubra a última phase já criada no GSD; a numeração nova começa na seguinte.
+2. Confirme a base: git fetch origin && git checkout claude/marketplace-integrations-ynztxc. Não use outra base.
+3. Crie o milestone "v1.2 — Maturidade para marketplaces" com as phases do mapa da seção 0.3 (nomes e escopo
+   exatamente como lá) e registre no ROADMAP a correspondência "Fase do plano -> phase GSD". Não crie phases
+   além das listadas.
+4. As decisões da seção 1.3 e os padrões da 1.4 estão TRAVADOS. No discuss-phase não as reabra nem peça
+   confirmação; pergunte somente o que estiver marcado [VERIFICAR] e não puder ser resolvido lendo o código,
+   ou o que contradisser o repositório.
+5. Execute UMA phase por vez, na ordem do mapa, com o ciclo da seção 0.4. PARE ao fim de cada phase e mostre:
+   o que foi feito, testes executados (com resultado), desvios do plano e pendências.
+6. Siga as regras das seções 2 e 3 e as condições de parada da seção 0.5.
+   Não altere .github/workflows/ nem infra/aws/.
+Comece pela phase G1.
 ```
 
-Para fases isoladas: `Execute somente a Fase N do plano docs/plano/PLANO-IMPLEMENTACAO.md, seguindo as regras da seção 2.`
+### 0.3 Mapa: fases do plano → phases do GSD
+O plano tem 11 fases (F0–F10); para o GSD elas são agrupadas em **phases de tamanho executável** (G1…G11). **Não reduza o escopo**: cada tarefa `T…` e cada critério de aceite continuam obrigatórios.
+
+| GSD | Nome da phase | Fases/tarefas do plano | Esforço* | Observações |
+|---|---|---|---|---|
+| **G1** | Consolidação e alinhamento Webmotors | F0 + F1 (T1.1–T1.7) | 3d | Começa pelo merge com a `develop` atual; remove o legado; máscara de logs |
+| **G2** | LGPD e exclusão manual | F2 (T2.0–T2.7) | 3,5–4,5d | **Bloqueia o formulário** |
+| **G3** | Dados institucionais e pacote do formulário | F3 (T3.1–T3.4) | 1d + insumos | **Bloqueia o formulário**; depende de insumos do Ruy |
+| ★ | **Marco: formulário pronto para envio** | G1 + G2 + G3 | — | Ruy revisa `FORMULARIO-WEBMOTORS.md` e envia |
+| **G4** | Card + Interesses — núcleo | F4: T4.1, T4.2, T4.3, T4.6, T4.7, T4.10, T4.11, T4.12 | 3–4d | Índice parcial único: testar em Postgres real |
+| **G5** | Card + Interesses — notificações e retenção | F4: T4.8, T4.9 | 1,5–2d | Cria infraestrutura mínima de notificação |
+| **G6** | Abordagem, consentimento e reabertura por mensagem | F4: T4.4, T4.5, T4.13–T4.19 + Apêndice A | 3–4d | Meta ainda em mock: implementar mock **e** real |
+| **G7** | UI: Webmotors e Interesses | F5 (T5.1–T5.7) | 3–4d | Contrato do backend congelado antes de começar |
+| **G8** | Segredos em repouso | F6 (T6.1–T6.8) | 3d | Cifrar credenciais/tokens, hashear API keys, fail-fast em `prod` |
+| **G9** | Hardening da ingestão | F7 (T7.1–T7.5) | 3d | Mercado Livre e lead sem telefone |
+| **G10** | Observabilidade e pré-deploy | F8 + F9 | 3d | CI/CD e AWS são do Ruy: só o lado do código |
+| **G11** | Homologação Webmotors | F10 | 1–2d | **Bloqueada** até a Webmotors liberar o acesso |
+
+*Ordem de grandeza para 1 desenvolvedor sênior ou agente; não é compromisso. Dependências entre phases: ver seção 4 (G4 exige G1; G5 e G6 exigem G4; G7 exige G4–G6; G10 exige G8).
+
+### 0.4 Ciclo por phase
+1. **OpenSpec (início):** `/openspec-propose` com o texto "Change OpenSpec" da fase correspondente (G1: `webmotors-leads-polling`; G2/G3: `lgpd-data-subject-requests` e `marketplace-access-readiness`; G4–G6: `lead-interests-model`; G8: `secrets-at-rest`; G9: `ingestion-hardening` já existe). Fases sem texto próprio herdam a change da anterior.
+2. `/gsd:discuss-phase <N>` — registrar no CONTEXT apenas **o que ainda não está decidido** (itens `[VERIFICAR]`); decisões travadas entram como "decided".
+3. `/gsd:plan-phase <N>` — o plano GSD **deve cobrir todas as tarefas `T…` e critérios de aceite** da phase. Pode reordenar em ondas (waves) e dividir tarefas, **não pode omitir** tarefa, teste obrigatório ou critério.
+4. `/gsd:execute-phase <N>` — **commits atômicos por tarefa**. Com o Opus 5.5, paralelize subagentes **apenas** em tarefas independentes (por exemplo, backend e frontend depois de congelar o contrato HTTP). Nunca altere um teste existente para fazê-lo passar.
+5. `/gsd:verify-work <N>` — o verificador confere **cada critério de aceite** e a Definition of Done (seção 3), não só "testes verdes", e roda a suíte completa (backend e frontend).
+6. **Fechamento:** atualizar a tabela de `openspec/STATUS.md`; `/openspec-archive-change` quando a change estiver concluída; `/gsd:ship <N>` (PR para `develop`) **somente com autorização do Ruy**.
+
+### 0.5 Condições de parada (parar e perguntar ao Ruy)
+- Um item `[VERIFICAR]` contradiz o código e a resposta muda uma decisão da 1.3.
+- Um teste existente só passaria se fosse alterado ou removido (exceto os testes do legado Webmotors removidos na T1.6).
+- Colisão de versão de migration entre branches.
+- A phase exigiria mudar `.github/workflows/` ou `infra/aws/`.
+- Risco de dado real (PII/segredo) em log, fixture, commit ou saída de teste.
+- Qualquer divergência relevante em relação às regras R1–R22 da Fase 4 ou ao Apêndice A.
 
 ---
 
@@ -57,7 +108,7 @@ Para fases isoladas: `Execute somente a Fase N do plano docs/plano/PLANO-IMPLEME
 | D9 | **Banco no deploy inicial:** Postgres no Compose com backup para S3 (staging); RDS só em produção. | Assumida; Ruy confirma na change `aws-deploy-activation` |
 | D10 | **Lead sem telefone (P1):** fica como **card pendente visível** (selo "Contato pendente"), sem mensagem; nunca descartado. Aviso extra ao dono da loja fica opcional. | Ruy, 2026-11-23 |
 | D11 | **Aceite Webmotors (P2): automático por padrão** (opção A), manual configurável por loja. A opção C (recusa automática por regra: veículo vendido, DDD fora da região) fica no **backlog B2**, pois depende da integração anúncio ↔ estoque (B1). | Ruy, 2026-11-23 |
-| D12 | **Mensagem inicial + consentimento (P3):** a mensagem de abordagem continua existindo e menciona o veículo de interesse (M1); **se o cliente responder**, o sistema envia na hora o pedido de aceite dos termos e condições (M2) e só então o bot segue. A abordagem só sai em card novo ou reaberto, **nunca** em novo interesse num card ativo. Descadastro por `SAIR` a qualquer momento. Especificação: `MENSAGENS-WHATSAPP.md`. Base legal e política da Meta **[VALIDAR com o jurídico]**. | Ruy, 2026-11-23 |
+| D12 | **Mensagem inicial + consentimento (P3):** a mensagem de abordagem continua existindo e menciona o veículo de interesse (M1); **se o cliente responder**, o sistema envia na hora o pedido de aceite dos termos e condições (M2) e só então o bot segue. A abordagem só sai em card novo ou reaberto, **nunca** em novo interesse num card ativo. Descadastro por `SAIR` a qualquer momento. Especificação: Apêndice A. Base legal e política da Meta **[VALIDAR com o jurídico]**. | Ruy, 2026-11-23 |
 | D13 | **LGPD (P4): opção A** — registro de solicitações + anonimização + página pública + e-mail de privacidade, sem portal self-service. **Mais:** mecanismo de **exclusão manual de lead** utilizável pelo dono da concessionária (T2.7). | Ruy, 2026-11-23 |
 | D14 | **Dados de cards fechados (P5): mantidos** (nome, telefone, e-mail) para **suporte pós-venda e futuras campanhas comerciais**. Só o **conteúdo** das conversas expira em 3 meses. Campanhas exigem consentimento de marketing específico (backlog B3). | Ruy, 2026-11-23 |
 | D15 | **Cliente escreve num card arquivado (P6):** o card é reaberto usando como contexto o veículo da **etiqueta** (interesse de fechamento), dentro dos 3 meses, e o bot **pede confirmação** do veículo (M7). | Ruy, 2026-11-23 |
@@ -326,7 +377,7 @@ Job `@Scheduled` (`SchedulingConfig` já existe) que limpa `raw_payload` de `mar
 | R13 | Concluir (`COMPLETED`) com interesses: se nenhum estiver `ESCOLHIDO`, o **atual** é marcado `ESCOLHIDO` automaticamente (P7); `leads.vehicle_id` recebe o veículo do `ESCOLHIDO` (alimenta a receita do dashboard). |
 | R14 | `isDuplicate` deixa de ser escrito como `true` para leads novos; coluna e campo de API permanecem por compatibilidade até uma limpeza posterior. |
 | R15 | **Cliente escreve no WhatsApp** (D15): se há card ativo, vai nele; se não, e há card fechado há ≤ 90 dias, **reabre o mais recente** usando como contexto o veículo da **etiqueta** (`closing_interest`) e envia a **confirmação M7** ("quer retomar o atendimento sobre o {veículo}?"). `Sim` → segue e revalida dados; `Outro veículo` → o interesse da etiqueta vira `DESCARTADO` e o bot cria novo interesse no mesmo card (P9). Sem card fechado em 90 dias: card novo (comportamento atual do `BotService`). |
-| R16 | **Consentimento por `(organização, telefone)`** (não por card). Na 1ª resposta de um telefone sem `ACCEPTED`, o sistema envia **M2** e **suspende o bot** até a resposta. Detalhes C1–C10 em `MENSAGENS-WHATSAPP.md`. |
+| R16 | **Consentimento por `(organização, telefone)`** (não por card). Na 1ª resposta de um telefone sem `ACCEPTED`, o sistema envia **M2** e **suspende o bot** até a resposta. Detalhes C1–C10 no Apêndice A. |
 | R17 | **Descadastro (`SAIR`/`PARAR`/`CANCELAR`/`STOP`)** a qualquer momento → `REVOKED`, envia M5 e bloqueia mensagens do sistema para o telefone naquela organização. Precede qualquer outra regra. |
 | R18 | **Telefone `DECLINED`/`REVOKED`** nunca recebe mensagem do sistema. Se voltar pelo marketplace, o card é criado (o lojista precisa ver o lead) com selo **"Não contatar"** e sem mensagem automática. |
 | R19 | A **mensagem de abordagem (M1)** só sai em **card novo ou reaberto por marketplace**, nunca em novo interesse de card ativo (R3). Variáveis: nome, loja, veículo do interesse atual, marketplace. |
@@ -350,17 +401,17 @@ Job `@Scheduled` (`SchedulingConfig` já existe) que limpa `raw_payload` de `mar
 - **T4.6** `LeadClosureService` (R8, R13): hook chamado pelos pontos que movem para `COMPLETED`/`ARCHIVED` (`PipelineService.moveLead`, `LeadService.archive`) — grava `closed_at`, define `closing_interest_id`, etiqueta mensagens (`UPDATE chat_messages SET tagged_interest_id=… WHERE lead_id=… AND tagged_interest_id IS NULL`), aplica o `ESCOLHIDO` automático e o `vehicle_id`.
 - **T4.7** `LeadReopenService` (R9, R10, R15): reabre o card; ajusta `BotService.handleIncoming` para resolver o card (ativo → fechado recente → novo). Teste de concorrência: dois eventos simultâneos do mesmo telefone resultam em **um** card.
 - **T4.8** `LeadNotificationService` (R11): **não existe infraestrutura de notificação** hoje — só as preferências `notifyViaEmail`/`notifyViaPush` em `User`. Entregar o mínimo: tabela `notifications` (`user_id`, `type`, `lead_id`, `interest_id`, `created_at`, `read_at`) + `GET /api/v1/notifications` + `PATCH .../read`, e **e-mail** quando `notifyViaEmail` (via `EmailService`; MailHog em dev, SES em prod — change `email-ses-prod`). Push fora do escopo [VERIFICAR se o frontend já tem sino/lista no `Header`].
-- **T4.9** `ConversationRetentionJob` (R12, P5): diário; para cards com `closed_at < now − privacy.retention.conversation-days` (default 90) e `conversation_purged_at IS NULL`: apagar `chat_messages` do card, limpar `bot_sessions.slot_values`, limpar `notes`, gravar `conversation_purged_at`. Idempotente, com relógio injetável nos testes; ligado em `prod`.
+- **T4.9** `ConversationRetentionJob` (R12, D14): diário; para cards com `closed_at < now − privacy.retention.conversation-days` (default 90) e `conversation_purged_at IS NULL`: apagar `chat_messages` do card, limpar `bot_sessions.slot_values`, limpar `notes`, gravar `conversation_purged_at`. Idempotente, com relógio injetável nos testes; ligado em `prod`.
 - **T4.10** Métricas/dashboard: receita por `leads.vehicle_id` do `ESCOLHIDO` (queries `sumRevenueByOrganizationAndPeriod`, `countSalesByOrganizationAndPeriod` permanecem corretas via R13; adicionar teste); leads por marketplace passam a contar **entradas** (eventos), não cards — decidir o que o dashboard mostra e documentar.
 - **T4.11** Atualizar o mapa de anonimização da Fase 2 (`lead_interests`, `lead_interest_events`, `notifications`) e o `LeadAnonymizationService` (testes).
 - **T4.12** Specs e docs: reescrever o requisito "Duplicados" em `openspec/specs/lead-ingestion/spec.md` (via change), criar `openspec/specs/lead-interests/spec.md` (R1–R15) e `openspec/specs/whatsapp-consent/spec.md` (R16–R22), atualizar `CLAUDE.md` (regra "Duplicate leads…"), `openspec/config.yaml` e `openspec/STATUS.md` (regras #1 e #2), `docs/ARCHITECTURE.md`.
 
-#### 4.C — Abordagem, consentimento, descadastro e reabertura por mensagem (D12, D15; spec completa em `docs/plano/MENSAGENS-WHATSAPP.md`)
+#### 4.C — Abordagem, consentimento, descadastro e reabertura por mensagem (D12, D15; spec completa no **Apêndice A**)
 
 - **T4.13** Modelo e serviço de consentimento: migration `contact_consents (id, organization_id, phone_hash, status, terms_version, terms_url, source, wa_message_id, responded_at, lead_id NULL ON DELETE SET NULL, created_at, UNIQUE (organization_id, phone_hash))`; `ContactConsentService` (`record`, `status(org, phone)`, `canSend`); `MessagingPolicy.canSend(org, phone, kind)` consultado por `MessageSenderService` e pelos envios do bot (`NO_RECORD` → só M1; `ACCEPTED` → tudo; `DECLINED`/`REVOKED`/anonimizado → nega). Hash = HMAC-SHA256 com `privacy.hash-secret`. Testes de política e de isolamento por organização.
 - **T4.14** Cliente Meta (mock **e** real): `sendTemplate` com `components` (corpo e botões), mensagem **interativa com botões de resposta**, e parsing de entrada de `interactive.button_reply` e `button` no webhook (DTOs em arquivos próprios). Testes de contrato com payloads de exemplo; o filtro de assinatura permanece inalterado.
 - **T4.15** Roteador de entrada do WhatsApp (ordem: descadastro → consentimento pendente → reabertura/confirmação → bot): máquina de estados C3–C6 com M2/M3/M4/M6; "Não aceito" arquiva o card e bloqueia (P10); ambíguo > 2 vezes → `WAITING_ATTENDANCE` + notificação; palavras-chave sem acento e sem caixa; **o bot não responde enquanto o consentimento está pendente**. Testes da máquina de estados completa e de concorrência (duas respostas simultâneas).
-- **T4.16** `FirstContactMessageBuilder` (M1) com as 4 variáveis, sanitização, fallbacks e truncamento (ver tabela em `MENSAGENS-WHATSAPP.md`); propriedades `whatsapp.templates.first-contact.*` com **fallback** para `welcome_lead` enquanto o template novo não estiver aprovado; tratamento do botão "Não tenho interesse" (interesse `DESCARTADO` + M8).
+- **T4.16** `FirstContactMessageBuilder` (M1) com as 4 variáveis, sanitização, fallbacks e truncamento (ver tabela no Apêndice A); propriedades `whatsapp.templates.first-contact.*` com **fallback** para `welcome_lead` enquanto o template novo não estiver aprovado; tratamento do botão "Não tenho interesse" (interesse `DESCARTADO` + M8).
 - **T4.17** Reabertura por mensagem do cliente (R15/D15): `BotService.handleIncoming` resolve card ativo → fechado ≤ 90 dias (reabre) → novo; envia **M7**; "Sim, esse mesmo" dispara a revalidação (T4.4); "Outro veículo" → interesse da etiqueta `DESCARTADO`, M9 e **novo interesse** `WHATSAPP` a partir do texto livre (P9). Testes dos três caminhos e do limite de 90 dias.
 - **T4.18** Frontend: selo **"Não contatar"** e status de consentimento no detalhe do lead e no Kanban; aviso de confirmação ao clicar em "Abrir no WhatsApp" de telefone bloqueado; campo opcional `privacy_policy_url` nas configurações da organização (aba Geral) usado no link da M2.
 - **T4.19** Feature flag `whatsapp.consent.enabled` (padrão `false` em `prod` até `/privacidade` e `/termos` estarem publicados) e atualização do mapa de anonimização (`contact_consents` guarda só hash; **não** é apagado por anonimização de lead — decisão jurídica registrada em C2). Runbook `docs/RUNBOOK-CONSENTIMENTO.md` (como auditar um aceite, como tratar pedido de revogação).
@@ -478,7 +529,7 @@ Cada linha é uma **suposição** do módulo. Para cada uma: obter amostra real 
 | H9 | Rate limit e intervalo mínimo de polling | `WebmotorsProperties.pollIntervalMs` | Combinar com a Webmotors |
 | H10 | `https` nos endpoints de dados e URLs de produção | `application.yaml` | Documentação de produção |
 | H11 | `loja.id` casa com `store_id` | `WebmotorsLeadSyncService` | Amostra real |
-| H12 | Significado comercial de "aceitar" (P2) e penalidade por aceitar sem atender | decisão de produto | Reunião com a Webmotors |
+| H12 | Significado comercial de "aceitar" (D11) e penalidade por aceitar sem atender | decisão de produto | Reunião com a Webmotors |
 | H13 | O `anuncio.id` é estável e serve de `listingId` do interesse (R4/R9) | `IncomingLead` → `LeadIntakeCommand` | Amostras de dois contatos do mesmo anúncio |
 
 Depois: ligar `WEBMOTORS_ENABLED=true` em staging e produção; arquivar as changes (`/openspec-archive-change`).
@@ -493,7 +544,7 @@ Depois: ligar `WEBMOTORS_ENABLED=true` em staging e produção; arquivar as chan
 |---|---|---|---|
 | `aws-deploy-activation` | standby | Conta AWS (Ruy) | F9 coordena o lado do código |
 | `email-ses-prod` | pendente | Domínio + conta AWS | T9.3; necessário para privacidade, convites e notificações (T4.8) |
-| `meta-whatsapp-real` | pendente | Verificação de negócio, número, token, template | T4.5 (template com o veículo) e P3 dependem dele; custo/classificação ainda em aberto |
+| `meta-whatsapp-real` | pendente | Verificação de negócio, número, token, template | T4.5 e T4.16 (template `lead_first_contact`) e D12 dependem dele; custo/classificação ainda em aberto |
 | `lex-real-engine` | pendente | Conta AWS | T4.4 usa os slots canônicos do chatbot |
 | `abacatepay-sandbox-validation` | pendente | Conta/chave sandbox | Regras #6–#8 do STATUS seguem abertas |
 | `ingestion-hardening` | pendente | Webmotors/ML | Executada na F7 |
@@ -505,7 +556,7 @@ Depois: ligar `WEBMOTORS_ENABLED=true` em staging e produção; arquivar as chan
 1. **Webmotors:** registrar o app no Portal do Desenvolvedor, preencher o formulário (`FORMULARIO-WEBMOTORS.md`), pedir ambiente de homologação e confirmar H3–H13.
 2. **Dados institucionais** da Fase 3.
 3. **Mercado Livre:** app em developers, redirect URI, tópico `vis_leads`, conta vendedora Motors (pesquisa em andamento).
-4. **Meta:** Business Portfolio/verificação, número dedicado, token permanente e submissão do template **`lead_first_contact`** (texto e variáveis em `MENSAGENS-WHATSAPP.md`) — esperar possível reclassificação para MARKETING.
+4. **Meta:** Business Portfolio/verificação, número dedicado, token permanente e submissão do template **`lead_first_contact`** (texto e variáveis no Apêndice A) — esperar possível reclassificação para MARKETING.
 5. **AWS/CI/CD:** conta, Budget, OIDC, EC2/SSM, **SSM Parameter Store para as chaves** (T6.8), SES, domínio/DNS.
 6. **Jurídico:** política de privacidade e termos, **base legal da abordagem inicial por WhatsApp e o texto do consentimento (M2)**, papéis operadora × controladora, SLA declarado, **retenção de dados cadastrais de cards fechados para pós-venda e campanhas (D14)**, e se é preciso termo por concessionária.
 7. Rever os padrões **P7–P10** da seção 1.4 (assumidos) e aprovar os textos M1–M9.
@@ -523,7 +574,7 @@ Depois: ligar `WEBMOTORS_ENABLED=true` em staging e produção; arquivar as chan
 | Logs de ERROR persistidos no banco com PII | Vazamento persistente | T1.5 (máscara global antes do appender de banco) + retenção de 90 dias |
 | Perda da chave de cifra | Credenciais irrecuperáveis | Cofre (SSM), `keyId` no prefixo, rotação documentada |
 | `phone_number` anulável (T7.4) quebrar dedupe/Kanban/inbound | Regressão em fluxo central | Migração incremental e testes de regressão do inbound WhatsApp |
-| Retenção apagar conteúdo que o jurídico exige manter | Perda de prova/relacionamento | Retenção configurável por propriedade e revisão jurídica (P5) |
+| Retenção apagar conteúdo que o jurídico exige manter | Perda de prova/relacionamento | Retenção configurável por propriedade e revisão jurídica (D14) |
 | Migrations fora de ordem entre branches | Falha de deploy | Conferir a próxima versão livre no momento de cada merge |
 | Meta/AWS ainda em mock | "Funciona" sem prova real | Registrar como não validado em `openspec/STATUS.md` |
 | A **abordagem (M1) precede o consentimento** (contato frio) | Atrito com a política de opt-in da Meta e questionamento de base legal | Mensagem identifica a loja e a origem do contato; rodapé com `SAIR`; consentimento na 1ª resposta; descadastro imediato; revisão jurídica **antes** de produção; flag `whatsapp.consent.enabled` |
@@ -555,9 +606,112 @@ Depois: ligar `WEBMOTORS_ENABLED=true` em staging e produção; arquivar as chan
 | # | Item | Por quê / dependências |
 |---|---|---|
 | **B1** | **Integração anúncio ↔ estoque** | Hoje o anúncio do marketplace **não** está ligado ao `Vehicle` do estoque. Passos: (1) tabela `vehicle_listings (vehicle_id, marketplace_type, listing_id, listing_url, status)` e/ou `Vehicle.external_ad_id` por marketplace; (2) vínculo automático por **placa**/`anuncio.id` (Webmotors) e `item_id` (ML) + tela de vínculo manual; (3) preencher `lead_interests.vehicle_id` e o preço real do estoque; (4) publicar/atualizar/despublicar anúncios pela API de **Gestor de Estoque Terceiro** da Webmotors (itens E1–E5 de `docs/integrations/webmotors.md`): `Vehicle` precisa de versão, combustível, câmbio, carroceria, opcionais, cidade e fabricação × modelo; catálogo de marca/modelo/versão da Webmotors; envio de fotos (hoje URLs do S3). Destrava B2, receita exata por veículo e "veículo vendido" automático. |
-| **B2** | **Recusa/aceite automático por regra** (P2, opção C) | Recusar automaticamente propostas de **veículo já vendido** (`VehicleStatus.SOLD`) ou de **DDD fora da região** da loja. Depende de B1 e de uma configuração de regiões por organização. Usar os códigos de recusa da Webmotors (`GET /motivos-recusa`). |
+| **B2** | **Recusa/aceite automático por regra** (D11, opção C) | Recusar automaticamente propostas de **veículo já vendido** (`VehicleStatus.SOLD`) ou de **DDD fora da região** da loja. Depende de B1 e de uma configuração de regiões por organização. Usar os códigos de recusa da Webmotors (`GET /motivos-recusa`). |
 | **B3** | **Campanhas comerciais** | Os dados de cards fechados são mantidos também para campanhas (D14). Exige: **consentimento específico de marketing** (finalidade separada do atendimento) e opt-out; templates `MARKETING` (custo por mensagem, regra #5 do STATUS); segmentação (ex.: clientes de um modelo, pós-venda); respeito a `DECLINED`/`REVOKED`. Revisão jurídica obrigatória. |
 | **B4** | **Portal self-service do titular** | Só se a Webmotors ou o jurídico exigirem fluxo direto ao titular (hoje D13 = opção A). |
 | **B5** | **Notificações push** e preferências por tipo | A T4.8 entrega notificação in-app e e-mail; `notifyViaPush` existe como preferência mas não há serviço de push. |
 | **B6** | **Descarte automático de campos mutáveis desatualizados** e normalização de dados ao reabrir | Evolução da revalidação (T4.4). |
 | **B7** | **Aviso extra ao dono da loja para lead pendente sem telefone** (D10, opção b) | Complemento opcional ao selo "Contato pendente". |
+
+---
+
+## Apêndice A — Mensagens de WhatsApp: abordagem, consentimento, reabertura e descadastro
+
+> Especificação funcional para a Fase 4, bloco 4.C (phase GSD G6) deste plano. Redigida em 2026-11-23 a partir das decisões do Ruy.
+> **Textos sujeitos a revisão jurídica** (consentimento, base legal, finalidades) e à **aprovação da Meta** (templates). Onde dependem de validação externa há `[VALIDAR]`.
+
+### 1. Visão do fluxo
+
+```
+Marketplace (lead) ──► [M1 Abordagem] ──► cliente responde? ──┬─ não: nada mais é enviado
+   (card novo ou reaberto)                                     └─ sim ─► [M2 Consentimento]
+                                                                          ├─ Aceito ───► [M3] ─► bot qualifica
+                                                                          ├─ Não aceito ─► [M4] ─► bloqueio de contato
+                                                                          └─ texto livre ─► [M6] (até 2x) ─► atendimento humano
+Cliente escreve num card arquivado (≤ 3 meses) ──► reabre o card ──► [M7 Confirmação do veículo]
+Em qualquer momento: "SAIR" ──► [M5] ──► bloqueio de contato
+```
+
+Regras que valem para todo o fluxo:
+- **A mensagem de abordagem (M1) só sai em card novo ou reaberto**, nunca em novo interesse num card ativo (R3/R11 do plano).
+- **O consentimento é por `(organização, telefone)`**, não por card: se o cliente já aceitou, não pedimos de novo em cards seguintes.
+- **Telefone com status `DECLINED` ou `REVOKED` nunca recebe mensagem enviada pelo sistema** daquela organização (ver 5, "Limite do bloqueio").
+- A resposta do cliente abre a **janela de 24 h** do WhatsApp: dentro dela M2, M3, M4, M5, M6 e M7 são mensagens **livres/interativas** e **não precisam de template aprovado**. Só M1 (fora da janela) é template.
+
+### 2. M1 — Mensagem de abordagem (template)
+
+| Campo | Valor |
+|---|---|
+| Nome | `lead_first_contact` (versão 1) |
+| Idioma | `pt_BR` |
+| Categoria solicitada | `UTILITY` — **[VALIDAR]** esperar que a Meta reclassifique como `MARKETING` (mais cara) |
+| Corpo | `Olá, {{1}}! Aqui é o atendimento da {{2}}. Vimos que você se interessou pelo {{3}} anunciado no {{4}} e gostaríamos de ajudar com mais informações. Posso continuar por aqui?` |
+| Rodapé | `Para não receber mais mensagens, responda SAIR.` |
+| Botões (resposta rápida) | `Sim, pode continuar` · `Não tenho interesse` |
+
+#### Variáveis
+
+| Var | Significado | Origem no sistema | Regra de montagem | Fallback | Exemplo (envio à Meta) |
+|---|---|---|---|---|---|
+| `{{1}}` | Primeiro nome do cliente | `lead.name` | primeiro token, capitalizado (`maria` → `Maria`) | `cliente` | `Carlos` |
+| `{{2}}` | Nome da concessionária | `organization.name` | como cadastrado; máx. 60 caracteres | — (obrigatório) | `Auto Center Silva` |
+| `{{3}}` | Veículo de interesse | snapshot do **interesse atual** (R5) | `"{marca} {modelo} {ano}"`; sem versão (muito longa); máx. 60 caracteres | `veículo anunciado` | `Hyundai HB20 2018` |
+| `{{4}}` | Marketplace de origem | `marketplace_type` do interesse | `WEBMOTORS`→`Webmotors`, `MERCADO_LIVRE`→`Mercado Livre`, `OLX`→`OLX` | `portal de veículos` | `Webmotors` |
+
+Restrições da Meta a respeitar na montagem **[VALIDAR]**: variável não pode ser o primeiro nem o último elemento do corpo; sem quebras de linha, tabulações nem 4+ espaços consecutivos dentro de uma variável; todos os parâmetros preenchidos; amostra de cada variável obrigatória na submissão.
+
+#### Mapeamento no código
+- Propriedades: `whatsapp.templates.first-contact.name=lead_first_contact`, `…language=pt_BR`, e `…fallback-name=welcome_lead` (usado enquanto o novo template não estiver aprovado, ou em modo mock).
+- `FirstContactMessageBuilder.build(lead, organization, interest): TemplateMessage(name, language, components)` produz os 4 parâmetros do corpo na ordem acima e aplica sanitização e fallbacks. Testes: nome ausente → `cliente`; veículo sem dados → `veículo anunciado`; marketplace desconhecido → `portal de veículos`; textos longos truncados em 60 caracteres sem quebrar palavra; remoção de quebras de linha.
+- Tratamento do botão **"Não tenho interesse"**: interesse do card → `DESCARTADO`; envia cortesia (M8) e para a automação; o card segue o fluxo normal para o atendente decidir.
+
+### 3. Mensagens livres/interativas (dentro da janela de 24 h)
+
+| # | Quando | Tipo | Texto |
+|---|---|---|---|
+| **M2** | 1ª resposta do cliente e ainda **sem** consentimento `ACCEPTED` para o telefone | Interativa, botões `Aceito` / `Não aceito` | `Obrigado pelo retorno! Para continuarmos o seu atendimento, a {{loja}} precisa do seu aceite aos Termos e Condições e à Política de Privacidade: {{link}}. Você concorda?` |
+| **M3** | Cliente tocou em `Aceito` | Texto | `Perfeito, obrigado! Vamos continuar o seu atendimento.` |
+| **M4** | Cliente tocou em `Não aceito` | Texto | `Tudo bem, respeitamos a sua decisão. Não enviaremos mais mensagens. Se mudar de ideia, é só nos chamar.` |
+| **M5** | Cliente enviou `SAIR` (ou sinônimo) | Texto | `Pronto, você não receberá mais mensagens da {{loja}}. Se quiser voltar a conversar, é só nos chamar.` |
+| **M6** | Resposta ambígua à M2 | Interativa (repete M2 curto) | `Não entendi a sua resposta. Para continuar, toque em Aceito ou Não aceito.` |
+| **M7** | Cliente escreve num card **arquivado** (≤ 3 meses) e o card é reaberto | Interativa, botões `Sim, esse mesmo` / `Outro veículo` | `Olá, {{nome}}! Que bom ter você de volta. Você quer retomar o atendimento sobre o {{veículo da etiqueta}}?` |
+| **M8** | Botão `Não tenho interesse` da M1 | Texto | `Tudo bem! Se precisar de algo, é só chamar.` |
+| **M9** | `Outro veículo` na M7 | Texto | `Sem problemas! Qual veículo você procura?` |
+
+Variáveis das mensagens livres: `{{loja}}` = `organization.name`; `{{link}}` = política configurada pela loja (`privacy_policy_url`, opcional) ou, por padrão, `{SITE_URL}/privacidade` (Fase 3) **[VALIDAR com o jurídico se é necessário um termo por concessionária]**; `{{nome}}` = primeiro nome (fallback: omitir o nome e a vírgula); `{{veículo da etiqueta}}` = `"{marca} {modelo} {ano}"` do `closing_interest` do card arquivado.
+
+Finalidades no texto do consentimento: o texto da M2 cobre **atendimento**. O Ruy quer manter dados de cards para **suporte pós-venda e futuras campanhas comerciais**; campanhas comerciais exigem **consentimento específico de marketing** e templates `MARKETING` — ver backlog B3 do plano. Até lá, o termo apontado pelo link deve **descrever** o uso pós-venda **[VALIDAR com o jurídico]**.
+
+### 4. Regras do consentimento e do descadastro
+
+| # | Regra |
+|---|---|
+| C1 | **Registro por `(organização, telefone)`** em `contact_consents`: `status` (`ACCEPTED`, `DECLINED`, `REVOKED`), `terms_version`, `terms_url`, `source` (`BUTTON` ou `TEXT`), `wa_message_id` da resposta, `responded_at`, `lead_id` de origem (anulável), `phone_hash` (HMAC; **não** guardar o telefone em claro nesta tabela). |
+| C2 | **Prova preservada:** o registro de consentimento **não** é apagado pela retenção de 3 meses nem por exclusão manual do lead (mantém só hash e metadados); é removido apenas se o jurídico definir o contrário **[VALIDAR]**. |
+| C3 | **Ao receber a 1ª resposta** de um telefone sem `ACCEPTED`: enviar M2 e **suspender o bot** (sem qualificação, sem handoff automático) até a resposta. A mensagem original do cliente permanece salva na conversa. |
+| C4 | **Aceito** = toque no botão ou texto exato (sem acento/caixa) em `{aceito, concordo, sim}` → `ACCEPTED`, envia M3, **retoma o bot** do ponto em que parou. |
+| C5 | **Não aceito** = botão ou `{nao aceito, não, nao}` → `DECLINED`, envia M4, interrompe toda automação, **arquiva o card** com o motivo "Cliente não aceitou os termos" e bloqueia novos envios (P10). |
+| C6 | **Resposta ambígua:** M6 até **2** vezes; depois disso o bot **não** envia mais nada, o card vai para `WAITING_ATTENDANCE` e o responsável/`MANAGER` é notificado. |
+| C7 | **Descadastro:** `SAIR`, `PARAR`, `CANCELAR`, `STOP` (sem acento/caixa, mensagem inteira) em **qualquer** momento → `REVOKED`, envia M5, bloqueia; vale para **todos** os cards do telefone na organização. Tem precedência sobre qualquer outro tratamento. |
+| C8 | **Reabertura** de card de telefone com `ACCEPTED` **não** pede consentimento de novo (apenas M7). |
+| C9 | **Cliente com `DECLINED`/`REVOKED` que volta pelo marketplace:** o card é criado normalmente (o lojista precisa **ver** o lead), com selo **"Não contatar"** e **sem** mensagem automática. |
+| C10 | Versionamento: ao publicar nova versão dos termos, `ACCEPTED` de versões antigas continua válido para atendimento em curso; um novo aceite só é exigido para telefones sem `ACCEPTED` (política simples; **[VALIDAR]**). |
+
+#### Limite do bloqueio (importante)
+O bloqueio vale para **mensagens enviadas pelo sistema** (template, bot, handoff). O vendedor ainda pode abrir o WhatsApp pelo botão **"Abrir no WhatsApp"** (a comunicação é log somente leitura, fora do sistema). Por isso a interface mostra o selo **"Não contatar"** e um **aviso de confirmação** ao clicar em "Abrir no WhatsApp" de um telefone bloqueado. O sistema não consegue impedir um contato feito fora dele.
+
+### 5. Reabertura por mensagem do cliente (decisão P6)
+
+1. Cliente escreve no WhatsApp; **não há card ativo** do telefone, mas há card **fechado há ≤ 90 dias**.
+2. O sistema **reabre o card mais recente** (R10), usando como contexto o veículo da **etiqueta** (`closing_interest`) e dispara **M7** pedindo confirmação.
+3. `Sim, esse mesmo` → segue o fluxo normal; o bot **revalida** os dados mutáveis (telefone, e-mail, valor de entrada, urgência, tipo de interesse, troca) e consolida com o que já havia.
+4. `Outro veículo` → o interesse da etiqueta vira `DESCARTADO`, o bot envia **M9** e o texto livre da resposta cria um **novo interesse** (marketplace `WHATSAPP`, sem `listingId`, veículo descrito pelo cliente). O card **permanece o mesmo** (sem churn de cards).
+5. Passados 90 dias do fechamento, não há reabertura: cria-se card novo e a etiqueta/conversa antiga já foi expirada.
+
+### 6. Notas para implementação
+
+- **Cliente da Meta:** hoje só existem `sendText` e `sendTemplate(name)` (sem `components`). É preciso: `sendTemplate` com `components` (parâmetros do corpo), **mensagem interativa com botões de resposta** e o **parsing de entrada** de `interactive.button_reply` e de `button` (resposta de botão de template) no webhook. Implementar **mock e real** (a Meta ainda é mock) e cobrir com testes de contrato quando houver acesso real (change `meta-whatsapp-real`).
+- **Roteador de entrada** (ordem de precedência): (1) descadastro (C7) → (2) consentimento pendente (C3–C6) → (3) reabertura/confirmação (seção 5) → (4) bot.
+- **Portão de saída:** `MessagingPolicy.canSend(org, phone, kind)` consultado por `MessageSenderService` e por qualquer envio do bot: `NO_RECORD` permite **apenas** M1; `ACCEPTED` permite tudo; `DECLINED`/`REVOKED` e lead anonimizado negam.
+- **Feature flag:** `whatsapp.consent.enabled`. Só ligar em produção depois de as páginas `/privacidade` e `/termos` (Fase 3) estarem publicadas.
+- **Telefone nos logs:** nenhum texto de mensagem nem telefone em log (T1.5).
