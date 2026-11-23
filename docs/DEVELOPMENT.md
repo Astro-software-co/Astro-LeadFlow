@@ -63,5 +63,5 @@ Arquivos mais importantes:
 
 - `docs/notion/` agora e material exportado/historico
 - `docs/*.md` na raiz de `docs/` sao a referencia principal
-- `backend/src/main/resources/db/migration/v1__init_schema.sql` continua suspeito por naming e deve ser removido ou renomeado num cleanup futuro
+- a migracao duplicada `v1__init_schema.sql` nao existe mais; manter apenas nomes Flyway `V*__*.sql`
 - algumas features SaaS ainda assumem assinatura existente; o bootstrap dev cobre esse caso para a org demo

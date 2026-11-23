@@ -6,17 +6,16 @@ Astro LeadFlow is a multi-tenant CRM SaaS for automotive dealerships. The reposi
 
 **Core value:** Every lead that enters the system must be visible, traceable, and actionable within seconds.
 
-## Current State (2026-04-20)
+## Current State (2026-11-23)
 
 - Branch: `develop`
-- Last commit on branch: `8bffc64 feat(08-01): extract configuracoes tabs into settings components`
-- Phase 12 is implemented in the working tree and revalidated by:
-  - `cd frontend && npm run lint`
-  - `cd frontend && npm run test:coverage`
-  - `cd frontend && npm run test:e2e`
-  - `cd backend && ./gradlew test`
-- Planning docs are synced to the current codebase (`STATE`, `ROADMAP`, `PROJECT`, health report, scan report)
-- Formal closure is still pending: commits, `/gsd:verify-work 12`, `/gsd:ship 12`, `/gsd:complete-milestone v1.1`
+- Phase 14 (RBAC, users, plans, settings, billing) is implemented and green; only manual checks remain (Abacate Pay sandbox checkout, settings tab overflow at notebook width).
+- Chatbot runs in mock mode: slots are written to the Lead, handoff records stage history, the bot qualifies 24h. The real Lex engine, the real Meta client and the marketplace ingestion hardening are open work.
+- Live status, blockers and open business rules: `openspec/STATUS.md`. Implemented behavior: `openspec/specs/`. Open work: `openspec/changes/` (validate with `npx @fission-ai/openspec validate --all`).
+- CI/CD (GitHub Actions), `frontend/Dockerfile` and `infra/prod/` exist as a standby scaffold; nothing has run yet. `application-prod.yml` exists but the prod boot is untested.
+- Backend tests need JDK 21: `export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64`.
+- Last verified 2026-11-16: `cd backend && ./gradlew test` green; frontend lint, 213 unit tests and typecheck green; E2E not re-run.
+- Dev logins (password `senha123`): `manager@astro.dev`, `seller@astro.dev`, `admin@astro.dev` (ASTRO_ADMIN).
 
 ## Business Rules
 
@@ -48,7 +47,10 @@ Every stage move generates timeline activity at `/api/v1/leads/{id}/activities`.
 - Public registration is removed; onboarding is invite/admin-driven
 - Duplicate leads are flagged with `isDuplicate: true` and still trigger message flow
 - Usage reset follows `renewsAt`, not calendar month
-- Tokens stay in memory only; current behavior is `reload = relogin`
+- Access tokens stay in memory; refresh session restores through the backend httpOnly cookie after browser refresh.
+- Lead assignee filters use the dedicated `/api/v1/users/assignable` endpoint.
+- Post-401 handling emits `auth-session-ended`; it no longer hard-redirects through `window.location.href`.
+- Sonner is the only toast system.
 
 ## Frontend Architecture
 
@@ -91,6 +93,7 @@ Every stage move generates timeline activity at `/api/v1/leads/{id}/activities`.
 - `PATCH /api/v1/users/me/notifications`
 - `PATCH /api/v1/users/me/two-factor`
 - `GET /api/v1/users`
+- `GET /api/v1/users/assignable`
 - `POST /api/v1/users/invite`
 - `DELETE /api/v1/users/{id}`
 - `GET /api/v1/leads`
@@ -120,31 +123,46 @@ Every stage move generates timeline activity at `/api/v1/leads/{id}/activities`.
 - PT-BR default, BRL default, Lucide icons only
 - No default dark mode
 
-## Open Decisions / Pending Cleanup
+## Cross-Phase Closure
 
-1. Confirm whether session persistence after refresh remains an official product rule
-2. Decide whether to add a dedicated assignee directory endpoint
-3. Replace `window.location.href` in `frontend/src/lib/api.ts`
-4. Remove legacy toast files
-5. Publish the Notion markdown package to the target workspace
+No active open work remains from phases other than Phase 14.
+
+Closed on 2026-04-29:
+
+1. Session persistence after refresh is official: restore through httpOnly refresh cookie, keep access token in memory.
+2. Dedicated assignee directory exists at `/api/v1/users/assignable`.
+3. Post-401 flow uses auth session events instead of `window.location.href`.
+4. Legacy Radix toast wrapper/dependency was removed; Sonner remains canonical.
+5. Phase 15 UAT is closed 20/20 with static checks plus focused frontend/backend automated coverage.
+6. Notion markdown package remains a publish-ready export; workspace publication is external distribution, not a repo blocker.
 
 ## Canonical Docs
 
-- Reconstructed state: `ESTADO-ATUAL-2026-04-20.md`
-- Health report: `docs/HEALTH_REPORT.md`
-- Scan report: `docs/varredura-geral-2026-04-17.md`
+The consolidated project knowledge base is the Obsidian vault:
+
+- Windows: `C:\Users\ruy.de.castro\Desktop\ruy\meuObsidian\Projetos\Leadflow`
+- WSL/Linux: `/mnt/c/Users/ruy.de.castro/Desktop/ruy/meuObsidian/Projetos/Leadflow`
+- Entry point: `00-index.md`
+- Repository bridge: `docs/OBSIDIAN_VAULT.md`
+
+Use the vault only on demand. Do not read it automatically in every session.
+
+Read the vault when the user explicitly asks for Obsidian/project documentation, when a task depends on current business rules or architectural decisions, or when documentation needs to be updated. For specific tasks, read only the relevant note.
+
+Repository references that remain useful:
+
 - Planning state: `.planning/STATE.md`
 - Roadmap: `.planning/ROADMAP.md`
-- Notion docs index: `docs/notion/INDEX.md`
+- Notion export index: `docs/notion/INDEX.md`
+- Claude project-docs skill: `.claude/skills/astro-leadflow-project-docs/SKILL.md`
 
 ## GSD Workflow Enforcement
 
 Use the normal GSD workflow for any new implementation or closure action:
 
 - `/gsd:quick` for small docs or cleanup
-- `/gsd:verify-work 12` for Phase 12 UAT closure
-- `/gsd:ship 12` for PR preparation
-- `/gsd:complete-milestone v1.1` after merge
+- `/openspec-propose` for a new feature or open item (see `openspec/changes/`), `/openspec-apply-change` to implement it
+- `/gsd:verify-work 14` for the remaining manual checks of Phase 14
 
 ## Developer Profile
 

@@ -3,6 +3,7 @@
 Historical note: este arquivo registra um snapshot operacional anterior. Para o estado atual consolidado, use a documentacao canonica na raiz de `docs/`, comecando por `docs/README.md`.
 
 **Data:** 2026-04-20  
+**Cross-phase closure:** 2026-04-29
 **Revisao de:** Phases 08-12 (milestone v1.1)  
 **Auditoria:** Codex com leitura direta do codigo e rerun do quality gate
 
@@ -12,18 +13,14 @@ Historical note: este arquivo registra um snapshot operacional anterior. Para o 
 
 O projeto esta em estado solido. A Phase 12, que era o consolidado da varredura de 2026-04-17, esta tecnicamente entregue no codigo e foi revalidada no ambiente local em 2026-04-20. Nao ha bloqueador funcional dentro do escopo atual do roadmap.
 
-O que ainda resta esta concentrado em tres grupos:
-
-1. **Governanca de workflow**: commitar a Phase 12, executar `/gsd:verify-work 12`, `/gsd:ship 12`, e fechar o milestone.
-2. **Decisoes de produto**: persistencia de sessao apos refresh e estrategia do diretorio de responsaveis (`assignedTo`).
-3. **Debito controlado**: redirect router-aware em 401, limpeza do toast legado e definicao sobre arquivos suspeitos no working tree.
+Em 2026-04-29, as pendencias registradas neste snapshot foram rechecadas contra o codigo atual. O unico trabalho ativo restante no milestone e a Phase 14.
 
 | Dimensao | Status | Observacao |
 |---|---|---|
 | Integracao Frontend-Backend | Verde | Billing history, logout, settings e kanban dedicados estao alinhados |
-| Seguranca | Verde com ressalvas baixas | Tokens em memoria, logout revoga refresh, anti-replay Redis; redirect 401 ainda usa `window.location.href` |
+| Seguranca | Verde | Tokens em memoria, refresh cookie httpOnly, logout revoga refresh, anti-replay Redis; redirect 401 usa evento de sessao |
 | Testes | Verde | `lint`, `test:coverage`, `test:e2e`, `./gradlew test` revalidados em 2026-04-20 |
-| UX / Produto | Verde com backlog claro | Dialog de archive e payments reais entregues; sessao apos refresh continua uma decisao de produto |
+| UX / Produto | Verde | Dialog de archive e payments reais entregues; sessao apos refresh foi formalizada via cookie httpOnly |
 | Docs / Planejamento | Verde | `STATE`, `ROADMAP`, `PROJECT`, `README`, `CLAUDE` e varredura sincronizados nesta rodada |
 
 ---
@@ -72,28 +69,26 @@ O que ainda resta esta concentrado em tres grupos:
 
 ---
 
-## Pontos ainda abertos
+## Pontos rechecados em 2026-04-29
 
 | Item | Gravidade | Estado atual | Recomendacao |
 |---|---|---|---|
-| Persistencia de sessao apos refresh | Media (produto) | Tokens em memoria; reload exige relogin | Confirmar se vira regra oficial do v1.1 ou se sobe para v1.2 com cookie httpOnly |
-| Diretorio de responsaveis para filtro de leads | Media | Ainda depende do dataset carregado | Criar `/api/v1/users/assignable` ou confirmar modelo atual |
-| Redirect pos-401 router-aware | Baixa | `frontend/src/lib/api.ts` usa `window.location.href` | Substituir por evento + `navigate('/app/login')` |
-| Toast legado Radix | Baixa | `hooks/use-toast.ts` e wrappers ainda existem, mas nao sao o canonico | Limpar em task de cleanup |
-| Publicacao Notion | Baixa | Pacote markdown pronto no repo | Definir workspace, responsavel e visibilidade |
+| Persistencia de sessao apos refresh | Fechado | `AuthContext` restaura sessao via `authService.restoreSession()` e refresh cookie httpOnly; access token segue em memoria | Sem acao |
+| Diretorio de responsaveis para filtro de leads | Fechado | `/api/v1/users/assignable` existe e `Leads.tsx` usa `useAssignableUsers()` | Sem acao |
+| Redirect pos-401 router-aware | Fechado | `frontend/src/lib/api.ts` emite `auth-session-ended`; nao ha `window.location.href` no cliente API | Sem acao |
+| Toast legado Radix | Fechado | Componente Radix toast e dependencia removidos; Sonner permanece em `App.tsx` | Sem acao |
+| Publicacao Notion | Fechado para repo | Pacote markdown esta pronto em `docs/notion/`; publicacao em workspace e distribuicao externa | Nao bloquear milestone |
 
 ---
 
 ## Riscos residuais
 
-1. Se a decisao de sessao nao for registrada, o comportamento "reload = relogin" pode continuar parecendo bug para usuario final.
-2. Se o redirect 401 continuar via `window.location.href`, o comportamento segue funcional, mas com full reload desnecessario.
+1. Phase 14 ainda precisa executar a onda de RBAC/users/settings/plans/referrals/billing.
+2. Validacoes runtime que dependem de credenciais reais externas continuam condicionadas ao ambiente, mas nao existem pendencias in-repo fora da Phase 14.
 
 ---
 
 ## Proximo passo recomendado
 
-1. Commits atomicos da Phase 12.
-2. `/gsd:verify-work 12`
-3. `/gsd:ship 12`
-4. `/gsd:complete-milestone v1.1`
+1. Executar Phase 14: `/gsd-execute-phase 14`
+2. Verificar Phase 14 apos execucao.

@@ -695,9 +695,9 @@ Migrations atuais:
 | `V10__rbac_user_referral_codes.sql` | RBAC e referral codes por usuario |
 | `V11__ensure_platform_admin_identity.sql` | Identidade do Astro admin |
 
-Ponto de atencao:
+Ponto rechecado em 2026-04-29:
 
-- Existe tambem `v1__init_schema.sql` com `v` minusculo. O Flyway detecta e ignora por convencao de nome. Isso gera warning no boot. Recomenda-se remover o duplicado, renomear conscientemente ou validar historico antes de mexer se algum ambiente ja aplicou algo manualmente.
+- O duplicado historico `v1__init_schema.sql` nao existe mais no diretorio de migrations. O padrao ativo e manter apenas arquivos Flyway `V*__*.sql`.
 
 ## Configuracao local
 
@@ -787,7 +787,7 @@ Nota: nesta geracao eu executei validacoes runtime via HTTP, mas nao rodei as su
    - Como fechar: usar dominio proprio ou Cloudflare named tunnel antes de producao.
 
 4. Migration duplicada com nome invalido
-   - `v1__init_schema.sql` e ignorado pelo Flyway.
+   - O antigo duplicado `v1__init_schema.sql` foi removido; manter apenas migrations `V*__*.sql`.
    - Como fechar: remover duplicata ou regularizar apos comparar conteudo e historico.
 
 5. Documentacao existente parcialmente defasada

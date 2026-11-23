@@ -1,9 +1,19 @@
 # Astro LeadFlow Docs
 
-Esta pasta passa a ser a documentacao canonica do projeto.
+Esta pasta guarda documentos operacionais e arquivos de ponte do repositório.
+
+A documentação consolidada e navegável do projeto fica no Obsidian:
+
+- Windows: `C:\Users\ruy.de.castro\Desktop\ruy\meuObsidian\Projetos\Leadflow`
+- WSL/Linux: `/mnt/c/Users/ruy.de.castro/Desktop/ruy/meuObsidian/Projetos/Leadflow`
+- Entrada: `00-index.md`
+- Ponte no repositório: [OBSIDIAN_VAULT.md](./OBSIDIAN_VAULT.md)
+
+Regra para agentes: consultar o vault somente sob demanda, quando o usuário pedir ou quando a tarefa depender de contexto documentado.
 
 Arquivos principais:
 
+- [OBSIDIAN_VAULT.md](./OBSIDIAN_VAULT.md)
 - [ARCHITECTURE.md](./ARCHITECTURE.md)
 - [GETTING-STARTED.md](./GETTING-STARTED.md)
 - [DEVELOPMENT.md](./DEVELOPMENT.md)

@@ -1,0 +1,3394 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-04-30T01:56:31.955Z",
+  "__export_source": "Astro LeadFlow generated Insomnia collection",
+  "resources": [
+    {
+      "_id": "wrk_astro_leadflow",
+      "parentId": null,
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "name": "Astro LeadFlow API",
+      "description": "Colecao completa de endpoints do backend Astro LeadFlow, organizada por modulo.",
+      "scope": "collection",
+      "_type": "workspace"
+    },
+    {
+      "_id": "env_astro_leadflow_base",
+      "parentId": "wrk_astro_leadflow",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "name": "Base Environment",
+      "data": {
+        "base_url": "http://localhost:8080",
+        "access_token": "",
+        "astro_admin_token": "",
+        "manager_token": "",
+        "seller_token": "",
+        "x_api_key": "",
+        "webhook_token": "dev-marketplace-webhook-token",
+        "meta_verify_token": "dev-webhook-token",
+        "abacatepay_webhook_secret": "dev-abacate-webhook-secret",
+        "organization_id": "00000000-0000-0000-0000-000000000000",
+        "user_id": "00000000-0000-0000-0000-000000000000",
+        "seller_user_id": "00000000-0000-0000-0000-000000000000",
+        "lead_id": "00000000-0000-0000-0000-000000000000",
+        "vehicle_id": "00000000-0000-0000-0000-000000000000",
+        "vehicle_photo_id": "00000000-0000-0000-0000-000000000000",
+        "plan_id": "00000000-0000-0000-0000-000000000000",
+        "marketplace_config_id": "00000000-0000-0000-0000-000000000000",
+        "onboarding_id": "00000000-0000-0000-0000-000000000000",
+        "bot_session_id": "00000000-0000-0000-0000-000000000000",
+        "error_id": "1",
+        "lead_phone": "+5511999999999",
+        "auth_email": "admin@astro.dev",
+        "auth_password": "password123"
+      },
+      "dataPropertyOrder": {
+        "&": [
+          "base_url",
+          "access_token",
+          "astro_admin_token",
+          "manager_token",
+          "seller_token",
+          "x_api_key",
+          "webhook_token",
+          "meta_verify_token",
+          "abacatepay_webhook_secret",
+          "organization_id",
+          "user_id",
+          "seller_user_id",
+          "lead_id",
+          "vehicle_id",
+          "vehicle_photo_id",
+          "plan_id",
+          "marketplace_config_id",
+          "onboarding_id",
+          "bot_session_id",
+          "error_id",
+          "lead_phone",
+          "auth_email",
+          "auth_password"
+        ]
+      },
+      "color": null,
+      "isPrivate": false,
+      "metaSortKey": 0,
+      "_type": "environment"
+    },
+    {
+      "_id": "fld_auth",
+      "parentId": "wrk_astro_leadflow",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "name": "00 Auth & Sessao",
+      "description": "Login, refresh, 2FA, registro e logout.",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 0,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_register_organization",
+      "name": "Register Organization",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/auth/register",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"organizationName\": \"Astro Demo Motors\",\n  \"slug\": \"astro-demo-motors\",\n  \"adminName\": \"Admin Demo\",\n  \"adminEmail\": \"admin.demo@astro.dev\",\n  \"password\": \"password123\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 0
+    },
+    {
+      "_id": "req_login",
+      "name": "Login",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/auth/login",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"{{ _.auth_email }}\",\n  \"password\": \"{{ _.auth_password }}\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 1
+    },
+    {
+      "_id": "req_verify_2fa",
+      "name": "Verify 2FA",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/auth/2fa/verify",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"{{ _.auth_email }}\",\n  \"code\": \"123456\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 2
+    },
+    {
+      "_id": "req_refresh_session",
+      "name": "Refresh Session",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/auth/refresh",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 3
+    },
+    {
+      "_id": "req_logout",
+      "name": "Logout",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/auth/logout",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 4
+    },
+    {
+      "_id": "fld_iam_users",
+      "parentId": "wrk_astro_leadflow",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "name": "01 IAM - Usuarios",
+      "description": "Perfil, equipe, RBAC e preferencias de usuario.",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 1,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_get_me",
+      "name": "Get Me",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/users/me",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_iam_users",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 0
+    },
+    {
+      "_id": "req_update_me",
+      "name": "Update Me",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/users/me",
+      "method": "PATCH",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Gerente Demo\",\n  \"phoneNumber\": \"+5511988887777\",\n  \"avatarUrl\": null\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_iam_users",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 1
+    },
+    {
+      "_id": "req_change_password",
+      "name": "Change Password",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/users/me/password",
+      "method": "PATCH",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"currentPassword\": \"password123\",\n  \"newPassword\": \"newPassword123\",\n  \"confirmNewPassword\": \"newPassword123\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_iam_users",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 2
+    },
+    {
+      "_id": "req_update_notifications",
+      "name": "Update Notifications",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/users/me/notifications",
+      "method": "PATCH",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"notifyNewLead\": true,\n  \"notifyLeadWaiting\": true,\n  \"notifySaleCompleted\": true,\n  \"notifyCardMoved\": false,\n  \"notifyViaEmail\": true,\n  \"notifyViaPush\": false\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_iam_users",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 3
+    },
+    {
+      "_id": "req_update_two_factor",
+      "name": "Update Two Factor",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/users/me/two-factor",
+      "method": "PATCH",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"emailEnabled\": true,\n  \"smsEnabled\": false\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_iam_users",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 4
+    },
+    {
+      "_id": "req_list_team_users",
+      "name": "List Team Users",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/users",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_iam_users",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 5
+    },
+    {
+      "_id": "req_list_assignable_users",
+      "name": "List Assignable Users",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/users/assignable",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_iam_users",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 6
+    },
+    {
+      "_id": "req_get_user_by_id",
+      "name": "Get User By ID",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/users/{{ _.user_id }}",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_iam_users",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 7
+    },
+    {
+      "_id": "req_invite_seller",
+      "name": "Invite Seller",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/users/invite",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Vendedor Demo\",\n  \"email\": \"seller.demo@astro.dev\",\n  \"role\": \"SELLER\",\n  \"phoneNumber\": \"+5511977776666\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_iam_users",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 8
+    },
+    {
+      "_id": "req_update_team_user",
+      "name": "Update Team User",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/users/{{ _.user_id }}",
+      "method": "PATCH",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Vendedor Atualizado\",\n  \"email\": \"seller.demo@astro.dev\",\n  \"phoneNumber\": \"+5511966665555\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_iam_users",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 9
+    },
+    {
+      "_id": "req_update_user_role",
+      "name": "Update User Role",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/users/{{ _.user_id }}/role",
+      "method": "PATCH",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"role\": \"SELLER\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_iam_users",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 10
+    },
+    {
+      "_id": "req_suspend_user",
+      "name": "Suspend User",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/users/{{ _.user_id }}/suspend",
+      "method": "PATCH",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_iam_users",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 11
+    },
+    {
+      "_id": "req_reactivate_user",
+      "name": "Reactivate User",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/users/{{ _.user_id }}/reactivate",
+      "method": "PATCH",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_iam_users",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 12
+    },
+    {
+      "_id": "req_delete_user",
+      "name": "Delete User",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/users/{{ _.user_id }}",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_iam_users",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 13
+    },
+    {
+      "_id": "fld_iam_org",
+      "parentId": "wrk_astro_leadflow",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "name": "02 IAM - Organizacao",
+      "description": "Dados da organizacao e credenciais WhatsApp/Meta por organizacao.",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 2,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_get_my_organization",
+      "name": "Get My Organization",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/organization",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_iam_org",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 0
+    },
+    {
+      "_id": "req_update_organization",
+      "name": "Update Organization",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/organization",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Astro Demo Motors\",\n  \"slug\": \"astro-demo-motors\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_iam_org",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 1
+    },
+    {
+      "_id": "req_update_whatsapp_credentials",
+      "name": "Update WhatsApp Credentials",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/organization/whatsapp",
+      "method": "PATCH",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"whatsappToken\": \"EAAB...\",\n  \"whatsappPhoneNumberId\": \"123456789012345\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_iam_org",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 2
+    },
+    {
+      "_id": "fld_onboarding",
+      "parentId": "wrk_astro_leadflow",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "name": "03 Onboarding",
+      "description": "Solicitacao publica e aprovacao/rejeicao pelo Astro Admin.",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 3,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_submit_public_onboarding",
+      "name": "Submit Public Onboarding",
+      "description": "",
+      "url": "{{ _.base_url }}/api/onboarding",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"companyName\": \"Nova Loja Motors\",\n  \"tradeName\": \"Nova Loja\",\n  \"cnpj\": \"12345678000190\",\n  \"planCode\": \"PROFISSIONAL_MONTHLY\",\n  \"ownerName\": \"Maria Responsavel\",\n  \"ownerCpf\": \"12345678901\",\n  \"ownerEmail\": \"maria@novaloja.com.br\",\n  \"ownerPhone\": \"+5511999999999\",\n  \"cep\": \"01310-100\",\n  \"street\": \"Avenida Paulista\",\n  \"number\": \"1000\",\n  \"complement\": \"Sala 10\",\n  \"neighborhood\": \"Bela Vista\",\n  \"city\": \"Sao Paulo\",\n  \"state\": \"SP\",\n  \"ownerRole\": \"Socio administrador\",\n  \"dealershipSegment\": \"Seminovos\",\n  \"branchCount\": 1,\n  \"employeeCount\": 8,\n  \"stockCount\": 45,\n  \"monthlyLeadsAvg\": 180,\n  \"marketYears\": 6,\n  \"website\": \"https://novaloja.example.com\",\n  \"intendedMarketplaces\": [\n    \"WEBMOTORS\",\n    \"MERCADO_LIVRE\"\n  ],\n  \"otherMarketplaces\": \"Napista\",\n  \"referralCode\": \"123456\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_onboarding",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 0
+    },
+    {
+      "_id": "req_admin_list_onboarding",
+      "name": "Admin List Onboarding",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/admin/onboarding",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "name": "status",
+          "value": "PENDING_APPROVAL",
+          "disabled": false
+        },
+        {
+          "name": "query",
+          "value": "",
+          "disabled": false
+        },
+        {
+          "name": "page",
+          "value": "0",
+          "disabled": false
+        },
+        {
+          "name": "size",
+          "value": "20",
+          "disabled": false
+        }
+      ],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_onboarding",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 1
+    },
+    {
+      "_id": "req_admin_get_onboarding",
+      "name": "Admin Get Onboarding",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/admin/onboarding/{{ _.onboarding_id }}",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_onboarding",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 2
+    },
+    {
+      "_id": "req_admin_approve_onboarding",
+      "name": "Admin Approve Onboarding",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/admin/onboarding/{{ _.onboarding_id }}/approve",
+      "method": "POST",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_onboarding",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 3
+    },
+    {
+      "_id": "req_admin_reject_onboarding",
+      "name": "Admin Reject Onboarding",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/admin/onboarding/{{ _.onboarding_id }}/reject",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"rejectionReason\": \"Dados incompletos para aprovacao.\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_onboarding",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 4
+    },
+    {
+      "_id": "req_legacy_admin_list_onboarding_api_admin",
+      "name": "Legacy Admin List Onboarding (/api/admin)",
+      "description": "",
+      "url": "{{ _.base_url }}/api/admin/onboarding",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "name": "page",
+          "value": "0",
+          "disabled": false
+        },
+        {
+          "name": "size",
+          "value": "20",
+          "disabled": false
+        }
+      ],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_onboarding",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 5
+    },
+    {
+      "_id": "req_legacy_admin_get_onboarding_api_admin",
+      "name": "Legacy Admin Get Onboarding (/api/admin)",
+      "description": "",
+      "url": "{{ _.base_url }}/api/admin/onboarding/{{ _.onboarding_id }}",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_onboarding",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 6
+    },
+    {
+      "_id": "req_legacy_admin_approve_onboarding_api_admin",
+      "name": "Legacy Admin Approve Onboarding (/api/admin)",
+      "description": "",
+      "url": "{{ _.base_url }}/api/admin/onboarding/{{ _.onboarding_id }}/approve",
+      "method": "POST",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_onboarding",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 7
+    },
+    {
+      "_id": "req_legacy_admin_reject_onboarding_api_admin",
+      "name": "Legacy Admin Reject Onboarding (/api/admin)",
+      "description": "",
+      "url": "{{ _.base_url }}/api/admin/onboarding/{{ _.onboarding_id }}/reject",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"rejectionReason\": \"Dados incompletos para aprovacao.\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_onboarding",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 8
+    },
+    {
+      "_id": "fld_crm",
+      "parentId": "wrk_astro_leadflow",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "name": "04 CRM - Leads",
+      "description": "CRUD, timeline, movimentacao de etapa, atribuicao e arquivamento.",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 4,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_create_lead",
+      "name": "Create Lead",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/leads",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Joao Cliente\",\n  \"phoneNumber\": \"{{ _.lead_phone }}\",\n  \"email\": \"joao.cliente@example.com\",\n  \"origin\": \"WebMotors\",\n  \"vehicleInterest\": \"Honda Civic 2023\",\n  \"budget\": 120000,\n  \"urgency\": \"Alta\",\n  \"purchaseForecast\": \"30 dias\",\n  \"interestType\": \"BUY\",\n  \"notes\": \"Quer avaliar troca.\",\n  \"vehicleId\": null\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_crm",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 0
+    },
+    {
+      "_id": "req_list_leads",
+      "name": "List Leads",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/leads",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "name": "search",
+          "value": "",
+          "disabled": false
+        },
+        {
+          "name": "origin",
+          "value": "",
+          "disabled": false
+        },
+        {
+          "name": "stage",
+          "value": "",
+          "disabled": false
+        },
+        {
+          "name": "assignedTo",
+          "value": "",
+          "disabled": false
+        },
+        {
+          "name": "dateFrom",
+          "value": "",
+          "disabled": false
+        },
+        {
+          "name": "dateTo",
+          "value": "",
+          "disabled": false
+        },
+        {
+          "name": "page",
+          "value": "0",
+          "disabled": false
+        },
+        {
+          "name": "size",
+          "value": "20",
+          "disabled": false
+        }
+      ],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_crm",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 1
+    },
+    {
+      "_id": "req_get_lead",
+      "name": "Get Lead",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/leads/{{ _.lead_id }}",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_crm",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 2
+    },
+    {
+      "_id": "req_get_lead_activities",
+      "name": "Get Lead Activities",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/leads/{{ _.lead_id }}/activities",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_crm",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 3
+    },
+    {
+      "_id": "req_update_lead",
+      "name": "Update Lead",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/leads/{{ _.lead_id }}",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Joao Cliente Atualizado\",\n  \"email\": \"joao.novo@example.com\",\n  \"vehicleInterest\": \"Corolla 2022\",\n  \"budget\": 105000,\n  \"urgency\": \"Media\",\n  \"purchaseForecast\": \"60 dias\",\n  \"interestType\": \"BUY\",\n  \"notes\": \"Atualizacao via Insomnia.\",\n  \"vehicleId\": null\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_crm",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 4
+    },
+    {
+      "_id": "req_move_lead_stage",
+      "name": "Move Lead Stage",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/leads/{{ _.lead_id }}/move",
+      "method": "PATCH",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"toStage\": \"IN_ATTENDANCE\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_crm",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 5
+    },
+    {
+      "_id": "req_archive_lead",
+      "name": "Archive Lead",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/leads/{{ _.lead_id }}/archive",
+      "method": "PATCH",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_crm",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 6
+    },
+    {
+      "_id": "req_assume_lead",
+      "name": "Assume Lead",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/leads/{{ _.lead_id }}/assume",
+      "method": "PATCH",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_crm",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 7
+    },
+    {
+      "_id": "req_assign_lead",
+      "name": "Assign Lead",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/leads/{{ _.lead_id }}/assign",
+      "method": "PATCH",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"userId\": \"{{ _.seller_user_id }}\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_crm",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 8
+    },
+    {
+      "_id": "req_delete_lead",
+      "name": "Delete Lead",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/leads/{{ _.lead_id }}",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_crm",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 9
+    },
+    {
+      "_id": "fld_kanban",
+      "parentId": "wrk_astro_leadflow",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "name": "05 CRM - Kanban",
+      "description": "Board agrupado por etapa.",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 5,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_get_kanban_board",
+      "name": "Get Kanban Board",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/kanban/board",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_kanban",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 0
+    },
+    {
+      "_id": "fld_inventory",
+      "parentId": "wrk_astro_leadflow",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "name": "06 Estoque - Veiculos",
+      "description": "Cadastro, filtros, detalhe e resumo de estoque.",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 6,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_create_vehicle",
+      "name": "Create Vehicle",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/vehicles",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"brand\": \"Honda\",\n  \"model\": \"Civic Touring\",\n  \"year\": 2023,\n  \"color\": \"Prata\",\n  \"licensePlate\": \"ABC1D23\",\n  \"salePrice\": 149900,\n  \"costPrice\": 132000,\n  \"mileageKm\": 18000,\n  \"ipvaPaid\": true,\n  \"category\": \"SEDAN\",\n  \"status\": \"AVAILABLE\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_inventory",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 0
+    },
+    {
+      "_id": "req_list_vehicles",
+      "name": "List Vehicles",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/vehicles",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "name": "search",
+          "value": "Honda",
+          "disabled": false
+        },
+        {
+          "name": "status",
+          "value": "AVAILABLE",
+          "disabled": false
+        },
+        {
+          "name": "category",
+          "value": "",
+          "disabled": false
+        },
+        {
+          "name": "year",
+          "value": "",
+          "disabled": false
+        },
+        {
+          "name": "minPrice",
+          "value": "",
+          "disabled": false
+        },
+        {
+          "name": "maxPrice",
+          "value": "",
+          "disabled": false
+        },
+        {
+          "name": "page",
+          "value": "0",
+          "disabled": false
+        },
+        {
+          "name": "size",
+          "value": "20",
+          "disabled": false
+        }
+      ],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_inventory",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 1
+    },
+    {
+      "_id": "req_get_vehicle",
+      "name": "Get Vehicle",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/vehicles/{{ _.vehicle_id }}",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_inventory",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 2
+    },
+    {
+      "_id": "req_update_vehicle",
+      "name": "Update Vehicle",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/vehicles/{{ _.vehicle_id }}",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"brand\": \"Honda\",\n  \"model\": \"Civic Touring\",\n  \"year\": 2023,\n  \"color\": \"Preto\",\n  \"salePrice\": 147900,\n  \"mileageKm\": 19000,\n  \"status\": \"AVAILABLE\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_inventory",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 3
+    },
+    {
+      "_id": "req_delete_vehicle",
+      "name": "Delete Vehicle",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/vehicles/{{ _.vehicle_id }}",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_inventory",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 4
+    },
+    {
+      "_id": "req_vehicle_stock_summary",
+      "name": "Vehicle Stock Summary",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/vehicles/summary",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_inventory",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 5
+    },
+    {
+      "_id": "fld_vehicle_photos",
+      "parentId": "wrk_astro_leadflow",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "name": "07 Estoque - Fotos",
+      "description": "Upload, listagem, remocao e ordenacao de fotos.",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 7,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_upload_vehicle_photo",
+      "name": "Upload Vehicle Photo",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/vehicles/{{ _.vehicle_id }}/photos",
+      "method": "POST",
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          {
+            "name": "file",
+            "value": "",
+            "type": "file",
+            "disabled": false
+          },
+          {
+            "name": "position",
+            "value": "0",
+            "type": "text",
+            "disabled": false
+          }
+        ]
+      },
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_vehicle_photos",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 0
+    },
+    {
+      "_id": "req_list_vehicle_photos",
+      "name": "List Vehicle Photos",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/vehicles/{{ _.vehicle_id }}/photos",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_vehicle_photos",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 1
+    },
+    {
+      "_id": "req_delete_vehicle_photo",
+      "name": "Delete Vehicle Photo",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/vehicles/{{ _.vehicle_id }}/photos/{{ _.vehicle_photo_id }}",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_vehicle_photos",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 2
+    },
+    {
+      "_id": "req_reorder_vehicle_photos",
+      "name": "Reorder Vehicle Photos",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/vehicles/{{ _.vehicle_id }}/photos/reorder",
+      "method": "PATCH",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"photoIds\": [\n    \"{{ _.vehicle_photo_id }}\"\n  ]\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_vehicle_photos",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 3
+    },
+    {
+      "_id": "fld_analytics",
+      "parentId": "wrk_astro_leadflow",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "name": "08 Analytics",
+      "description": "KPIs e graficos do dashboard operacional.",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 8,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_dashboard_kpis",
+      "name": "Dashboard KPIs",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/analytics/kpis",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_analytics",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 0
+    },
+    {
+      "_id": "req_monthly_sales_chart",
+      "name": "Monthly Sales Chart",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/analytics/charts/monthly-sales",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_analytics",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 1
+    },
+    {
+      "_id": "req_sales_by_category_chart",
+      "name": "Sales By Category Chart",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/analytics/charts/sales-by-category",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_analytics",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 2
+    },
+    {
+      "_id": "fld_communication",
+      "parentId": "wrk_astro_leadflow",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "name": "09 Comunicacao - WhatsApp",
+      "description": "Historico do lead, envio manual e sessao de bot por lead.",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 9,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_get_lead_chat_history",
+      "name": "Get Lead Chat History",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/chat/lead/{{ _.lead_id }}",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_communication",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 0
+    },
+    {
+      "_id": "req_get_lead_bot_session",
+      "name": "Get Lead Bot Session",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/chat/lead/{{ _.lead_id }}/bot-session",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_communication",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 1
+    },
+    {
+      "_id": "req_send_whatsapp_message",
+      "name": "Send WhatsApp Message",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/chat/send",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"phoneNumber\": \"{{ _.lead_phone }}\",\n  \"message\": \"Ola! Aqui e da concessionaria. Posso te ajudar com o veiculo?\",\n  \"leadId\": \"{{ _.lead_id }}\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_communication",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 2
+    },
+    {
+      "_id": "fld_chatbot",
+      "parentId": "wrk_astro_leadflow",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "name": "10 Chatbot",
+      "description": "Sessao, metricas e handoff manual do bot.",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 10,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_list_bot_sessions",
+      "name": "List Bot Sessions",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/chatbot/sessions",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "name": "status",
+          "value": "ACTIVE",
+          "disabled": false
+        },
+        {
+          "name": "page",
+          "value": "0",
+          "disabled": false
+        },
+        {
+          "name": "size",
+          "value": "20",
+          "disabled": false
+        }
+      ],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_chatbot",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 0
+    },
+    {
+      "_id": "req_get_bot_session_detail",
+      "name": "Get Bot Session Detail",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/chatbot/sessions/{{ _.bot_session_id }}",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_chatbot",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 1
+    },
+    {
+      "_id": "req_chatbot_metrics",
+      "name": "Chatbot Metrics",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/chatbot/metrics",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_chatbot",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 2
+    },
+    {
+      "_id": "req_force_bot_handoff",
+      "name": "Force Bot Handoff",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/chatbot/sessions/{{ _.bot_session_id }}/handoff",
+      "method": "POST",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_chatbot",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 3
+    },
+    {
+      "_id": "fld_saas",
+      "parentId": "wrk_astro_leadflow",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "name": "11 SaaS - Planos Billing Marketplaces",
+      "description": "Planos, assinatura, checkout AbacatePay, uso, billing history e quotas de marketplace.",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 11,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_list_public_plans",
+      "name": "List Public Plans",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/plans",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_saas",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 0
+    },
+    {
+      "_id": "req_get_current_subscription",
+      "name": "Get Current Subscription",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/saas/subscription",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_saas",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 1
+    },
+    {
+      "_id": "req_change_plan_directly_legacy_internal",
+      "name": "Change Plan Directly (legacy/internal)",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/saas/subscription/plan/{{ _.plan_id }}",
+      "method": "PATCH",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_saas",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 2
+    },
+    {
+      "_id": "req_create_abacatepay_checkout",
+      "name": "Create AbacatePay Checkout",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/saas/subscription/checkout/{{ _.plan_id }}",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"returnUrl\": \"http://localhost:3001/app/configuracoes?tab=assinatura\",\n  \"completionUrl\": \"http://localhost:3001/app/configuracoes?tab=assinatura&checkout=success\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_saas",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 3
+    },
+    {
+      "_id": "req_cancel_abacatepay_subscription",
+      "name": "Cancel AbacatePay Subscription",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/saas/subscription/cancel",
+      "method": "POST",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_saas",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 4
+    },
+    {
+      "_id": "req_get_usage_summary",
+      "name": "Get Usage Summary",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/saas/usage",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_saas",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 5
+    },
+    {
+      "_id": "req_get_billing_history",
+      "name": "Get Billing History",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/saas/billing-history",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_saas",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 6
+    },
+    {
+      "_id": "req_list_marketplace_configs",
+      "name": "List Marketplace Configs",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/saas/marketplaces",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_saas",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 7
+    },
+    {
+      "_id": "req_add_marketplace_config",
+      "name": "Add Marketplace Config",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/saas/marketplaces",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"marketplaceName\": \"Webmotors\",\n  \"monthlyLimit\": 500\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_saas",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 8
+    },
+    {
+      "_id": "req_update_marketplace_config",
+      "name": "Update Marketplace Config",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/saas/marketplaces/{{ _.marketplace_config_id }}",
+      "method": "PATCH",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"enabled\": true,\n  \"monthlyLimit\": 750\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_saas",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 9
+    },
+    {
+      "_id": "req_delete_marketplace_config",
+      "name": "Delete Marketplace Config",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/saas/marketplaces/{{ _.marketplace_config_id }}",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_saas",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 10
+    },
+    {
+      "_id": "fld_referrals",
+      "parentId": "wrk_astro_leadflow",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "name": "12 Indicacoes",
+      "description": "Programa de indicacao para concessionaria e visao Astro Admin.",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 12,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_my_referral_code",
+      "name": "My Referral Code",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/referral/my-code",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_referrals",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 0
+    },
+    {
+      "_id": "req_my_referrals",
+      "name": "My Referrals",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/referral/my-referrals",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_referrals",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 1
+    },
+    {
+      "_id": "req_my_referral_balance",
+      "name": "My Referral Balance",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/referral/my-balance",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_referrals",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 2
+    },
+    {
+      "_id": "req_legacy_my_referral_code",
+      "name": "Legacy My Referral Code",
+      "description": "",
+      "url": "{{ _.base_url }}/api/referral/my-code",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_referrals",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 3
+    },
+    {
+      "_id": "req_legacy_my_referrals",
+      "name": "Legacy My Referrals",
+      "description": "",
+      "url": "{{ _.base_url }}/api/referral/my-referrals",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_referrals",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 4
+    },
+    {
+      "_id": "req_legacy_my_referral_balance",
+      "name": "Legacy My Referral Balance",
+      "description": "",
+      "url": "{{ _.base_url }}/api/referral/my-balance",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_referrals",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 5
+    },
+    {
+      "_id": "req_admin_referral_summary",
+      "name": "Admin Referral Summary",
+      "description": "",
+      "url": "{{ _.base_url }}/api/admin/referral/summary",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_referrals",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 6
+    },
+    {
+      "_id": "fld_admin",
+      "parentId": "wrk_astro_leadflow",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "name": "13 Astro Admin - Financeiro Observability Sistema",
+      "description": "Dashboards administrativos, erros, webhooks, infraestrutura e saude.",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 13,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_admin_finance_dashboard",
+      "name": "Admin Finance Dashboard",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/admin/dashboard",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_admin",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 0
+    },
+    {
+      "_id": "req_observability_overview",
+      "name": "Observability Overview",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/admin/observability/overview",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_admin",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 1
+    },
+    {
+      "_id": "req_performance_metrics",
+      "name": "Performance Metrics",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/admin/observability/performance",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_admin",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 2
+    },
+    {
+      "_id": "req_search_application_errors",
+      "name": "Search Application Errors",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/admin/observability/errors",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "name": "level",
+          "value": "ERROR",
+          "disabled": false
+        },
+        {
+          "name": "from",
+          "value": "",
+          "disabled": false
+        },
+        {
+          "name": "to",
+          "value": "",
+          "disabled": false
+        },
+        {
+          "name": "service",
+          "value": "",
+          "disabled": false
+        },
+        {
+          "name": "correlationId",
+          "value": "",
+          "disabled": false
+        },
+        {
+          "name": "page",
+          "value": "0",
+          "disabled": false
+        },
+        {
+          "name": "size",
+          "value": "20",
+          "disabled": false
+        }
+      ],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_admin",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 3
+    },
+    {
+      "_id": "req_get_application_error",
+      "name": "Get Application Error",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/admin/observability/errors/{{ _.error_id }}",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_admin",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 4
+    },
+    {
+      "_id": "req_search_webhook_events",
+      "name": "Search Webhook Events",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/admin/observability/webhooks",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "name": "source",
+          "value": "META",
+          "disabled": false
+        },
+        {
+          "name": "outcome",
+          "value": "",
+          "disabled": false
+        },
+        {
+          "name": "from",
+          "value": "",
+          "disabled": false
+        },
+        {
+          "name": "to",
+          "value": "",
+          "disabled": false
+        },
+        {
+          "name": "page",
+          "value": "0",
+          "disabled": false
+        },
+        {
+          "name": "size",
+          "value": "20",
+          "disabled": false
+        }
+      ],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_admin",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 5
+    },
+    {
+      "_id": "req_webhook_summary",
+      "name": "Webhook Summary",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/admin/observability/webhooks/summary",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "name": "from",
+          "value": "",
+          "disabled": false
+        },
+        {
+          "name": "to",
+          "value": "",
+          "disabled": false
+        }
+      ],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_admin",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 6
+    },
+    {
+      "_id": "req_chatbot_insights",
+      "name": "Chatbot Insights",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/admin/observability/chatbot-insights",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_admin",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 7
+    },
+    {
+      "_id": "req_infrastructure",
+      "name": "Infrastructure",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/admin/observability/infrastructure",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_admin",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 8
+    },
+    {
+      "_id": "req_system_health",
+      "name": "System Health",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/admin/system/health",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_admin",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 9
+    },
+    {
+      "_id": "fld_integrations",
+      "parentId": "wrk_astro_leadflow",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "name": "14 Webhooks e Marketplaces",
+      "description": "Meta, AbacatePay, Webmotors, Mercado Livre, scraper/Napista e OAuth Mercado Livre.",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 14,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_meta_verify_webhook",
+      "name": "Meta Verify Webhook",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/webhooks/meta",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "name": "hub.mode",
+          "value": "subscribe",
+          "disabled": false
+        },
+        {
+          "name": "hub.verify_token",
+          "value": "{{ _.meta_verify_token }}",
+          "disabled": false
+        },
+        {
+          "name": "hub.challenge",
+          "value": "challenge-from-meta",
+          "disabled": false
+        }
+      ],
+      "headers": [],
+      "authentication": {},
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_integrations",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 0
+    },
+    {
+      "_id": "req_meta_receive_webhook",
+      "name": "Meta Receive Webhook",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/webhooks/meta",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"object\": \"whatsapp_business_account\",\n  \"entry\": [\n    {\n      \"id\": \"waba-id\",\n      \"changes\": [\n        {\n          \"field\": \"messages\",\n          \"value\": {\n            \"messaging_product\": \"whatsapp\",\n            \"metadata\": {\n              \"display_phone_number\": \"5511999999999\",\n              \"phone_number_id\": \"123456789012345\"\n            },\n            \"contacts\": [\n              {\n                \"profile\": {\n                  \"name\": \"Cliente WhatsApp\"\n                },\n                \"wa_id\": \"5511999999999\"\n              }\n            ],\n            \"messages\": [\n              {\n                \"from\": \"5511999999999\",\n                \"id\": \"wamid.demo\",\n                \"timestamp\": \"1710000000\",\n                \"type\": \"text\",\n                \"text\": {\n                  \"body\": \"Ola, tenho interesse.\"\n                }\n              }\n            ]\n          }\n        }\n      ]\n    }\n  ]\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_integrations",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 1
+    },
+    {
+      "_id": "req_abacatepay_webhook",
+      "name": "AbacatePay Webhook",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/webhooks/abacatepay",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"id\": \"evt_demo_001\",\n  \"event\": \"subscription.completed\",\n  \"apiVersion\": 2,\n  \"devMode\": true,\n  \"data\": {\n    \"subscription\": {\n      \"id\": \"sub_demo\",\n      \"amount\": 19900,\n      \"status\": \"ACTIVE\",\n      \"frequency\": \"MONTHLY\",\n      \"createdAt\": \"2026-04-29T12:00:00Z\",\n      \"updatedAt\": \"2026-04-29T12:00:00Z\"\n    },\n    \"payment\": {\n      \"id\": \"pay_demo\",\n      \"externalId\": \"leadflow-subscription:00000000-0000-0000-0000-000000000000:plan:00000000-0000-0000-0000-000000000000\",\n      \"amount\": 19900,\n      \"paidAmount\": 19900,\n      \"status\": \"PAID\",\n      \"receiptUrl\": \"https://example.com/receipt\",\n      \"createdAt\": \"2026-04-29T12:00:00Z\",\n      \"updatedAt\": \"2026-04-29T12:00:00Z\"\n    },\n    \"checkout\": {\n      \"id\": \"chk_demo\",\n      \"externalId\": \"leadflow-subscription:00000000-0000-0000-0000-000000000000:plan:00000000-0000-0000-0000-000000000000\",\n      \"amount\": 19900,\n      \"status\": \"PAID\"\n    },\n    \"customer\": {\n      \"id\": \"cus_demo\",\n      \"name\": \"Cliente Demo\",\n      \"email\": \"cliente@example.com\",\n      \"taxId\": \"12345678901\"\n    }\n  }\n}"
+      },
+      "parameters": [
+        {
+          "name": "webhookSecret",
+          "value": "{{ _.abacatepay_webhook_secret }}",
+          "disabled": false
+        }
+      ],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_integrations",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 2
+    },
+    {
+      "_id": "req_mercado_livre_connect_url",
+      "name": "Mercado Livre Connect URL",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/auth/mercadolivre/connect",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "name": "organizationId",
+          "value": "{{ _.organization_id }}",
+          "disabled": false
+        }
+      ],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_integrations",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 3
+    },
+    {
+      "_id": "req_mercado_livre_oauth_callback",
+      "name": "Mercado Livre OAuth Callback",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/auth/mercadolivre/callback",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "name": "code",
+          "value": "auth-code-from-ml",
+          "disabled": false
+        },
+        {
+          "name": "state",
+          "value": "{{ _.organization_id }}:nonce",
+          "disabled": false
+        }
+      ],
+      "headers": [],
+      "authentication": {},
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_integrations",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 4
+    },
+    {
+      "_id": "req_webhook_webmotors",
+      "name": "Webhook Webmotors",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/webhooks/webmotors",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"IdLead\": \"wm-lead-001\",\n  \"CodigoCliente\": \"cliente-123\",\n  \"Cnpj\": \"12345678000190\",\n  \"IdTipoLead\": 1\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "X-Webhook-Token",
+          "value": "{{ _.webhook_token }}"
+        }
+      ],
+      "authentication": {},
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_integrations",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 5
+    },
+    {
+      "_id": "req_webhook_mercado_livre",
+      "name": "Webhook Mercado Livre",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/webhooks/mercadolivre",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"_id\": \"ml-notification-001\",\n  \"resource\": \"/vis/leads/ml-lead-001\",\n  \"user_id\": 123456789,\n  \"topic\": \"vis_leads\",\n  \"application_id\": 987654321,\n  \"attempts\": 1,\n  \"sent\": \"2026-04-29T12:00:00.000Z\",\n  \"received\": \"2026-04-29T12:00:01.000Z\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "X-Webhook-Token",
+          "value": "{{ _.webhook_token }}"
+        }
+      ],
+      "authentication": {},
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_integrations",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 6
+    },
+    {
+      "_id": "req_webhook_scraper_napista",
+      "name": "Webhook Scraper / Napista",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/webhooks/scraper",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"organizationSlug\": \"astro-demo-motors\",\n  \"phoneNumber\": \"{{ _.lead_phone }}\",\n  \"name\": \"Lead Napista\",\n  \"email\": \"lead.napista@example.com\",\n  \"marketplace\": \"NAPISTA\",\n  \"vehicleInterest\": \"Jeep Compass 2021\",\n  \"vehicleUrl\": \"https://napista.example/anuncio/123\",\n  \"rawMessage\": \"Tenho interesse no veiculo.\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "X-Api-Key",
+          "value": "{{ _.x_api_key }}"
+        }
+      ],
+      "authentication": {},
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_integrations",
+      "modified": 1777514191955,
+      "created": 1777514191955,
+      "metaSortKey": 7
+    }
+  ]
+}
