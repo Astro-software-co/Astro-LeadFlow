@@ -164,8 +164,8 @@ Tudo fica em `backend/src/main/kotlin/com/astro/leadflow/shared/modules/integrat
 
 ### 7.1 Decisões de design (diferem do plano das seções 2–3)
 - **Caixa de entrada própria em vez de campos novos em `Lead`** (L5 mudou). A proposta pendente vive em `webmotors_lead_inbox` e só vira `Lead` depois do aceite e de existir telefone válido. Isso resolve L9 sem tornar `phone_number` anulável, evita disparar WhatsApp antes do aceite (L11) e mantém o `Lead` intacto. O vínculo é `inbox.lead_id`.
-- **Uma única porta para o CRM:** `CrmLeadIntake`. Só o `CrmLeadIntakeAdapter` conhece `Lead`. Telefone já existente na organização não duplica: o novo interesse é acrescentado às notas.
-- **Aceite manual por padrão** (`AcceptMode.MANUAL`); `AUTO` é opção por loja. **Boas-vindas por WhatsApp desligadas por padrão** (`welcomeMessageEnabled=false`) até a base legal ser definida. Sem boas-vindas, o lead entra em `WAITING_ATTENDANCE` (não há bot conversando).
+- **Uma única porta para o CRM:** `CrmLeadIntake` recebe um `LeadIntakeCommand` (contato, origem, evento, anúncio e snapshot do veículo). O `CrmLeadIntakeAdapter` delega a `LeadIngestionService.ingestResolved`, a mesma regra do scraper e do Mercado Livre: telefone já existente na organização gera lead com `isDuplicate=true`, que ainda recebe a mensagem (regra atual; o modelo Card + Interesses da phase G4 substitui isso neste mesmo ponto). Falha de cota ou da Meta não desfaz o lead.
+- **Aceite automático por padrão** (`AcceptMode.AUTO`, decisão D11); `MANUAL` é opção por loja. **Mensagem de abordagem (M1) ligada por padrão** (`welcomeMessageEnabled=true`, decisão D12); o pedido de consentimento (M2) não é desligável por loja. Sem abordagem, o lead entra em `WAITING_ATTENDANCE` (não há bot conversando).
 - **Credenciais por loja cifradas** (AES-256-GCM) em `webmotors_accounts`; chave em `WEBMOTORS_SECRETS_KEY`.
 - **Sem webhook público.** O módulo só faz chamadas de saída (S1).
 - Transações curtas: nenhuma chamada HTTP acontece dentro de transação de banco.
@@ -173,7 +173,7 @@ Tudo fica em `backend/src/main/kotlin/com/astro/leadflow/shared/modules/integrat
 ### 7.2 Gaps atendidos
 L1 cliente HTTP (login, cache de token, relogin em 401) · L2 polling agendado com lease no banco (várias instâncias não sincronizam a mesma conta) · L3 credenciais cifradas · L4 vínculo org↔loja (`store_id` filtra leads de outra loja) · L5/L9 inbox · L6 dedupe por `(org, id externo, tipo)` + por telefone · L7 aceite/recusa via API (sem tela) · L11 boas-vindas só após aceite e opcional · L12 parcial (erro por conta registrado em `last_sync_error`; sem métricas/alerta) · L13 parcial (config por loja via API; sem tela).
 
-Endpoints (`ADMIN`/`MANAGER`), base `/api/v1/integrations/webmotors`: `GET|PUT /account`, `POST /account/test`, `POST /sync`, `GET /proposals?status=`, `POST /proposals/{id}/accept`, `POST /proposals/{id}/refuse`, `GET /refusal-reasons`.
+Endpoints (somente `MANAGER`; sem token → 401), base `/api/v1/integrations/webmotors`: `GET|PUT /account`, `POST /account/test`, `POST /sync`, `GET /proposals?status=`, `POST /proposals/{id}/accept`, `POST /proposals/{id}/refuse`, `GET /refusal-reasons`.
 
 Configuração (`application.properties`): `WEBMOTORS_ENABLED` (liga o polling), `WEBMOTORS_AUTH_URL`, `WEBMOTORS_API_URL` (defaults = **homologação**), `WEBMOTORS_POLL_INTERVAL_MS`, `WEBMOTORS_PAGE_PARAM`, `WEBMOTORS_SECRETS_KEY` (`openssl rand -base64 32`).
 

@@ -39,11 +39,11 @@ class WebmotorsAccount(
 
     @Enumerated(EnumType.STRING)
     @Column(name = "accept_mode", nullable = false, length = 20)
-    var acceptMode: AcceptMode = AcceptMode.MANUAL,
+    var acceptMode: AcceptMode = AcceptMode.AUTO,
 
-    /** Envia o template `welcome_lead` por WhatsApp ao importar um lead novo. Desligado até a base legal ser definida. */
+    /** Envia a mensagem de abordagem (M1) ao importar um lead novo. Ligada por padrão (D12); o pedido de consentimento (M2) não é desligável. */
     @Column(name = "welcome_message_enabled", nullable = false)
-    var welcomeMessageEnabled: Boolean = false,
+    var welcomeMessageEnabled: Boolean = true,
 
     @Column(nullable = false)
     var enabled: Boolean = true,

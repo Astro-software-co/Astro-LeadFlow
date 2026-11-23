@@ -53,11 +53,11 @@ class WebmotorsRepositoriesTest {
     }
 
     @Test
-    fun `conta nasce em modo MANUAL, sem boas-vindas e habilitada`() {
+    fun `conta nasce em modo AUTO, com abordagem e habilitada`() {
         em.flush(); em.clear()
         val loaded = accounts.findByOrganizationId(org.id).orElseThrow()
-        assertEquals(AcceptMode.MANUAL, loaded.acceptMode)
-        assertEquals(false, loaded.welcomeMessageEnabled)
+        assertEquals(AcceptMode.AUTO, loaded.acceptMode)
+        assertEquals(true, loaded.welcomeMessageEnabled)
         assertEquals(1, accounts.findAllByEnabledTrue().size)
     }
 
