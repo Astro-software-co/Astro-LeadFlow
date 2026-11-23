@@ -30,9 +30,9 @@
 |---|---|---|---|
 | F0 | Consolidar branch com a `develop`, renumerar migration, suíte verde | 0,5d | Pré-requisito |
 | F1 | Alinhar o módulo Webmotors (convenções, RBAC real), **remover o código legado Webmotors**, **máscara de PII/segredos em log** (inclui logs gravados no banco) | 2,5d | Não (credibilidade técnica) |
-| **F2** | **LGPD:** registro de solicitações com SLA, anonimização completa, bloqueio de contato, retenção de payloads, correção do `DELETE` de lead | 3–4d | **Sim** |
+| **F2** | **LGPD:** registro de solicitações com SLA, anonimização completa, retenção de payloads, correção do `DELETE` de lead e **exclusão manual pelo dono da loja** | 3,5–4,5d | **Sim** |
 | **F3** | **Páginas legais, dados institucionais, rascunho do formulário** | 1d + insumos | **Sim** |
-| F4 | **Modelo Card + Interesses**: um card ativo por cliente, vários anúncios por card, reabertura em 3 meses, etiquetagem no fechamento, retenção da conversa, notificações | 5–7d | Não |
+| F4 | **Modelo Card + Interesses** (um card ativo por cliente, reabertura em 3 meses, etiqueta no fechamento, retenção, notificações) **+ abordagem, consentimento, descadastro e reabertura por mensagem** | 7–9d | Não |
 | F5 | UI: aba Integrações (Webmotors) + painel de interesses, chip no Kanban, notificações | 3–4d | Não |
 | F6 | **Segredos em repouso:** tokens/credenciais cifrados, API keys hasheadas, fail-fast em produção | 3d | Não (segurança) |
 | F7 | Hardening da ingestão (ML sem AWS, validação de webhook, lock de token, lead sem telefone) | 3d | Não |
@@ -47,21 +47,24 @@
 ## 3. Decisões e pendências
 
 **Decididas (2026-11-23):**
-- Webmotors só por polling; **código legado removido**.
-- **Card + Interesses:** um card ativo por telefone; interesses por anúncio com status `CONSIDERANDO | DESCARTADO | ESCOLHIDO`; conversa salva de forma generalista e **etiquetada no fechamento** com o interesse mais recente; **reabre** em até 3 meses se for o mesmo anúncio, senão card novo; conteúdo da conversa removido 3 meses após o fechamento; novo interesse em card ativo notifica o vendedor (se assumido) ou o dono da loja (se em aberto/com bot); um vendedor por card.
-- Hexagonal fora de escopo; Mercado Livre sem módulo novo agora.
+- Webmotors só por polling; **código legado removido**. Hexagonal fora de escopo; Mercado Livre sem módulo novo agora.
+- **Card + Interesses:** um card ativo por telefone; interesses por anúncio (`CONSIDERANDO | DESCARTADO | ESCOLHIDO`); conversa salva de forma generalista e **etiquetada no fechamento** com o interesse mais recente; reabre em até 3 meses; conteúdo da conversa removido 3 meses após o fechamento; novo interesse em card ativo notifica o vendedor (se assumido) ou o dono da loja (se em aberto/com bot); um vendedor por card.
+- **Lead sem telefone:** card pendente visível, nunca descartado.
+- **Aceite Webmotors:** automático por padrão, manual por loja. A recusa automática por regra (veículo vendido, DDD fora da região) fica no backlog porque depende de ligar anúncio ao estoque.
+- **Mensagens e consentimento:** mensagem de abordagem com o veículo de interesse (só em card novo ou reaberto); se o cliente responder, **pedido de aceite dos termos** na hora; descadastro por `SAIR`. Detalhes em `MENSAGENS-WHATSAPP.md`.
+- **LGPD:** registro + anonimização + página pública + e-mail; **exclusão manual de lead pelo dono da loja**.
+- **Dados de cards fechados são mantidos** para pós-venda e futuras campanhas; só o conteúdo das conversas expira.
+- **Cliente que escreve num card arquivado (≤ 3 meses):** o card é reaberto com o veículo da etiqueta e o bot pede confirmação.
 
-**Em discussão (padrão assumido no plano até fechar):**
+**Padrões assumidos que você pode revisar (seção 1.4 do plano):**
 | # | Tema | Padrão assumido |
 |---|---|---|
-| P1 | Lead sem telefone | Fica pendente, nunca descartado |
-| P2 | Aceite na Webmotors | Automático por padrão; manual configurável por loja |
-| P3 | Mensagem de boas-vindas | Ligada por padrão, desligável por loja; validar base legal |
-| P4 | LGPD | Registro + anonimização + página pública + e-mail; sem portal self-service |
-| P5 | Dados pessoais de card fechado após 3 meses | Só o conteúdo da conversa é apagado; nome/telefone/e-mail ficam (revisar com jurídico) |
-| P6 | Cliente responde no WhatsApp a card arquivado | Reabre o card fechado mais recente (≤ 3 meses) |
-| P7 | Concluir card com vários interesses | O interesse atual vira `ESCOLHIDO` automaticamente; gerente pode trocar |
+| P7 | Concluir card com vários interesses | O interesse atual vira `ESCOLHIDO` automaticamente; o gerente pode trocar |
 | P8 | Estágio ao reabrir | `TALKING_TO_BOT` (bot revalida os dados) |
+| P9 | "Outro veículo" na confirmação | Interesse da etiqueta vira `DESCARTADO` e entra novo interesse no mesmo card |
+| P10 | Cliente toca "Não aceito" | Card arquivado e telefone bloqueado para mensagens do sistema |
+
+**Backlog pós-MVP (documentado, seção 9 do plano):** B1 integração anúncio ↔ estoque · B2 recusa automática por regra · B3 campanhas comerciais (exige consentimento de marketing) · B4 portal do titular · B5 push · B7 aviso extra de lead pendente.
 
 **Regras de negócio que seguem abertas** (`openspec/STATUS.md`): horário comercial por organização (#4); quem paga as mensagens da Meta e classificação do template (#5); `PAST_DUE` e fim do trial (#6, #7); vender planos com IA antes do Lex (#8); cota de IA esgotada (#10). As regras #1 e #2 (sem telefone e duplicidade) passam a ser tratadas pela Fase 4 e por P1.
 
@@ -76,9 +79,10 @@
 2. Definir **domínio** e criar `suporte@` e `privacidade@`.
 3. Reunir: razão social, CNPJ, contato do solicitante, regiões, logo PNG, concessionária piloto.
 4. Registrar o app no Portal do Desenvolvedor da Webmotors.
-5. **Fechar P1–P8** (ou aprovar os padrões).
-6. Jurídico: política de privacidade, base legal do WhatsApp, retenção de dados de cards fechados.
-7. Meta: template `welcome_lead` **com variável do veículo**.
+5. Revisar os padrões P7–P10 (ou aprová-los).
+6. Jurídico: política e termos, base legal da abordagem por WhatsApp, texto do consentimento, retenção de dados cadastrais para pós-venda/campanhas.
+7. Meta: submeter o template **`lead_first_contact`** (texto e variáveis em `MENSAGENS-WHATSAPP.md`); pode ser reclassificado como MARKETING.
+8. **Aprovar os textos M1–M9** e levar ao jurídico o consentimento (M2) e a abordagem inicial.
 
 **Execução com o CLI** (um comando por fase; cole o *prompt mestre* da seção 0 do plano)
 1. F0 imediatamente. 2. F2 + F3; ao concluir, **enviar o formulário**. 3. F1, F4, F5, F6 em sequência. 4. F7–F9 conforme a AWS ficar pronta. 5. F10 quando a Webmotors liberar o acesso.
@@ -91,12 +95,14 @@
 | Anonimização esquecer uma tabela com dado pessoal (inclui logs de erro gravados no banco e tabelas novas) | Mapa de PII + máscara global de log (F1) + teste que varre colunas |
 | Regra Card+Interesses mexer em fluxo central e gerar 2 cards ativos por corrida | Índice parcial único + teste de concorrência + flag para ligar/desligar |
 | Perda da chave de cifra | Cofre (SSM), `keyId` no prefixo, rotação documentada |
+| A abordagem precede o consentimento (contato frio) | Mensagem identifica loja e origem, rodapé `SAIR`, consentimento na 1ª resposta, revisão jurídica antes de produção, flag para ligar/desligar |
 | Meta, Lex e Abacate Pay seguirem só em mock no deploy | Registrar como "não validado" no STATUS; não vender como pronto |
 | Prazo da Webmotors (sem processo público de aprovação) | Enviar o formulário o quanto antes; F1/F4 já deixam o caminho pavimentado |
 
 ## 6. Documentos
 
 - Plano executável: `docs/plano/PLANO-IMPLEMENTACAO.md`
+- Mensagens e consentimento: `docs/plano/MENSAGENS-WHATSAPP.md`
 - Rascunho do formulário: `docs/plano/FORMULARIO-WEBMOTORS.md`
 - Pesquisa e gaps Webmotors: `docs/integrations/webmotors.md`
 - Estado do produto e regras abertas: `openspec/STATUS.md`

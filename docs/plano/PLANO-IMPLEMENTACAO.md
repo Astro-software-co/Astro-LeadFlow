@@ -1,10 +1,12 @@
 # Plano de implementação — maturidade para acesso às APIs de marketplace
 
-> Versão 2 · data-base 2026-11-23 · Branch de trabalho: `claude/marketplace-integrations-ynztxc` (parte de `develop`)
+> Versão 2.1 · data-base 2026-11-23 · Branch de trabalho: `claude/marketplace-integrations-ynztxc` (parte de `develop`)
 > Leitor: um agente de código de alta capacidade (Claude CLI) trabalhando **dentro do repositório**.
 > Complementos: `docs/plano/RESUMO-EXECUTIVO.md` (visão gerencial) e `docs/plano/FORMULARIO-WEBMOTORS.md` (rascunho das respostas).
 >
 > **O que mudou na v2:** (1) nova **Fase 4 — Modelo Card + Interesses** (decisões do Ruy de 2026-11-23); (2) **remoção do legado Webmotors** entra já na Fase 1; (3) **proteção de segredos** (credenciais, tokens, API keys) e **máscara de logs** ganham tarefas explícitas (Fases 1 e 6); (4) quatro **decisões ainda em discussão** estão isoladas na seção 1.4 com o padrão assumido.
+>
+> **O que mudou na v2.1 (decisões P1–P6 do Ruy):** (1) fluxo de **mensagem de abordagem + consentimento + descadastro** (especificado em `docs/plano/MENSAGENS-WHATSAPP.md`; tarefas T4.13–T4.19); (2) **reabertura por mensagem do cliente** com confirmação do veículo da etiqueta; (3) **exclusão manual de lead** pelo dono da loja (T2.7); (4) **backlog pós-MVP** documentado (seção 9), incluindo a integração anúncio ↔ estoque; (5) P5: dados de cards fechados **são mantidos** para pós-venda e campanhas.
 
 ---
 
@@ -53,19 +55,21 @@ Para fases isoladas: `Execute somente a Fase N do plano docs/plano/PLANO-IMPLEME
 | D7 | **Hexagonal fora de escopo.** Mantém-se arquitetura em camadas por módulo, com portas só onde já existem (`WebmotorsApi`, `CrmLeadIntake`, `MarketplaceLeadFetcher`). | Ruy |
 | D8 | **Mercado Livre:** sem módulo novo agora; só o hardening do `ingestion` (Fase 7). A integração real depende da pesquisa em andamento do Ruy. | Ruy |
 | D9 | **Banco no deploy inicial:** Postgres no Compose com backup para S3 (staging); RDS só em produção. | Assumida; Ruy confirma na change `aws-deploy-activation` |
+| D10 | **Lead sem telefone (P1):** fica como **card pendente visível** (selo "Contato pendente"), sem mensagem; nunca descartado. Aviso extra ao dono da loja fica opcional. | Ruy, 2026-11-23 |
+| D11 | **Aceite Webmotors (P2): automático por padrão** (opção A), manual configurável por loja. A opção C (recusa automática por regra: veículo vendido, DDD fora da região) fica no **backlog B2**, pois depende da integração anúncio ↔ estoque (B1). | Ruy, 2026-11-23 |
+| D12 | **Mensagem inicial + consentimento (P3):** a mensagem de abordagem continua existindo e menciona o veículo de interesse (M1); **se o cliente responder**, o sistema envia na hora o pedido de aceite dos termos e condições (M2) e só então o bot segue. A abordagem só sai em card novo ou reaberto, **nunca** em novo interesse num card ativo. Descadastro por `SAIR` a qualquer momento. Especificação: `MENSAGENS-WHATSAPP.md`. Base legal e política da Meta **[VALIDAR com o jurídico]**. | Ruy, 2026-11-23 |
+| D13 | **LGPD (P4): opção A** — registro de solicitações + anonimização + página pública + e-mail de privacidade, sem portal self-service. **Mais:** mecanismo de **exclusão manual de lead** utilizável pelo dono da concessionária (T2.7). | Ruy, 2026-11-23 |
+| D14 | **Dados de cards fechados (P5): mantidos** (nome, telefone, e-mail) para **suporte pós-venda e futuras campanhas comerciais**. Só o **conteúdo** das conversas expira em 3 meses. Campanhas exigem consentimento de marketing específico (backlog B3). | Ruy, 2026-11-23 |
+| D15 | **Cliente escreve num card arquivado (P6):** o card é reaberto usando como contexto o veículo da **etiqueta** (interesse de fechamento), dentro dos 3 meses, e o bot **pede confirmação** do veículo (M7). | Ruy, 2026-11-23 |
 
-### 1.4 Decisões EM DISCUSSÃO (padrão assumido até o Ruy fechar)
+### 1.4 Padrões assumidos (não contestados) — o Ruy pode revisar
 
 | # | Tema | Padrão assumido no plano | Onde impacta |
 |---|---|---|---|
-| P1 | **Lead sem telefone** | Fica **pendente** (visível no CRM, sem mensagem), nunca descartado | T7.4, T4.x (identidade), T5.x (UI) |
-| P2 | **Aceite na Webmotors** | `AUTO` por padrão, `MANUAL` configurável por loja | T1.4, Fase 5 |
-| P3 | **Mensagem de boas-vindas** | Ligada por padrão, desligável por loja; base legal a validar com o jurídico | T1.4, T4.5 |
-| P4 | **LGPD** | Registro de solicitações + anonimização + página pública + e-mail de privacidade; sem portal self-service | Fases 2 e 3 |
-| P5 | **Dados pessoais de card fechado após os 3 meses** | Só o **conteúdo** das conversas é apagado; nome/telefone/e-mail do card permanecem (base de clientes da loja). Revisar com o jurídico. | T4.9 |
-| P6 | **Cliente responde no WhatsApp a um card arquivado (sem anúncio no contexto)** | Dentro dos 3 meses, **reabre o card fechado mais recente** (a resposta continua a conversa); depois dos 3 meses, card novo | T4.7 |
 | P7 | **Concluir card com vários interesses** | O interesse atual é marcado `ESCOLHIDO` automaticamente; o gerente pode trocar com um clique | T4.6 |
 | P8 | **Estágio ao reabrir** | `TALKING_TO_BOT` (o bot revalida os dados), mantendo o vendedor responsável | T4.7 |
+| P9 | **"Outro veículo" na confirmação (M7)** | O interesse da etiqueta vira `DESCARTADO` e o bot cria **novo interesse** (marketplace `WHATSAPP`, veículo descrito pelo cliente) **no mesmo card** | T4.17 |
+| P10 | **Cliente toca "Não aceito"** | Card **arquivado** com motivo "Cliente não aceitou os termos" e telefone **bloqueado** para mensagens do sistema | T4.15 |
 
 ---
 
@@ -117,7 +121,7 @@ F0 Consolidar ──► F1 Alinhar Webmotors + remover legado + máscara de logs
 
 **Caminho crítico para abrir a solicitação:** F0 → F2 → F3 (+ insumos que só o Ruy tem). F1, F4, F5 e F6 aumentam a credibilidade técnica e **não bloqueiam** o envio.
 
-Estimativas (ordem de grandeza, 1 desenvolvedor sênior ou agente): F0 0,5d · F1 2,5d · F2 3–4d · F3 1d (+ insumos) · **F4 5–7d** · F5 3–4d · F6 3d · F7 3d · F8 1d · F9 2d · F10 1–2d.
+Estimativas (ordem de grandeza, 1 desenvolvedor sênior ou agente): F0 0,5d · F1 2,5d · F2 3,5–4,5d · F3 1d (+ insumos) · **F4 7–9d** · F5 3–4d · F6 3d · F7 3d · F8 1d · F9 2d · F10 1–2d.
 
 ---
 
@@ -179,9 +183,9 @@ Dividir (mesmo pacote/nomes, **zero mudança de comportamento**, 47 testes sem a
 4. Reescrever `CrmLeadIntakeAdapter` para delegar a esse método e **remover** o `TransactionTemplate` e o anexo de notas ao lead existente. **Nesta fase o comportamento de duplicidade continua o atual da `develop`** (`isDuplicate=true` + mensagem); a Fase 4 substitui a regra **dentro deste único ponto**.
 5. Testes: lead novo; telefone repetido (segundo lead com `isDuplicate=true` e mensagem enviada); cota excedida (lead criado sem mensagem); falha da Meta não desfaz o lead.
 
-### T1.4 — Padrões de conta (P2, P3 — em discussão)
-- `AcceptMode` default `AUTO`; `welcomeMessageEnabled` default `true` (entidade e migration, ainda não publicada em produção — editar a migration do módulo só se ela **não** foi mergeada na `develop`; caso contrário, nova migration `ALTER`).
-- Atualizar testes e `docs/integrations/webmotors.md` (7.1). **Se P2/P3 mudarem, só os defaults e a UI mudam.**
+### T1.4 — Padrões de conta (D11, D12)
+- `AcceptMode` default `AUTO`; `welcomeMessageEnabled` default `true` e passa a controlar a **mensagem de abordagem M1** (o pedido de consentimento M2 **não** é desligável por loja) (entidade e migration, ainda não publicada em produção — editar a migration do módulo só se ela **não** foi mergeada na `develop`; caso contrário, nova migration `ALTER`).
+- Atualizar testes e `docs/integrations/webmotors.md` (7.1). Se D11/D12 mudarem, só os defaults e a UI mudam.
 
 ### T1.5 — Máscara de PII e segredos em log (nada sensível em log, nada sensível no banco)
 **Contexto:** `logback-spring.xml` tem um `DatabaseErrorAppender` que grava logs de **ERROR em tabela** (`application_error`); portanto, PII em log de erro vira dado persistido e precisa entrar também no escopo de anonimização/retenção (Fase 2 e 4).
@@ -259,7 +263,7 @@ Migration `ALTER TABLE marketplace_webhook_events` recriando a FK `lead_id` com 
 6. Testes: isolamento por organização; vários leads do mesmo telefone; idempotência; relatório sem PII; envio bloqueado; identificador inexistente → solicitação `COMPLETED` com "nenhum dado encontrado".
 
 ### T2.3 — Endpoints (`MANAGER`; matcher `/api/v1/privacy/**` em `SecurityConfig`)
-`POST /api/v1/privacy/requests`; `POST /api/v1/privacy/requests/{id}/execute`; `POST /api/v1/privacy/requests/{id}/reject`; `GET /api/v1/privacy/requests?status=` (com `overdue`). `DELETE /leads/{id}` segue existindo como remoção operacional (documentar a diferença). Atualizar `docs/API.md` e Insomnia; testes 401/403/404/isolamento.
+`POST /api/v1/privacy/requests`; `POST /api/v1/privacy/requests/{id}/execute`; `POST /api/v1/privacy/requests/{id}/reject`; `GET /api/v1/privacy/requests?status=` (com `overdue`). `DELETE /leads/{id}` passa a ser a **exclusão manual** descrita em T2.7 (documentar a diferença entre excluir e anonimizar). Atualizar `docs/API.md` e Insomnia; testes 401/403/404/isolamento.
 
 ### T2.4 — Frontend: aba "Privacidade" em Configurações (`MANAGER`)
 Padrão service/hook/componente (ver Fase 5): lista com prazo e selo "Atrasada"; "Nova solicitação"; "Executar anonimização" com confirmação **irreversível**. Testes de componente e hook (chaves `orgId`).
@@ -270,7 +274,17 @@ Job `@Scheduled` (`SchedulingConfig` já existe) que limpa `raw_payload` de `mar
 ### T2.6 — Runbook
 `docs/RUNBOOK-PRIVACIDADE.md`: receber pedido (canal, validação de identidade **pela controladora**), executar, SLA, o que **não** é apagado (agregados/métricas), backups (a anonimização não retroage a cópias de segurança; descrever a janela).
 
-- [ ] T2.0 · [ ] T2.1 · [ ] T2.2 · [ ] T2.3 · [ ] T2.4 · [ ] T2.5 · [ ] T2.6
+### T2.7 — Exclusão manual de lead pelo dono da concessionária (D13)
+**Necessidade:** além do fluxo de solicitações (T2.1–T2.3), o **dono da loja precisa poder excluir um lead por conta própria**, pela interface, sem depender de suporte.
+
+- **Distinção:** *Anonimizar* (T2.2) apaga o dado pessoal e **mantém** o card para métricas; *Excluir* remove o card e tudo que está ligado a ele.
+- **Backend:** `LeadDeletionService.delete(organizationId, leadId, includeSamePhone: Boolean)` (`@Transactional`) remove o lead e **todo dado dependente**: `lead_stage_history`, `chat_messages`, `bot_sessions`, `lead_interests` e `lead_interest_events` (Fase 4), `webmotors_lead_inbox` vinculados, `marketplace_webhook_events` (`SET NULL` na FK **mais** limpeza do `raw_payload`), `notifications`. Com `includeSamePhone=true`, exclui também os demais cards do mesmo telefone na organização. **Corrige a falha atual** do `DELETE /leads/{id}` com leads de marketplace (T2.0). `DELETE /api/v1/leads/{id}?includeSamePhone=false` (já restrito a `MANAGER` em `SecurityConfig`); resposta `204`.
+- **Auditoria sem PII:** tabela `lead_deletion_log (id, organization_id, deleted_by, deleted_at, subject_hash, cards_deleted, messages_deleted, reason)`; nunca o telefone/nome.
+- **Consentimento:** o registro em `contact_consents` (Fase 4) **permanece** só com hash e metadados (R20), para que um telefone que se descadastrou **continue bloqueado** mesmo após a exclusão.
+- **Frontend (`MANAGER`):** ação **"Excluir lead"** no detalhe do lead (e no menu do card do Kanban), com diálogo explícito de que é **irreversível**, listando o que será apagado e a opção "Excluir também os outros atendimentos deste telefone"; toast de sucesso e invalidação do cache do Kanban/Leads (chaves `orgId`). `SELLER` não vê a ação. Ao lado, **"Anonimizar"** (T2.2) para quem quiser manter as métricas.
+- **Testes:** exclusão remove tudo (conferir cada tabela), isolamento por organização (404 em lead de outra org), `SELLER` → 403, `includeSamePhone`, lead de marketplace com evento associado, log de auditoria sem PII, consentimento permanece.
+
+- [ ] T2.0 · [ ] T2.1 · [ ] T2.2 · [ ] T2.3 · [ ] T2.4 · [ ] T2.5 · [ ] T2.6 · [ ] T2.7
 
 ---
 
@@ -306,12 +320,19 @@ Job `@Scheduled` (`SchedulingConfig` já existe) que limpa `raw_payload` de `mar
 | R7 | A **conversa é salva de forma generalista** (mensagens do card sem etiqueta por anúncio) enquanto o card está aberto. |
 | R8 | **No fechamento** (`COMPLETED` ou `ARCHIVED`): grava `closed_at`; define `closing_interest_id` (o `ESCOLHIDO` se houver; senão o atual, R5); **etiqueta todas as mensagens ainda sem etiqueta** com esse interesse. |
 | R9 | Card **fechado há ≤ 90 dias** + nova entrada para o **mesmo anúncio** (`marketplace`, `listingId`) → **reabre o mesmo card** (R10). Anúncio **diferente**, ou card fechado há > 90 dias → **card novo**. |
-| R10 | **Reabertura:** limpa `closed_at`, `reopened_count++`, estágio `TALKING_TO_BOT` (P8), mantém o vendedor responsável, registra atividade "Reaberto", **consolida** os dados do card e dispara a **revalidação** pelo bot (4.4). Envia a mensagem de reengajamento/boas-vindas (como card novo). |
+| R10 | **Reabertura:** limpa `closed_at`, `reopened_count++`, estágio `TALKING_TO_BOT` (P8), mantém o vendedor responsável, registra atividade "Reaberto", **consolida** os dados do card e dispara a **revalidação** pelo bot (T4.4). Reabertura **por marketplace** (mesmo anúncio) envia a mensagem de abordagem M1; reabertura **por mensagem do cliente** envia a **confirmação M7** (R15). |
 | R11 | **Novo interesse em card ativo** (R3) notifica: o **vendedor** se o card já foi assumido (`assignedTo != null`); os **`MANAGER`** da organização se o card está **em aberto sem atendimento ou com o bot** (`TALKING_TO_BOT`/`WAITING_ATTENDANCE` sem responsável). |
-| R12 | **Retenção:** 90 dias após `closed_at`, o **conteúdo** das conversas (mensagens, `slot_values` do bot, `notes`) é removido; `leads`/interesses (metadados e métricas) permanecem. A retenção é por card, não reabre depois de executada. LGPD (Fase 2) prevalece sobre a retenção. |
+| R12 | **Retenção:** 90 dias após `closed_at`, o **conteúdo** das conversas (mensagens, `slot_values` do bot, `notes`) é removido; `leads` (inclusive nome, telefone e e-mail — D14), interesses, consentimentos e métricas **permanecem**. A retenção é por card, não reabre depois de executada. LGPD (Fase 2) prevalece sobre a retenção. |
 | R13 | Concluir (`COMPLETED`) com interesses: se nenhum estiver `ESCOLHIDO`, o **atual** é marcado `ESCOLHIDO` automaticamente (P7); `leads.vehicle_id` recebe o veículo do `ESCOLHIDO` (alimenta a receita do dashboard). |
 | R14 | `isDuplicate` deixa de ser escrito como `true` para leads novos; coluna e campo de API permanecem por compatibilidade até uma limpeza posterior. |
-| R15 | Resposta do cliente no WhatsApp: se há card ativo, vai nele; se não, e há card fechado há ≤ 90 dias, **reabre o mais recente** (P6); senão cria card novo (comportamento atual do `BotService`). |
+| R15 | **Cliente escreve no WhatsApp** (D15): se há card ativo, vai nele; se não, e há card fechado há ≤ 90 dias, **reabre o mais recente** usando como contexto o veículo da **etiqueta** (`closing_interest`) e envia a **confirmação M7** ("quer retomar o atendimento sobre o {veículo}?"). `Sim` → segue e revalida dados; `Outro veículo` → o interesse da etiqueta vira `DESCARTADO` e o bot cria novo interesse no mesmo card (P9). Sem card fechado em 90 dias: card novo (comportamento atual do `BotService`). |
+| R16 | **Consentimento por `(organização, telefone)`** (não por card). Na 1ª resposta de um telefone sem `ACCEPTED`, o sistema envia **M2** e **suspende o bot** até a resposta. Detalhes C1–C10 em `MENSAGENS-WHATSAPP.md`. |
+| R17 | **Descadastro (`SAIR`/`PARAR`/`CANCELAR`/`STOP`)** a qualquer momento → `REVOKED`, envia M5 e bloqueia mensagens do sistema para o telefone naquela organização. Precede qualquer outra regra. |
+| R18 | **Telefone `DECLINED`/`REVOKED`** nunca recebe mensagem do sistema. Se voltar pelo marketplace, o card é criado (o lojista precisa ver o lead) com selo **"Não contatar"** e sem mensagem automática. |
+| R19 | A **mensagem de abordagem (M1)** só sai em **card novo ou reaberto por marketplace**, nunca em novo interesse de card ativo (R3). Variáveis: nome, loja, veículo do interesse atual, marketplace. |
+| R20 | O registro de consentimento (hash do telefone, status, versão dos termos, mensagem da resposta) **não** é apagado pela retenção de 3 meses (R12) nem pela exclusão manual de lead. |
+| R21 | O bloqueio vale para mensagens **do sistema**; o vendedor ainda pode usar "Abrir no WhatsApp". A UI mostra "Não contatar" e pede confirmação nesse caso. |
+| R22 | Dados cadastrais do card (nome, telefone, e-mail) **permanecem** após o fechamento e após a retenção das conversas (D14); só `notes`, mensagens e `slot_values` expiram. |
 
 ### 4.2 Modelo de dados (migration nova, próxima versão livre)
 - `lead_interests (id UUID PK, lead_id UUID NOT NULL FK leads ON DELETE CASCADE, organization_id UUID NOT NULL, marketplace_type VARCHAR(30) NOT NULL, listing_id VARCHAR(100), listing_url TEXT, vehicle_id UUID FK vehicles ON DELETE SET NULL, vehicle_brand, vehicle_model, vehicle_version, vehicle_year INT, vehicle_price NUMERIC(12,2), vehicle_plate, status VARCHAR(20) NOT NULL DEFAULT 'CONSIDERANDO', contact_count INT NOT NULL DEFAULT 1, last_contact_type VARCHAR(40), first_contact_at, last_contact_at, created_at, updated_at, UNIQUE (lead_id, marketplace_type, listing_id))` (índice por `(organization_id, marketplace_type, listing_id)` para a busca de reabertura).
@@ -325,19 +346,29 @@ Job `@Scheduled` (`SchedulingConfig` já existe) que limpa `raw_payload` de `mar
 - **T4.2** `LeadIntakeService` (ponto único chamado por `CrmLeadIntakeAdapter`, scraper e consumer do ML): resolve `(org, phone)` → **R3 / R9 / novo card**, aplicando idempotência (R4), `welcome` só em card novo ou reaberto, `usageLimitService` coerente, índice parcial como rede de segurança. Substitui a lógica de `isDuplicate` de `LeadIngestionService`.
 - **T4.3** `LeadInterestService`: `addOrTouch`, `changeStatus`, `recomputeCurrent` (R5); validações de papel e organização; atividade de linha do tempo "Interesse adicionado" / "Interesse atualizado" [VERIFICAR modelo de atividades em `crm`].
 - **T4.4** Revalidação do bot na reabertura (R10): ao reabrir, mover os `slotValues` coletados para um estado "a revalidar" para os campos **mutáveis** (telefone, e-mail, valor de entrada, urgência, tipo de interesse/financiamento, troca) e manter os **estáveis** (nome); o bot confirma cada campo ("Seu e-mail continua X?") e consolida com o que já havia. [VERIFICAR nomes canônicos dos slots em `docs/CHATBOT-LEX-PLANO.md` e `BotSessionService`.]
-- **T4.5** Mensagem etiquetada com o anúncio (decisão 1 do Ruy): o template de boas-vindas/reengajamento inclui o **veículo do interesse atual**. Requer `sendTemplate` com `components` (variáveis) e um template aprovado que as aceite — ver change `meta-whatsapp-real` (2.2); **fallback** para o template sem variáveis enquanto a Meta não estiver real.
+- **T4.5** Mensagem de abordagem etiquetada com o anúncio: ver **T4.16** (template `lead_first_contact` com 4 variáveis). Aqui apenas garantir que `LeadIntakeService` (T4.2) decide **se** a abordagem sai (card novo ou reaberto por marketplace; nunca em novo interesse) e entrega ao builder o **interesse atual**.
 - **T4.6** `LeadClosureService` (R8, R13): hook chamado pelos pontos que movem para `COMPLETED`/`ARCHIVED` (`PipelineService.moveLead`, `LeadService.archive`) — grava `closed_at`, define `closing_interest_id`, etiqueta mensagens (`UPDATE chat_messages SET tagged_interest_id=… WHERE lead_id=… AND tagged_interest_id IS NULL`), aplica o `ESCOLHIDO` automático e o `vehicle_id`.
 - **T4.7** `LeadReopenService` (R9, R10, R15): reabre o card; ajusta `BotService.handleIncoming` para resolver o card (ativo → fechado recente → novo). Teste de concorrência: dois eventos simultâneos do mesmo telefone resultam em **um** card.
 - **T4.8** `LeadNotificationService` (R11): **não existe infraestrutura de notificação** hoje — só as preferências `notifyViaEmail`/`notifyViaPush` em `User`. Entregar o mínimo: tabela `notifications` (`user_id`, `type`, `lead_id`, `interest_id`, `created_at`, `read_at`) + `GET /api/v1/notifications` + `PATCH .../read`, e **e-mail** quando `notifyViaEmail` (via `EmailService`; MailHog em dev, SES em prod — change `email-ses-prod`). Push fora do escopo [VERIFICAR se o frontend já tem sino/lista no `Header`].
 - **T4.9** `ConversationRetentionJob` (R12, P5): diário; para cards com `closed_at < now − privacy.retention.conversation-days` (default 90) e `conversation_purged_at IS NULL`: apagar `chat_messages` do card, limpar `bot_sessions.slot_values`, limpar `notes`, gravar `conversation_purged_at`. Idempotente, com relógio injetável nos testes; ligado em `prod`.
 - **T4.10** Métricas/dashboard: receita por `leads.vehicle_id` do `ESCOLHIDO` (queries `sumRevenueByOrganizationAndPeriod`, `countSalesByOrganizationAndPeriod` permanecem corretas via R13; adicionar teste); leads por marketplace passam a contar **entradas** (eventos), não cards — decidir o que o dashboard mostra e documentar.
 - **T4.11** Atualizar o mapa de anonimização da Fase 2 (`lead_interests`, `lead_interest_events`, `notifications`) e o `LeadAnonymizationService` (testes).
-- **T4.12** Specs e docs: reescrever o requisito "Duplicados" em `openspec/specs/lead-ingestion/spec.md` (via change), criar `openspec/specs/lead-interests/spec.md` com os cenários R1–R15, atualizar `CLAUDE.md` (regra "Duplicate leads…"), `openspec/config.yaml` e `openspec/STATUS.md` (regras #1 e #2), `docs/ARCHITECTURE.md`.
+- **T4.12** Specs e docs: reescrever o requisito "Duplicados" em `openspec/specs/lead-ingestion/spec.md` (via change), criar `openspec/specs/lead-interests/spec.md` (R1–R15) e `openspec/specs/whatsapp-consent/spec.md` (R16–R22), atualizar `CLAUDE.md` (regra "Duplicate leads…"), `openspec/config.yaml` e `openspec/STATUS.md` (regras #1 e #2), `docs/ARCHITECTURE.md`.
+
+#### 4.C — Abordagem, consentimento, descadastro e reabertura por mensagem (D12, D15; spec completa em `docs/plano/MENSAGENS-WHATSAPP.md`)
+
+- **T4.13** Modelo e serviço de consentimento: migration `contact_consents (id, organization_id, phone_hash, status, terms_version, terms_url, source, wa_message_id, responded_at, lead_id NULL ON DELETE SET NULL, created_at, UNIQUE (organization_id, phone_hash))`; `ContactConsentService` (`record`, `status(org, phone)`, `canSend`); `MessagingPolicy.canSend(org, phone, kind)` consultado por `MessageSenderService` e pelos envios do bot (`NO_RECORD` → só M1; `ACCEPTED` → tudo; `DECLINED`/`REVOKED`/anonimizado → nega). Hash = HMAC-SHA256 com `privacy.hash-secret`. Testes de política e de isolamento por organização.
+- **T4.14** Cliente Meta (mock **e** real): `sendTemplate` com `components` (corpo e botões), mensagem **interativa com botões de resposta**, e parsing de entrada de `interactive.button_reply` e `button` no webhook (DTOs em arquivos próprios). Testes de contrato com payloads de exemplo; o filtro de assinatura permanece inalterado.
+- **T4.15** Roteador de entrada do WhatsApp (ordem: descadastro → consentimento pendente → reabertura/confirmação → bot): máquina de estados C3–C6 com M2/M3/M4/M6; "Não aceito" arquiva o card e bloqueia (P10); ambíguo > 2 vezes → `WAITING_ATTENDANCE` + notificação; palavras-chave sem acento e sem caixa; **o bot não responde enquanto o consentimento está pendente**. Testes da máquina de estados completa e de concorrência (duas respostas simultâneas).
+- **T4.16** `FirstContactMessageBuilder` (M1) com as 4 variáveis, sanitização, fallbacks e truncamento (ver tabela em `MENSAGENS-WHATSAPP.md`); propriedades `whatsapp.templates.first-contact.*` com **fallback** para `welcome_lead` enquanto o template novo não estiver aprovado; tratamento do botão "Não tenho interesse" (interesse `DESCARTADO` + M8).
+- **T4.17** Reabertura por mensagem do cliente (R15/D15): `BotService.handleIncoming` resolve card ativo → fechado ≤ 90 dias (reabre) → novo; envia **M7**; "Sim, esse mesmo" dispara a revalidação (T4.4); "Outro veículo" → interesse da etiqueta `DESCARTADO`, M9 e **novo interesse** `WHATSAPP` a partir do texto livre (P9). Testes dos três caminhos e do limite de 90 dias.
+- **T4.18** Frontend: selo **"Não contatar"** e status de consentimento no detalhe do lead e no Kanban; aviso de confirmação ao clicar em "Abrir no WhatsApp" de telefone bloqueado; campo opcional `privacy_policy_url` nas configurações da organização (aba Geral) usado no link da M2.
+- **T4.19** Feature flag `whatsapp.consent.enabled` (padrão `false` em `prod` até `/privacidade` e `/termos` estarem publicados) e atualização do mapa de anonimização (`contact_consents` guarda só hash; **não** é apagado por anonimização de lead — decisão jurídica registrada em C2). Runbook `docs/RUNBOOK-CONSENTIMENTO.md` (como auditar um aceite, como tratar pedido de revogação).
 
 ### 4.4 Testes obrigatórios da fase
-Sem card → novo; card ativo + anúncio novo → interesse adicionado, sem mensagem, notificação certa (vendedor × `MANAGER`); mesmo anúncio de novo → contador, sem duplicar; evento repetido → idempotente; fechar → etiqueta, `closing_interest`, `ESCOLHIDO` automático; reabrir dentro de 90 dias no mesmo anúncio → mesmo card, revalidação; anúncio diferente → card novo; > 90 dias → novo; retenção apaga conteúdo e mantém métrica; concorrência (2 threads, mesmo telefone) → 1 card; isolamento entre organizações; anonimização cobre as tabelas novas.
+Sem card → novo; card ativo + anúncio novo → interesse adicionado, sem mensagem, notificação certa (vendedor × `MANAGER`); mesmo anúncio de novo → contador, sem duplicar; evento repetido → idempotente; fechar → etiqueta, `closing_interest`, `ESCOLHIDO` automático; reabrir dentro de 90 dias no mesmo anúncio → mesmo card, revalidação; anúncio diferente → card novo; > 90 dias → novo; retenção apaga conteúdo e mantém métrica; concorrência (2 threads, mesmo telefone) → 1 card; isolamento entre organizações; anonimização cobre as tabelas novas; **consentimento:** 1ª resposta dispara M2 e suspende o bot, aceito retoma, não aceito arquiva e bloqueia, ambíguo (3ª vez) → atendimento humano, `SAIR` precede tudo, telefone bloqueado não recebe mensagem do sistema mas o card é criado com selo, aceite anterior não é pedido de novo em reabertura; **M1** só em card novo/reaberto por marketplace e nunca em novo interesse; **reabertura por WhatsApp** com M7 nos caminhos "Sim" e "Outro veículo".
 
-- [ ] T4.1 · [ ] T4.2 · [ ] T4.3 · [ ] T4.4 · [ ] T4.5 · [ ] T4.6 · [ ] T4.7 · [ ] T4.8 · [ ] T4.9 · [ ] T4.10 · [ ] T4.11 · [ ] T4.12
+- [ ] T4.1 · [ ] T4.2 · [ ] T4.3 · [ ] T4.4 · [ ] T4.5 · [ ] T4.6 · [ ] T4.7 · [ ] T4.8 · [ ] T4.9 · [ ] T4.10 · [ ] T4.11 · [ ] T4.12 · [ ] T4.13 · [ ] T4.14 · [ ] T4.15 · [ ] T4.16 · [ ] T4.17 · [ ] T4.18 · [ ] T4.19
 
 ---
 
@@ -396,7 +427,7 @@ Executa a change existente `openspec/changes/ingestion-hardening` (tarefas 1.x�
 - **T7.1 Entrada sem AWS** (1.1–1.2): com `app.aws.enabled=false`, `MarketplaceWebhookController` processa inline (hoje o `MarketplaceLeadConsumer` só existe com AWS). Extrair o corpo de `MarketplaceLeadConsumer.process` para um serviço reutilizável. Teste: webhook sem SQS cria o lead.
 - **T7.2 Autenticidade do webhook** (2.1–2.3): remover o `return true` quando `marketplace.webhook-token` está vazio em `prod` (fail-fast no boot **e** 401 em runtime). Para o ML, validar HMAC **somente** após confirmar o formato; até lá, validar consultando o recurso (`/vis/leads/{id}`). Responder ao ML em ≤ 500 ms (200 e processamento assíncrono).
 - **T7.3 Refresh serializado do token ML** (3.1–3.2): lock por credencial (`SELECT … FOR UPDATE` ou advisory lock do Postgres) em `MercadoLivreAuthService.refreshToken`; `invalid_grant` marca a credencial `REAUTH_REQUIRED` e expõe isso na UI/alerta.
-- **T7.4 Lead sem telefone** (4.1) — **padrão P1, em discussão:** hoje `LeadNormalizationService.normalize` lança `IllegalArgumentException("Lead … sem telefone — descartado")` e o consumer relança → DLQ. Desenho: migration que torna `leads.phone_number` anulável + `contact_status` (`COMPLETE|PENDING_CONTACT`); como a **identidade do cliente é o telefone (R1)**, um card pendente **não tem identidade**: unicidade por `(marketplace, externalLeadId)` e **sem** reabertura/fusão até o contato ser completado; ao completar via `PATCH /leads/{id}/contact`, resolver pela regra R2/R9 (fundir com card ativo do mesmo telefone ou seguir como card). `MessageSenderService` pula lead sem telefone; selo "Contato pendente" no Kanban; dedupe ignora nulo; regressão do inbound WhatsApp. Para a Webmotors o equivalente já é `AWAITING_CONTACT` da caixa de entrada.
+- **T7.4 Lead sem telefone** (4.1) — **decisão D10 (card pendente visível, sem mensagem):** hoje `LeadNormalizationService.normalize` lança `IllegalArgumentException("Lead … sem telefone — descartado")` e o consumer relança → DLQ. Desenho: migration que torna `leads.phone_number` anulável + `contact_status` (`COMPLETE|PENDING_CONTACT`); como a **identidade do cliente é o telefone (R1)**, um card pendente **não tem identidade**: unicidade por `(marketplace, externalLeadId)` e **sem** reabertura/fusão até o contato ser completado; ao completar via `PATCH /leads/{id}/contact`, resolver pela regra R2/R9 (fundir com card ativo do mesmo telefone ou seguir como card). `MessageSenderService` pula lead sem telefone; selo "Contato pendente" no Kanban; dedupe ignora nulo; regressão do inbound WhatsApp. Para a Webmotors o equivalente já é `AWAITING_CONTACT` da caixa de entrada.
 - **T7.5 Dados do anúncio do ML** (4.2): buscar marca/modelo/ano por `item_id` e preencher o **snapshot do interesse** (Fase 4) e `vehicleInterest`.
 
 - [ ] T7.1 · [ ] T7.2 · [ ] T7.3 · [ ] T7.4 · [ ] T7.5
@@ -474,10 +505,10 @@ Depois: ligar `WEBMOTORS_ENABLED=true` em staging e produção; arquivar as chan
 1. **Webmotors:** registrar o app no Portal do Desenvolvedor, preencher o formulário (`FORMULARIO-WEBMOTORS.md`), pedir ambiente de homologação e confirmar H3–H13.
 2. **Dados institucionais** da Fase 3.
 3. **Mercado Livre:** app em developers, redirect URI, tópico `vis_leads`, conta vendedora Motors (pesquisa em andamento).
-4. **Meta:** Business Portfolio/verificação, número dedicado, token permanente, template `welcome_lead` **com variável do veículo** (T4.5).
+4. **Meta:** Business Portfolio/verificação, número dedicado, token permanente e submissão do template **`lead_first_contact`** (texto e variáveis em `MENSAGENS-WHATSAPP.md`) — esperar possível reclassificação para MARKETING.
 5. **AWS/CI/CD:** conta, Budget, OIDC, EC2/SSM, **SSM Parameter Store para as chaves** (T6.8), SES, domínio/DNS.
-6. **Jurídico:** política de privacidade, base legal do contato inicial por WhatsApp, papéis operadora × controladora, SLA declarado, e **retenção de dados pessoais de cards fechados** (P5).
-7. **Fechar as decisões P1–P8** da seção 1.4.
+6. **Jurídico:** política de privacidade e termos, **base legal da abordagem inicial por WhatsApp e o texto do consentimento (M2)**, papéis operadora × controladora, SLA declarado, **retenção de dados cadastrais de cards fechados para pós-venda e campanhas (D14)**, e se é preciso termo por concessionária.
+7. Rever os padrões **P7–P10** da seção 1.4 (assumidos) e aprovar os textos M1–M9.
 
 ---
 
@@ -495,6 +526,10 @@ Depois: ligar `WEBMOTORS_ENABLED=true` em staging e produção; arquivar as chan
 | Retenção apagar conteúdo que o jurídico exige manter | Perda de prova/relacionamento | Retenção configurável por propriedade e revisão jurídica (P5) |
 | Migrations fora de ordem entre branches | Falha de deploy | Conferir a próxima versão livre no momento de cada merge |
 | Meta/AWS ainda em mock | "Funciona" sem prova real | Registrar como não validado em `openspec/STATUS.md` |
+| A **abordagem (M1) precede o consentimento** (contato frio) | Atrito com a política de opt-in da Meta e questionamento de base legal | Mensagem identifica a loja e a origem do contato; rodapé com `SAIR`; consentimento na 1ª resposta; descadastro imediato; revisão jurídica **antes** de produção; flag `whatsapp.consent.enabled` |
+| Template `lead_first_contact` reprovado ou reclassificado como MARKETING | Custo maior ou bloqueio | Fallback para `welcome_lead`; orçar preço de marketing (regra #5 do STATUS) |
+| Bloqueio de telefone não alcança contato manual fora do sistema | Contato indevido por vendedor | Selo "Não contatar" + aviso em "Abrir no WhatsApp" + treinamento |
+| Exclusão manual apagar algo que o jurídico exige guardar | Perda de prova | Consentimento preservado (só hash); log de auditoria; confirmação explícita na UI |
 
 ---
 
@@ -512,3 +547,17 @@ Depois: ligar `WEBMOTORS_ENABLED=true` em staging e produção; arquivar as chan
 - [ ] `prod` sobe localmente; `.env.example` e smoke test prontos (F9)
 - [ ] **Formulário enviado à Webmotors**
 - [ ] Homologação concluída (F10)
+
+---
+
+## 9. Backlog pós-MVP (documentado; fora das fases 0–10)
+
+| # | Item | Por quê / dependências |
+|---|---|---|
+| **B1** | **Integração anúncio ↔ estoque** | Hoje o anúncio do marketplace **não** está ligado ao `Vehicle` do estoque. Passos: (1) tabela `vehicle_listings (vehicle_id, marketplace_type, listing_id, listing_url, status)` e/ou `Vehicle.external_ad_id` por marketplace; (2) vínculo automático por **placa**/`anuncio.id` (Webmotors) e `item_id` (ML) + tela de vínculo manual; (3) preencher `lead_interests.vehicle_id` e o preço real do estoque; (4) publicar/atualizar/despublicar anúncios pela API de **Gestor de Estoque Terceiro** da Webmotors (itens E1–E5 de `docs/integrations/webmotors.md`): `Vehicle` precisa de versão, combustível, câmbio, carroceria, opcionais, cidade e fabricação × modelo; catálogo de marca/modelo/versão da Webmotors; envio de fotos (hoje URLs do S3). Destrava B2, receita exata por veículo e "veículo vendido" automático. |
+| **B2** | **Recusa/aceite automático por regra** (P2, opção C) | Recusar automaticamente propostas de **veículo já vendido** (`VehicleStatus.SOLD`) ou de **DDD fora da região** da loja. Depende de B1 e de uma configuração de regiões por organização. Usar os códigos de recusa da Webmotors (`GET /motivos-recusa`). |
+| **B3** | **Campanhas comerciais** | Os dados de cards fechados são mantidos também para campanhas (D14). Exige: **consentimento específico de marketing** (finalidade separada do atendimento) e opt-out; templates `MARKETING` (custo por mensagem, regra #5 do STATUS); segmentação (ex.: clientes de um modelo, pós-venda); respeito a `DECLINED`/`REVOKED`. Revisão jurídica obrigatória. |
+| **B4** | **Portal self-service do titular** | Só se a Webmotors ou o jurídico exigirem fluxo direto ao titular (hoje D13 = opção A). |
+| **B5** | **Notificações push** e preferências por tipo | A T4.8 entrega notificação in-app e e-mail; `notifyViaPush` existe como preferência mas não há serviço de push. |
+| **B6** | **Descarte automático de campos mutáveis desatualizados** e normalização de dados ao reabrir | Evolução da revalidação (T4.4). |
+| **B7** | **Aviso extra ao dono da loja para lead pendente sem telefone** (D10, opção b) | Complemento opcional ao selo "Contato pendente". |
