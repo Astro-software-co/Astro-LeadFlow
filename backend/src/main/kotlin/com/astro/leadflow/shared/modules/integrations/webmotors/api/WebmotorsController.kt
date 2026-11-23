@@ -23,7 +23,7 @@ import java.util.UUID
 @RestController
 @RequestMapping("/api/v1/integrations/webmotors")
 @Tag(name = "Integrações — Webmotors", description = "Conta, propostas e sincronização com a Webmotors")
-@PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+@PreAuthorize("hasRole('MANAGER')")
 class WebmotorsController(
     private val accounts: WebmotorsAccountService,
     private val inbox: WebmotorsInboxService,

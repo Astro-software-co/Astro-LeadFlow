@@ -111,4 +111,13 @@ class WebmotorsRepositoriesTest {
         assertTrue(inbox.findByOrganizationIdAndExternalIdAndLeadType(org.id, "1", 1).isPresent)
         assertNull(inbox.findByOrganizationIdAndExternalIdAndLeadType(org.id, "zzz", 1).orElse(null))
     }
+
+    @Test
+    fun `proposta nao e encontrada por outra organizacao`() {
+        val saved = inbox.saveAndFlush(row("555"))
+        val other = orgs.save(Organization(name = "Outra", slug = "outra"))
+
+        assertTrue(inbox.findByOrganizationIdAndId(org.id, saved.id).isPresent)
+        assertTrue(inbox.findByOrganizationIdAndId(other.id, saved.id).isEmpty)
+    }
 }
