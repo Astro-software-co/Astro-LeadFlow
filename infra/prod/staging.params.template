@@ -1,0 +1,64 @@
+# Modelo dos parâmetros do SSM (/leadflow/<env>/CHAVE). Lido por infra/aws/steps/06-params.sh.
+# Linhas "CHAVE=valor". Placeholders: {{DOMAIN}} {{IMAGE_REGISTRY}} {{BUCKET}} {{REGION}}
+#   {{GEN:alnum32}} / {{GEN:alnum64}}  -> segredo aleatório (só gerado se o parâmetro ainda não existir)
+#   {{SAME:OUTRA_CHAVE}}               -> mesmo valor de outra chave deste arquivo
+# O SSM não aceita valor vazio: o que fica em branco no .env.example simplesmente não entra aqui.
+# Evite '$' em valores (o render-env.sh duplica para o Compose, mas é mais seguro não usar).
+
+# --- compose ---
+DOMAIN={{DOMAIN}}
+IMAGE_REGISTRY={{IMAGE_REGISTRY}}
+COMPOSE_PROFILES=local-db
+REDIS_PASSWORD={{GEN:alnum32}}
+POSTGRES_DB=leadflow
+POSTGRES_USER=leadflow
+POSTGRES_PASSWORD={{GEN:alnum32}}
+BACKUP_BUCKET={{BUCKET}}
+
+# --- Spring (application-prod.yml: sem default, o boot falha se faltar) ---
+SPRING_PROFILES_ACTIVE=prod
+SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/leadflow
+SPRING_DATASOURCE_USERNAME=leadflow
+SPRING_DATASOURCE_PASSWORD={{SAME:POSTGRES_PASSWORD}}
+SPRING_DATA_REDIS_HOST=redis
+SPRING_DATA_REDIS_PORT=6379
+SPRING_DATA_REDIS_PASSWORD={{SAME:REDIS_PASSWORD}}
+SPRING_MAIL_PORT=587
+# Sem SES/SMTP ainda: sem isto o /actuator/health geral fica DOWN (MailHealthIndicator).
+MANAGEMENT_HEALTH_MAIL_ENABLED=false
+
+# --- URLs / CORS / auth ---
+APP_BASE_URL=https://{{DOMAIN}}
+PUBLIC_API_URL=https://{{DOMAIN}}
+APP_CORS_ALLOWED_ORIGINS=https://{{DOMAIN}}
+AUTH_REFRESH_COOKIE_SECURE=true
+AUTH_REFRESH_COOKIE_SAME_SITE=Lax
+JWT_SECRET={{GEN:alnum64}}
+JWT_EXPIRATION_MS=300000
+JWT_REFRESH_MS=604800000
+RATE_LIMIT_ENABLED=true
+
+# --- Meta / WhatsApp (mock até a conta Meta estar validada) ---
+META_API_MODE=mock
+META_APP_SECRET={{GEN:alnum32}}
+META_VERIFY_TOKEN={{GEN:alnum32}}
+
+# --- Abacate Pay (o filtro de webhook exige um secret em produção; placeholder até haver conta) ---
+ABACATEPAY_API_URL=https://api.abacatepay.com/v2
+ABACATEPAY_WEBHOOK_SECRET={{GEN:alnum32}}
+
+# --- Marketplaces ---
+MARKETPLACE_WEBHOOK_TOKEN={{GEN:alnum32}}
+MARKETPLACE_RECONCILIATION_ENABLED=false
+ML_REDIRECT_URI=https://{{DOMAIN}}/api/v1/auth/mercadolivre/callback
+
+# --- Chatbot / AWS (mock e AWS desligada até a fase do Lex) ---
+CHATBOT_ENGINE_MODE=mock
+APP_AWS_ENABLED=false
+# Obrigatório mesmo com APP_AWS_ENABLED=false: o SqsAutoConfiguration não é excluído no perfil prod
+# e o boot falha sem região (verificado em teste local).
+AWS_REGION={{REGION}}
+
+# --- Planos ---
+DEFAULT_PLAN=free
+TRIAL_DAYS=14

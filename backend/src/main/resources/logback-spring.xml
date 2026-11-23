@@ -39,10 +39,20 @@
             <appender-ref ref="CONSOLE" />
             <appender-ref ref="ASYNC_DB_ERROR" />
         </root>
+        <logger name="com.astro.leadflow" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE" />
+        </logger>
     </springProfile>
 
-    <logger name="com.astro.leadflow" level="DEBUG" additivity="false">
-        <appender-ref ref="CONSOLE" />
-    </logger>
+    <!-- Perfil prod: SEM este bloco o root logger fica sem appender e nada do Spring/Hibernate/Flyway
+         (inclusive erros fatais de boot) chega ao stdout do container. com.astro.leadflow herda os
+         appenders do root (additivity padrao) e fica em INFO. -->
+    <springProfile name="prod">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE" />
+            <appender-ref ref="ASYNC_DB_ERROR" />
+        </root>
+        <logger name="com.astro.leadflow" level="INFO" />
+    </springProfile>
 
 </configuration>

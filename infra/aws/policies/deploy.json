@@ -1,0 +1,18 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    { "Sid": "RunOnTaggedInstance", "Effect": "Allow", "Action": "ssm:SendCommand",
+      "Resource": "arn:aws:ec2:__REGION__:__ACCOUNT_ID__:instance/*",
+      "Condition": { "StringEquals": {
+        "ssm:resourceTag/Project": "__PROJECT__", "ssm:resourceTag/Environment": "__ENV__" } } },
+    { "Sid": "RunDocument", "Effect": "Allow", "Action": "ssm:SendCommand",
+      "Resource": "arn:aws:ssm:__REGION__::document/AWS-RunShellScript" },
+    { "Sid": "ReadResult", "Effect": "Allow",
+      "Action": [ "ssm:GetCommandInvocation", "ssm:ListCommandInvocations" ], "Resource": "*" },
+    { "Sid": "UploadBundle", "Effect": "Allow",
+      "Action": [ "s3:PutObject", "s3:DeleteObject" ],
+      "Resource": "arn:aws:s3:::__BUCKET__/artifacts/*" },
+    { "Sid": "ListBundle", "Effect": "Allow", "Action": "s3:ListBucket",
+      "Resource": "arn:aws:s3:::__BUCKET__" }
+  ]
+}
