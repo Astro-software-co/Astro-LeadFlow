@@ -1,13 +1,20 @@
 package com.astro.leadflow.shared.modules.integrations.webmotors
 
+import com.astro.leadflow.shared.exception.ExternalServiceException
+import com.astro.leadflow.shared.exception.QuotaExceededException
 import com.astro.leadflow.shared.modules.communication.service.MessageSenderService
 import com.astro.leadflow.shared.modules.crm.domain.Lead
 import com.astro.leadflow.shared.modules.crm.domain.LeadRepository
 import com.astro.leadflow.shared.modules.crm.domain.PipelineStage
+import com.astro.leadflow.shared.modules.crm.intake.LeadIntakeCommand
+import com.astro.leadflow.shared.modules.crm.intake.VehicleSnapshot
 import com.astro.leadflow.shared.modules.iam.domain.Organization
 import com.astro.leadflow.shared.modules.iam.domain.OrganizationRepository
+import com.astro.leadflow.shared.modules.ingestion.infra.SqsProducer
+import com.astro.leadflow.shared.modules.ingestion.service.LeadIngestionService
+import com.astro.leadflow.shared.modules.ingestion.service.NormalizationService
 import com.astro.leadflow.shared.modules.integrations.webmotors.infra.CrmLeadIntakeAdapter
-import com.astro.leadflow.shared.modules.integrations.webmotors.service.IncomingLead
+import com.astro.leadflow.shared.modules.saas.service.UsageLimitService
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
@@ -17,78 +24,85 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.transaction.PlatformTransactionManager
 import java.util.Optional
 
+/** O adaptador delega à regra oficial de entrada; aqui ela roda de verdade com repositórios simulados. */
 class CrmLeadIntakeAdapterTest {
 
     private val leads = mockk<LeadRepository>()
     private val orgs = mockk<OrganizationRepository>()
     private val sender = mockk<MessageSenderService>()
+    private val usage = mockk<UsageLimitService>(relaxed = true)
     private val org = Organization(name = "Loja", slug = "loja")
-    private val adapter = CrmLeadIntakeAdapter(leads, orgs, sender, mockk<PlatformTransactionManager>(relaxed = true))
+    private val ingestion = LeadIngestionService(
+        leadRepository = leads, organizationRepository = orgs, normalizationService = NormalizationService(),
+        sqsProducer = mockk<SqsProducer>(), messageSenderService = sender, usageLimitService = usage, awsEnabled = false
+    )
+    private val adapter = CrmLeadIntakeAdapter(orgs, ingestion)
+    private val saved = slot<Lead>()
 
-    private fun incoming(welcome: Boolean) = IncomingLead(
-        name = "Maria", phone = "+5511987654321", email = null, origin = "WEBMOTORS",
-        vehicleInterest = "HB20", notes = "Webmotors #1", sendWelcomeMessage = welcome
+    private fun command(welcome: Boolean = true) = LeadIntakeCommand(
+        organizationId = org.id, name = "Maria", phone = "+5511987654321", email = null, origin = "WEBMOTORS",
+        externalEventId = "460046", listingId = "9988",
+        vehicleSnapshot = VehicleSnapshot(brand = "Hyundai", model = "HB20", year = 2018),
+        message = "Webmotors #460046", sendWelcome = welcome
     )
 
     @BeforeEach
     fun setup() {
         every { orgs.findById(org.id) } returns Optional.of(org)
-        every { leads.findFirstByOrganizationIdAndPhoneNumberOrderByCreatedAtAsc(org.id, "+5511987654321") } returns Optional.empty()
+        every { leads.existsByOrganizationIdAndPhoneNumber(org.id, "+5511987654321") } returns false
+        every { leads.save(capture(saved)) } answers { saved.captured }
+        every { sender.sendTemplate(any(), any(), any(), any()) } returns mockk()
     }
 
     @Test
-    fun `lead novo sem boas-vindas vai para aguardando atendimento`() {
-        val saved = slot<Lead>()
-        every { leads.save(capture(saved)) } answers { saved.captured }
+    fun `lead novo e criado com a mensagem de abordagem`() {
+        val result = adapter.intake(command())
 
-        val result = adapter.intake(org.id, incoming(welcome = false))
-
-        assertTrue(result.created)
-        assertEquals(PipelineStage.WAITING_ATTENDANCE, saved.captured.pipelineStage)
-        assertEquals("WEBMOTORS", saved.captured.origin)
-        verify(exactly = 0) { sender.sendTemplate(any(), any(), any(), any()) }
-    }
-
-    @Test
-    fun `lead novo com boas-vindas envia template e fica com o bot`() {
-        val saved = slot<Lead>()
-        every { leads.save(capture(saved)) } answers { saved.captured }
-        every { leads.findById(any()) } answers { Optional.of(saved.captured) }
-        every { sender.sendTemplate(any(), org, "welcome_lead", "WEBMOTORS") } returns mockk()
-
-        adapter.intake(org.id, incoming(welcome = true))
-
+        assertEquals(saved.captured.id, result.leadId)
+        assertFalse(saved.captured.isDuplicate)
         assertEquals(PipelineStage.TALKING_TO_BOT, saved.captured.pipelineStage)
-        verify { sender.sendTemplate(any(), org, "welcome_lead", "WEBMOTORS") }
+        assertEquals("Hyundai HB20 2018", saved.captured.vehicleInterest)
+        assertEquals("Webmotors #460046", saved.captured.notes)
+        verify(exactly = 1) { sender.sendTemplate(saved.captured, org, "welcome_lead", "WEBMOTORS") }
     }
 
     @Test
-    fun `falha no envio de boas-vindas nao desfaz o lead`() {
-        val saved = slot<Lead>()
-        every { leads.save(capture(saved)) } answers { saved.captured }
-        every { leads.findById(any()) } answers { Optional.of(saved.captured) }
-        every { sender.sendTemplate(any(), any(), any(), any()) } throws IllegalStateException("sem token")
+    fun `telefone repetido cria lead duplicado e ainda envia a mensagem`() {
+        every { leads.existsByOrganizationIdAndPhoneNumber(org.id, "+5511987654321") } returns true
 
-        val result = adapter.intake(org.id, incoming(welcome = true))
+        adapter.intake(command())
 
-        assertTrue(result.created)
+        assertTrue(saved.captured.isDuplicate)
+        verify(exactly = 1) { sender.sendTemplate(any(), org, "welcome_lead", "WEBMOTORS") }
     }
 
     @Test
-    fun `telefone ja existente nao duplica e acrescenta o interesse as notas`() {
-        val existing = Lead(organization = org, phoneNumber = "+5511987654321", origin = "OLX", notes = "Nota antiga")
-        every { leads.findFirstByOrganizationIdAndPhoneNumberOrderByCreatedAtAsc(org.id, "+5511987654321") } returns Optional.of(existing)
-        every { leads.save(existing) } returns existing
+    fun `cota excedida cria o lead sem mensagem`() {
+        every { sender.sendTemplate(any(), any(), any(), any()) } throws QuotaExceededException()
 
-        val result = adapter.intake(org.id, incoming(welcome = true))
+        val result = adapter.intake(command())
 
-        assertFalse(result.created)
-        assertEquals(existing.id, result.leadId)
-        assertTrue(existing.notes!!.startsWith("Nota antiga"))
-        assertTrue(existing.notes!!.contains("Webmotors #1"))
+        assertEquals(saved.captured.id, result.leadId)
+        verify(exactly = 1) { leads.save(any()) }
+    }
+
+    @Test
+    fun `falha da Meta nao desfaz o lead`() {
+        every { sender.sendTemplate(any(), any(), any(), any()) } throws ExternalServiceException("Meta/WhatsApp", "HTTP 500")
+
+        val result = adapter.intake(command())
+
+        assertEquals(saved.captured.id, result.leadId)
+        verify(exactly = 1) { leads.save(any()) }
+    }
+
+    @Test
+    fun `sem abordagem o lead vai para atendimento e nada e enviado`() {
+        adapter.intake(command(welcome = false))
+
+        assertEquals(PipelineStage.WAITING_ATTENDANCE, saved.captured.pipelineStage)
         verify(exactly = 0) { sender.sendTemplate(any(), any(), any(), any()) }
     }
 }

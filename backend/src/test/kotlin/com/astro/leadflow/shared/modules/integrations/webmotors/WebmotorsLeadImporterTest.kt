@@ -1,5 +1,6 @@
 package com.astro.leadflow.shared.modules.integrations.webmotors
 
+import com.astro.leadflow.shared.modules.crm.intake.LeadIntakeCommand
 import com.astro.leadflow.shared.modules.ingestion.service.NormalizationService
 import com.astro.leadflow.shared.modules.integrations.webmotors.WebmotorsFixtures.entry
 import com.astro.leadflow.shared.modules.integrations.webmotors.config.WebmotorsProperties
@@ -7,7 +8,6 @@ import com.astro.leadflow.shared.modules.integrations.webmotors.domain.InboxStat
 import com.astro.leadflow.shared.modules.integrations.webmotors.infra.WebmotorsApi
 import com.astro.leadflow.shared.modules.integrations.webmotors.infra.WebmotorsApiException
 import com.astro.leadflow.shared.modules.integrations.webmotors.service.CrmLeadIntake
-import com.astro.leadflow.shared.modules.integrations.webmotors.service.IncomingLead
 import com.astro.leadflow.shared.modules.integrations.webmotors.service.IntakeResult
 import com.astro.leadflow.shared.modules.integrations.webmotors.service.WebmotorsAccountService
 import com.astro.leadflow.shared.modules.integrations.webmotors.service.WebmotorsInboxService
@@ -46,8 +46,8 @@ class WebmotorsLeadImporterTest {
         every { inbox.get(e.id) } returns e
         every { api.fetchLeadDetail(any(), e.externalId, e.leadType) } returns
             mapper.readTree("""{"nome":"Maria","email":"m@x.com","telefone":"(11) 98765-4321"}""")
-        val sent = slot<IncomingLead>()
-        every { intake.intake(WebmotorsFixtures.orgId, capture(sent)) } returns IntakeResult(leadId, true)
+        val sent = slot<LeadIntakeCommand>()
+        every { intake.intake(capture(sent)) } returns IntakeResult(leadId, true)
         every { inbox.markImported(e.id, leadId) } returns e.copy(status = InboxStatus.IMPORTED, leadId = leadId)
 
         val result = importer.tryImport(e.id)
@@ -56,10 +56,13 @@ class WebmotorsLeadImporterTest {
         assertEquals("+5511987654321", sent.captured.phone)
         assertEquals("WEBMOTORS", sent.captured.origin)
         assertEquals("Maria", sent.captured.name)
-        assertEquals("Hyundai HB20 1.6 COMFORT 2018", sent.captured.vehicleInterest)
-        assertTrue(sent.captured.sendWelcomeMessage)
-        assertTrue(sent.captured.notes!!.contains("#460046"))
-        assertTrue(sent.captured.notes!!.contains("Tenho interesse"))
+        assertEquals(WebmotorsFixtures.orgId, sent.captured.organizationId)
+        assertEquals("Hyundai HB20 1.6 COMFORT 2018", sent.captured.vehicleSnapshot?.describe())
+        assertEquals("460046", sent.captured.externalEventId)
+        assertEquals("9988", sent.captured.listingId)
+        assertTrue(sent.captured.sendWelcome)
+        assertTrue(sent.captured.message!!.contains("#460046"))
+        assertTrue(sent.captured.message!!.contains("Tenho interesse"))
     }
 
     @Test
@@ -72,7 +75,7 @@ class WebmotorsLeadImporterTest {
         val result = importer.tryImport(e.id)
 
         assertEquals(InboxStatus.AWAITING_CONTACT, result.status)
-        verify(exactly = 0) { intake.intake(any(), any()) }
+        verify(exactly = 0) { intake.intake(any()) }
     }
 
     @Test

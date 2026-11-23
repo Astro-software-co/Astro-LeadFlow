@@ -1,6 +1,8 @@
 package com.astro.leadflow.shared.modules.integrations.webmotors.service
 
 import com.astro.leadflow.shared.exception.BusinessException
+import com.astro.leadflow.shared.modules.crm.intake.LeadIntakeCommand
+import com.astro.leadflow.shared.modules.crm.intake.VehicleSnapshot
 import com.astro.leadflow.shared.modules.ingestion.service.NormalizationService
 import com.astro.leadflow.shared.modules.integrations.webmotors.config.WebmotorsProperties
 import com.astro.leadflow.shared.modules.integrations.webmotors.domain.InboxStatus
@@ -49,23 +51,26 @@ class WebmotorsLeadImporter(
         }
 
         val result = intake.intake(
-            entry.organizationId,
-            IncomingLead(
+            LeadIntakeCommand(
+                organizationId = entry.organizationId,
                 name = contact.name,
                 phone = phone,
                 email = contact.email,
                 origin = ORIGIN,
-                vehicleInterest = vehicleInterest(entry),
-                notes = notes(entry),
-                sendWelcomeMessage = runtime.welcomeMessageEnabled
+                externalEventId = entry.externalId,
+                listingId = entry.adId,
+                vehicleSnapshot = VehicleSnapshot(
+                    brand = entry.adBrand, model = entry.adModel, version = entry.adVersion,
+                    year = entry.adYear, price = entry.adPrice, plate = entry.adPlate
+                ),
+                contactType = entry.typeDescription,
+                message = notes(entry),
+                receivedAt = entry.receivedAt,
+                sendWelcome = runtime.welcomeMessageEnabled
             )
         )
         return inbox.markImported(entry.id, result.leadId)
     }
-
-    private fun vehicleInterest(e: InboxEntry): String? =
-        listOfNotNull(e.adBrand, e.adModel, e.adVersion, e.adYear?.toString())
-            .joinToString(" ").trim().ifBlank { null }
 
     private fun notes(e: InboxEntry): String = buildString {
         append("Webmotors #${e.externalId}")

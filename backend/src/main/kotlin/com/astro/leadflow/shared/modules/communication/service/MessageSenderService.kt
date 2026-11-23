@@ -31,7 +31,8 @@ class MessageSenderService(
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    @Transactional
+    // Cota e Meta falham antes de gravar: não podem marcar como rollback-only a transação de quem chamou (o lead já salvo).
+    @Transactional(noRollbackFor = [QuotaExceededException::class, ExternalServiceException::class])
     fun sendText(
         lead: Lead,
         organization: Organization,
@@ -81,7 +82,8 @@ class MessageSenderService(
         return chatMessage
     }
 
-    @Transactional
+    // Cota e Meta falham antes de gravar: não podem marcar como rollback-only a transação de quem chamou (o lead já salvo).
+    @Transactional(noRollbackFor = [QuotaExceededException::class, ExternalServiceException::class])
     fun sendTemplate(
         lead: Lead,
         organization: Organization,

@@ -1,4 +1,4 @@
-﻿package com.astro.leadflow.shared.modules.ingestion.service
+package com.astro.leadflow.shared.modules.ingestion.service
 
 import com.astro.leadflow.shared.modules.communication.service.MessageSenderService
 import com.astro.leadflow.shared.modules.iam.domain.OrganizationRepository
@@ -7,6 +7,8 @@ import com.astro.leadflow.shared.modules.saas.service.UsageLimitService
 import com.astro.leadflow.shared.modules.crm.domain.Lead
 import com.astro.leadflow.shared.modules.crm.domain.LeadRepository
 import com.astro.leadflow.shared.modules.crm.domain.PipelineStage
+import com.astro.leadflow.shared.modules.crm.intake.LeadIntakeCommand
+import com.astro.leadflow.shared.modules.iam.domain.Organization
 import com.astro.leadflow.shared.exception.ExternalServiceException
 import com.astro.leadflow.shared.exception.QuotaExceededException
 import com.astro.leadflow.shared.exception.ResourceNotFoundException
@@ -36,37 +38,9 @@ class LeadIngestionService(
         val organization = organizationRepository.findBySlug(dto.organizationSlug)
             .orElseThrow { ResourceNotFoundException("Organization", dto.organizationSlug) }
 
-        val isDuplicate = leadRepository.existsByOrganizationIdAndPhoneNumber(
-            organization.id, normalizedPhone
-        )
-
-        if (isDuplicate) {
-            log.info("Lead duplicado recebido: {} | org: {}", normalizedPhone, dto.organizationSlug)
-            val duplicateLead = leadRepository.save(
-                Lead(
-                    organization = organization,
-                    phoneNumber = normalizedPhone,
-                    name = dto.name,
-                    email = dto.email,
-                    origin = normalizationService.normalizeMarketplace(dto.marketplaceType),
-                    vehicleInterest = dto.vehicleInterest,
-                    pipelineStage = PipelineStage.TALKING_TO_BOT,
-                    isDuplicate = true
-                )
-            )
-
-            usageLimitService.incrementUsage(organization.id, normalizedMarketplace)
-
-            try {
-                messageSenderService.sendTemplate(
-                    lead = duplicateLead,
-                    organization = organization,
-                    templateName = "welcome_lead",
-                    marketplaceName = dto.marketplaceType
-                )
-            } catch (e: Exception) {
-                log.warn("Erro ao enviar WhatsApp para lead duplicado. leadId={} error={}", duplicateLead.id, e.message)
-            }
+        // Duplicado é tratado já na entrada (não passa pela fila), como sempre foi.
+        if (leadRepository.existsByOrganizationIdAndPhoneNumber(organization.id, normalizedPhone)) {
+            ingestResolved(organization, dto.toCommand(organization, normalizedPhone, normalizedMarketplace))
             return
         }
 
@@ -97,32 +71,71 @@ class LeadIngestionService(
             return
         }
 
+        ingestResolved(organization, dto.toCommand(organization, dto.phoneNumber, dto.marketplaceType))
+    }
+
+    /**
+     * Ponto único de criação de lead a partir de uma entrada já resolvida para a organização:
+     * normaliza, cria (telefone repetido → `isDuplicate=true`, ainda com mensagem) e envia a
+     * abordagem quando pedida. Falha de cota ou da Meta não desfaz o lead.
+     */
+    @Transactional
+    fun ingestResolved(organization: Organization, command: LeadIntakeCommand): Lead {
+        val phone = normalizationService.normalizePhone(
+            requireNotNull(command.phone) { "Lead sem telefone." }
+        )
+        val marketplace = normalizationService.normalizeMarketplace(command.origin)
+        val duplicate = leadRepository.existsByOrganizationIdAndPhoneNumber(organization.id, phone)
+        if (duplicate) {
+            log.info("Lead duplicado recebido: {} | org: {}", phone, organization.slug)
+        }
+
         val lead = leadRepository.save(
             Lead(
                 organization = organization,
-                phoneNumber = dto.phoneNumber,
-                name = dto.name,
-                email = dto.email,
-                origin = dto.marketplaceType,
-                vehicleInterest = dto.vehicleInterest,
-                pipelineStage = PipelineStage.TALKING_TO_BOT
+                phoneNumber = phone,
+                name = command.name,
+                email = command.email,
+                origin = marketplace,
+                vehicleInterest = command.vehicleInterest ?: command.vehicleSnapshot?.describe(),
+                notes = command.message,
+                pipelineStage = if (command.sendWelcome) PipelineStage.TALKING_TO_BOT else PipelineStage.WAITING_ATTENDANCE,
+                isDuplicate = duplicate
             )
         )
+        if (!duplicate) {
+            log.info("Lead salvo com sucesso. id={} phone={} org={}", lead.id, phone, organization.slug)
+        }
+        if (!command.sendWelcome) return lead
 
-        log.info("Lead salvo com sucesso. id={} phone={} org={}", lead.id, dto.phoneNumber, dto.organizationSlug)
+        if (duplicate) {
+            // Contagem explícita fixada por LeadIngestionServiceTest; sendTemplate também conta (ver design da change webmotors-leads-polling).
+            usageLimitService.incrementUsage(organization.id, marketplace)
+            try {
+                messageSenderService.sendTemplate(
+                    lead = lead,
+                    organization = organization,
+                    templateName = "welcome_lead",
+                    marketplaceName = marketplace
+                )
+            } catch (e: Exception) {
+                log.warn("Erro ao enviar WhatsApp para lead duplicado. leadId={} error={}", lead.id, e.message)
+            }
+            return lead
+        }
 
         try {
             messageSenderService.sendTemplate(
                 lead = lead,
                 organization = organization,
                 templateName = "welcome_lead",
-                marketplaceName = dto.marketplaceType
+                marketplaceName = marketplace
             )
-            log.info("Mensagem de boas-vindas enviada para {}", dto.phoneNumber)
+            log.info("Mensagem de boas-vindas enviada para {}", phone)
         } catch (e: QuotaExceededException) {
             log.warn(
                 "Quota excedida ao enviar boas-vindas. Lead salvo sem mensagem. leadId={} org={} marketplace={}",
-                lead.id, dto.organizationSlug, dto.marketplaceType
+                lead.id, organization.slug, marketplace
             )
         } catch (e: ExternalServiceException) {
             log.error(
@@ -135,5 +148,17 @@ class LeadIngestionService(
                 lead.id, e.message, e
             )
         }
+        return lead
     }
+
+    private fun ScrapedLeadDTO.toCommand(organization: Organization, phone: String, marketplace: String) =
+        LeadIntakeCommand(
+            organizationId = organization.id,
+            name = name,
+            phone = phone,
+            email = email,
+            origin = marketplace,
+            externalEventId = null,
+            vehicleInterest = vehicleInterest
+        )
 }

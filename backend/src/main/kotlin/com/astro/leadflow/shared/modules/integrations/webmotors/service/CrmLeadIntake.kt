@@ -1,11 +1,11 @@
 package com.astro.leadflow.shared.modules.integrations.webmotors.service
 
-import java.util.UUID
+import com.astro.leadflow.shared.modules.crm.intake.LeadIntakeCommand
 
 /**
  * Única porta de saída do módulo Webmotors para o CRM. O módulo não conhece a entidade Lead;
- * quem implementa (ver CrmLeadIntakeAdapter) decide como criar/atualizar o lead.
+ * quem implementa (ver CrmLeadIntakeAdapter) aplica a regra oficial de entrada de leads.
  */
 interface CrmLeadIntake {
-    fun intake(organizationId: UUID, lead: IncomingLead): IntakeResult
+    fun intake(command: LeadIntakeCommand): IntakeResult
 }
