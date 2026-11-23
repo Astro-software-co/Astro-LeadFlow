@@ -9,7 +9,7 @@
 |---|---|---|
 | Nome do solicitante | `[PREENCHER]` | Ruy |
 | Contato do solicitante (e-mail e telefone) | `[PREENCHER]` | Ruy |
-| Contato do canal de suporte (e-mail e telefone) | `[PREENCHER]` ex.: `suporte@<dominio>` + telefone | Depende do **domínio** e de a Fase 8 (SES) ativar o e-mail |
+| Contato do canal de suporte (e-mail e telefone) | `[PREENCHER]` ex.: `suporte@<dominio>` + telefone | Depende do **domínio** e de a Fase 9 (SES) ativar o e-mail |
 | Nome do CRM | **Astro LeadFlow** | Definido |
 | Razão social | `[PREENCHER]` (Astro Software Co.? confirmar a grafia jurídica) | Ruy |
 | CNPJ | `[PREENCHER]` | Ruy |
@@ -25,13 +25,13 @@
 O Astro LeadFlow é um CRM SaaS para concessionárias e revendas de veículos. O objetivo é **consultar, por meio da API de Consulta de Leads, os leads gerados pelos anúncios da loja na Webmotors** e disponibilizá-los no funil comercial da própria loja (Kanban), com atribuição a vendedores e histórico de atendimento, para que cada lead seja visível e acionável em segundos. A integração é feita por **polling autenticado** com as credenciais do usuário integrador que **a própria loja** cria no Cockpit e autoriza, e permite **aceitar ou recusar** a proposta (com o motivo padronizado da Webmotors) diretamente pela tela do lojista.
 
 ### B2. De que forma os dados dos leads Webmotors serão processados e disponibilizados aos lojistas?
-- **Coleta:** o sistema consulta periodicamente a API usando as credenciais da loja; credenciais ficam armazenadas **cifradas** (AES-256-GCM) e nunca aparecem em logs ou telas. **(depende da Fase 5 para o escopo completo; o módulo Webmotors já cifra as suas.)**
+- **Coleta:** o sistema consulta periodicamente a API usando as credenciais da loja; credenciais ficam armazenadas **cifradas** (AES-256-GCM) e nunca aparecem em logs ou telas. **(o módulo Webmotors já cifra as suas; o escopo completo de segredos depende da Fase 6.)**
 - **Isolamento:** cada loja (organização) só acessa os próprios leads; todo acesso é autenticado e filtrado pela organização do usuário.
-- **Processamento:** a proposta é registrada, o telefone é normalizado e validado, e, após o **aceite**, o contato é obtido e o lead entra no funil da loja. Duplicidades são sinalizadas.
+- **Processamento:** a proposta é registrada, o telefone é normalizado e validado, e, após o **aceite**, o contato é obtido e o lead entra no funil da loja. Se o mesmo cliente demonstrar interesse em outros veículos da loja, os interesses são **agrupados no mesmo atendimento** em vez de gerar cartões separados. **(depende da Fase 4.)**
 - **Disponibilização:** o lojista (gerente) vê a fila de propostas, aceita ou recusa, e acompanha o lead no Kanban. Vendedores veem apenas os leads atribuídos a eles, conforme perfil de acesso.
 - **Contato inicial:** quando habilitado pela loja, é enviada uma mensagem de apresentação ao cliente por WhatsApp (Meta), referente ao veículo de interesse. **(depende da validação jurídica da base legal e da homologação da Meta.)**
 - **Finalidade:** uso exclusivo para atendimento comercial do anúncio pela loja que o gerou. Os dados **não** são compartilhados com terceiros para outras finalidades.
-- **Retenção:** payloads brutos recebidos são expurgados após prazo configurável; dados de lead permanecem enquanto a loja os mantiver, com anonimização sob solicitação. **(depende da Fase 2 / T2.5.)**
+- **Retenção:** payloads brutos recebidos são expurgados após prazo configurável; o **conteúdo das conversas** de atendimentos encerrados (arquivados ou concluídos) é removido **3 meses após o encerramento**; dados de lead permanecem enquanto a loja os mantiver, com anonimização sob solicitação. **(depende da Fase 2 / T2.5 e da Fase 4 / T4.9; prazos sujeitos à revisão jurídica.)**
 
 ### B3. Canal oficial para solicitações de anonimização e SLA
 - **Canal:** `[PREENCHER] privacidade@<dominio>` e página pública `/privacidade`. **(depende da Fase 3.)**
@@ -48,4 +48,4 @@ O Astro LeadFlow é um CRM SaaS para concessionárias e revendas de veículos. O
 2. Registrar o app no Portal do Desenvolvedor e anotar o nome exato.
 3. Preencher os campos `[PREENCHER]`; revisar B2/B3 com o jurídico.
 4. Abrir o chamado de "liberação da API de Consulta de Leads" com os dados acima.
-5. Na resposta/reunião de homologação, confirmar os itens H3–H12 da Fase 9 do plano (paginação, contato antes/depois do aceite, tipos, canais, rate limit, produção, significado comercial de "aceitar").
+5. Na resposta/reunião de homologação, confirmar os itens H3–H13 da Fase 10 do plano (paginação, contato antes/depois do aceite, tipos, canais, rate limit, produção, significado comercial de "aceitar").
