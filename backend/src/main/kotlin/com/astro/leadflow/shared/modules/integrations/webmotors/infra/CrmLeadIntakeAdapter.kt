@@ -40,7 +40,7 @@ class CrmLeadIntakeAdapter(
             .orElseThrow { ResourceNotFoundException("Organização", organizationId) }
 
         val (leadId, created) = tx.execute {
-            val existing = leadRepository.findByOrganizationIdAndPhoneNumber(organizationId, lead.phone).orElse(null)
+            val existing = leadRepository.findFirstByOrganizationIdAndPhoneNumberOrderByCreatedAtAsc(organizationId, lead.phone).orElse(null)
             if (existing != null) {
                 existing.notes = listOfNotNull(
                     existing.notes,

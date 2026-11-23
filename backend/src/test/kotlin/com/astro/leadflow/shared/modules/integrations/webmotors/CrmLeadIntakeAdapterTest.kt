@@ -36,7 +36,7 @@ class CrmLeadIntakeAdapterTest {
     @BeforeEach
     fun setup() {
         every { orgs.findById(org.id) } returns Optional.of(org)
-        every { leads.findByOrganizationIdAndPhoneNumber(org.id, "+5511987654321") } returns Optional.empty()
+        every { leads.findFirstByOrganizationIdAndPhoneNumberOrderByCreatedAtAsc(org.id, "+5511987654321") } returns Optional.empty()
     }
 
     @Test
@@ -80,7 +80,7 @@ class CrmLeadIntakeAdapterTest {
     @Test
     fun `telefone ja existente nao duplica e acrescenta o interesse as notas`() {
         val existing = Lead(organization = org, phoneNumber = "+5511987654321", origin = "OLX", notes = "Nota antiga")
-        every { leads.findByOrganizationIdAndPhoneNumber(org.id, "+5511987654321") } returns Optional.of(existing)
+        every { leads.findFirstByOrganizationIdAndPhoneNumberOrderByCreatedAtAsc(org.id, "+5511987654321") } returns Optional.of(existing)
         every { leads.save(existing) } returns existing
 
         val result = adapter.intake(org.id, incoming(welcome = true))
