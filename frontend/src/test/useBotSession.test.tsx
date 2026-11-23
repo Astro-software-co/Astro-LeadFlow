@@ -63,7 +63,7 @@ describe("useBotSession hooks", () => {
   });
 
   it("forces bot handoff and shows success", async () => {
-    vi.mocked(chatbotService.forceHandoff).mockResolvedValueOnce({ session: { id: "s1" }, slotValues: {}, messages: [] });
+    vi.mocked(chatbotService.forceHandoff).mockResolvedValueOnce({ session: { id: "s1" }, slotValues: {}, messages: [] } as never);
 
     const { result } = renderHook(() => useForceBotHandoff("lead-1"), { wrapper: createWrapper() });
 

@@ -1,0 +1,69 @@
+# Perfil de produção/staging. Placeholders sem default (${VAR}) falham o startup se ausentes.
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:10}
+      minimum-idle: 2
+
+  jpa:
+    show-sql: false
+
+  flyway:
+    baseline-on-migrate: false
+
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      password: ${SPRING_DATA_REDIS_PASSWORD}
+      timeout: 2000ms
+
+  mail:
+    host: ${SPRING_MAIL_HOST:}
+    port: ${SPRING_MAIL_PORT:587}
+
+server:
+  forward-headers-strategy: framework
+
+app:
+  base-url: ${APP_BASE_URL}
+  public-api-url: ${PUBLIC_API_URL}
+  jwt:
+    secret: ${JWT_SECRET}
+  auth:
+    refresh-cookie:
+      secure: ${AUTH_REFRESH_COOKIE_SECURE:true}
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS}
+    allowed-origin-patterns: ""
+  aws:
+    enabled: ${APP_AWS_ENABLED:false}
+
+# O código lê estas chaves SEM o prefixo "app."; mapeadas aqui para os nomes de variável do .env.
+meta:
+  api:
+    mode: ${META_API_MODE:mock}
+    base-url: ${META_API_BASE_URL:https://graph.facebook.com/v18.0}
+    access-token: ${META_WHATSAPP_ACCESS_TOKEN:}
+    phone-number-id: ${META_WHATSAPP_PHONE_NUMBER_ID:}
+
+marketplace:
+  webhook-token: ${MARKETPLACE_WEBHOOK_TOKEN:}
+  reconciliation:
+    enabled: ${MARKETPLACE_RECONCILIATION_ENABLED:false}
+    cron: ${MARKETPLACE_RECONCILIATION_CRON:0 0 3 * * *}
+  webmotors:
+    client-id: ${WEBMOTORS_CLIENT_ID:}
+    client-secret: ${WEBMOTORS_CLIENT_SECRET:}
+  mercadolivre:
+    app-id: ${ML_APP_ID:}
+    client-secret: ${ML_CLIENT_SECRET:}
+    redirect-uri: ${ML_REDIRECT_URI:}
+
+logging:
+  level:
+    root: INFO
+    com.astro.leadflow: INFO

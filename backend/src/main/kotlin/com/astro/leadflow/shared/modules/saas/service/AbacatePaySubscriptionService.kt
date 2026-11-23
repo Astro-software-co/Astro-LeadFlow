@@ -121,6 +121,7 @@ class AbacatePaySubscriptionService(
             "subscription.completed",
             "subscription.renewed" -> handlePaidSubscriptionEvent(event)
             "subscription.cancelled" -> handleCancelledSubscriptionEvent(event)
+            "subscription.payment_failed" -> handlePaymentFailedEvent(event)
             else -> log.debug("Evento AbacatePay ignorado: {}", event.event)
         }
     }
@@ -191,6 +192,17 @@ class AbacatePaySubscriptionService(
                 )
             }
         }
+    }
+
+    private fun handlePaymentFailedEvent(event: AbacatePayWebhookEvent) {
+        val subscription = resolveLocalSubscription(event) ?: run {
+            log.warn("Webhook de falha de pagamento AbacatePay sem correlação local. event={}", event.id)
+            return
+        }
+        if (subscription.status == SubscriptionStatus.CANCELLED) return
+
+        subscription.status = SubscriptionStatus.PAST_DUE
+        subscriptionRepository.save(subscription)
     }
 
     private fun handleCancelledSubscriptionEvent(event: AbacatePayWebhookEvent) {

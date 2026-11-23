@@ -24,6 +24,23 @@ class MockEngineTest {
     }
 
     @Test
+    fun `mock lex emits canonical qualification slots`() {
+        val message = BotInput(
+            leadId = input.leadId,
+            organizationId = input.organizationId,
+            message = "Quero financiar um Civic, tenho 50 mil e compro hoje",
+            sessionId = input.sessionId,
+            slotValues = emptyMap()
+        )
+
+        val slots = MockLexEngine(resolver).handle(message).slotValues
+
+        assertEquals("FINANCING", slots["paymentType"])
+        assertEquals("IMEDIATO", slots["timeline"])
+        assertEquals("50000", slots["budget"])
+    }
+
+    @Test
     fun `mock bedrock estimates token usage`() {
         val output = MockBedrockEngine(resolver).handle(input)
 

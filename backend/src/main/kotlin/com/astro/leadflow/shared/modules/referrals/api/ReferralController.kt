@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping(value = ["/api/referral", "/api/v1/referral"])
-@PreAuthorize("hasRole('DEALERSHIP')")
+@PreAuthorize("hasRole('MANAGER')")
 @Tag(name = "Referral — Dealership", description = "Programa de indicação para concessionárias")
 class ReferralController(private val referralService: ReferralService) {
 

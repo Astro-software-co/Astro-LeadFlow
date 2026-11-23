@@ -5,6 +5,8 @@ import com.astro.leadflow.shared.modules.chatbot.domain.enums.BotSessionStatus
 import com.astro.leadflow.shared.modules.chatbot.domain.enums.HandoffReason
 import com.astro.leadflow.shared.modules.chatbot.domain.valueobject.BotOutput
 import com.astro.leadflow.shared.modules.crm.domain.Lead
+import com.astro.leadflow.shared.modules.crm.domain.LeadStageHistory
+import com.astro.leadflow.shared.modules.crm.domain.LeadStageHistoryRepository
 import com.astro.leadflow.shared.modules.crm.domain.PipelineStage
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -12,7 +14,8 @@ import java.time.OffsetDateTime
 
 @Service
 class BotSessionService(
-    private val botSessionRepository: BotSessionRepository
+    private val botSessionRepository: BotSessionRepository,
+    private val leadStageHistoryRepository: LeadStageHistoryRepository
 ) {
     @Transactional
     fun getOrCreateActive(lead: Lead): BotSession =
@@ -39,7 +42,18 @@ class BotSessionService(
     @Transactional
     fun markHandoff(session: BotSession, reason: HandoffReason): BotSession {
         session.markHandoff(reason)
-        session.lead.pipelineStage = PipelineStage.WAITING_ATTENDANCE
+        val lead = session.lead
+        if (lead.pipelineStage == PipelineStage.TALKING_TO_BOT) {
+            leadStageHistoryRepository.save(
+                LeadStageHistory(
+                    lead = lead,
+                    fromStage = lead.pipelineStage,
+                    toStage = PipelineStage.WAITING_ATTENDANCE,
+                    movedBy = null
+                )
+            )
+            lead.pipelineStage = PipelineStage.WAITING_ATTENDANCE
+        }
         return botSessionRepository.save(session)
     }
 }

@@ -5,5 +5,6 @@ enum class HandoffReason {
     FALLBACK_LIMIT,
     READY_TO_BUY,
     BUSINESS_HOURS,
+    QUALIFIED,
     MANUAL
 }

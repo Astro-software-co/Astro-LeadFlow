@@ -203,4 +203,19 @@ class AbacatePaySubscriptionServiceTest {
             referralService.generateCommissionIfFirstPayment(organization.id, any())
         }
     }
+
+    @Test
+    fun `handleWebhook should mark subscription past due on payment failure`() {
+        every { subscriptionRepository.findByAbacateSubscriptionId("subs_123") } returns Optional.of(subscription)
+
+        service.handleWebhook(
+            AbacatePayWebhookEvent(
+                id = "evt_fail",
+                event = "subscription.payment_failed",
+                data = AbacatePayWebhookData(subscription = AbacatePayWebhookSubscription(id = "subs_123")),
+            )
+        )
+
+        assertEquals(SubscriptionStatus.PAST_DUE, subscription.status)
+    }
 }

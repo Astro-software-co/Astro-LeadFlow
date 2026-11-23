@@ -16,7 +16,7 @@ class ReferralControllerTest {
 
         assertNotNull(controllerMapping)
         assertEquals(listOf("/api/referral", "/api/v1/referral"), controllerMapping.value.toList())
-        assertEquals("hasRole('DEALERSHIP')", preAuthorize.value)
+        assertEquals("hasRole('MANAGER')", preAuthorize.value)
 
         assertEquals(
             listOf("/my-code"),

@@ -61,9 +61,9 @@ class SecurityConfig(
                     .requestMatchers("/api/v1/admin/**").hasRole("ASTRO_ADMIN")
                     .requestMatchers("/api/admin/**").hasRole("ASTRO_ADMIN")
 
-                    // ── Referral dealership endpoints ──────────────
-                    .requestMatchers("/api/referral/**").hasRole("DEALERSHIP")
-                    .requestMatchers("/api/v1/referral/**").hasRole("DEALERSHIP")
+                    // ── Referral (somente MANAGER) ─────────────────
+                    .requestMatchers("/api/referral/**").hasRole("MANAGER")
+                    .requestMatchers("/api/v1/referral/**").hasRole("MANAGER")
 
                     // ── Perfil do usuario autenticado ──────────────
                     .requestMatchers(

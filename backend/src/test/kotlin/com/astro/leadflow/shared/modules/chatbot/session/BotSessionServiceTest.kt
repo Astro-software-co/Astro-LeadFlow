@@ -7,6 +7,7 @@ import com.astro.leadflow.shared.modules.chatbot.domain.enums.EngineType
 import com.astro.leadflow.shared.modules.chatbot.domain.enums.HandoffReason
 import com.astro.leadflow.shared.modules.chatbot.domain.valueobject.BotOutput
 import com.astro.leadflow.shared.modules.crm.domain.Lead
+import com.astro.leadflow.shared.modules.crm.domain.LeadStageHistoryRepository
 import com.astro.leadflow.shared.modules.crm.domain.PipelineStage
 import com.astro.leadflow.shared.modules.iam.domain.Organization
 import io.mockk.every
@@ -18,7 +19,12 @@ import java.util.Optional
 
 class BotSessionServiceTest {
     private val repository = mockk<BotSessionRepository>()
-    private val service = BotSessionService(repository)
+    private val historyRepository = mockk<LeadStageHistoryRepository>()
+    private val service = BotSessionService(repository, historyRepository)
+
+    init {
+        every { historyRepository.save(any()) } answers { firstArg() }
+    }
     private val organization = Organization(name = "Astro", slug = "astro")
     private val lead = Lead(organization = organization, phoneNumber = "+5511999999999", origin = "TEST")
 
@@ -62,5 +68,18 @@ class BotSessionServiceTest {
         assertEquals(BotSessionStatus.HANDOFF, session.status)
         assertEquals(PipelineStage.WAITING_ATTENDANCE, lead.pipelineStage)
         verify { repository.save(session) }
+        verify(exactly = 1) { historyRepository.save(match { it.movedBy == null && it.toStage == PipelineStage.WAITING_ATTENDANCE }) }
+    }
+
+    @Test
+    fun `markHandoff does not move lead already with a human`() {
+        val session = BotSession(organization = organization, lead = lead)
+        lead.pipelineStage = PipelineStage.IN_ATTENDANCE
+        every { repository.save(session) } returns session
+
+        service.markHandoff(session, HandoffReason.MANUAL)
+
+        assertEquals(PipelineStage.IN_ATTENDANCE, lead.pipelineStage)
+        verify(exactly = 0) { historyRepository.save(any()) }
     }
 }

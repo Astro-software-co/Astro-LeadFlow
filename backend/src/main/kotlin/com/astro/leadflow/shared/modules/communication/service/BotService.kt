@@ -38,7 +38,7 @@ class BotService(
         }
 
         val lead = leadRepository
-            .findByOrganizationIdAndPhoneNumber(organization.id, phoneNumber)
+            .findFirstByOrganizationIdAndPhoneNumberOrderByCreatedAtAsc(organization.id, phoneNumber)
             .orElseGet {
                 log.info("Novo lead inbound criado. phone={} org={}", phoneNumber, organization.id)
                 leadRepository.save(

@@ -68,7 +68,7 @@ class BotServiceTest {
 
         every { organizationRepository.findByWhatsappPhoneNumberId(phoneNumberId) } returns organization
         every {
-            leadRepository.findByOrganizationIdAndPhoneNumber(orgId, "+5511999999999")
+            leadRepository.findFirstByOrganizationIdAndPhoneNumberOrderByCreatedAtAsc(orgId, "+5511999999999")
         } returns Optional.of(lead)
         every { chatbotRouter.handle(lead.id, "João Silva") } returns result
 
@@ -100,7 +100,7 @@ class BotServiceTest {
 
         every { organizationRepository.findByWhatsappPhoneNumberId(phoneNumberId) } returns organization
         every {
-            leadRepository.findByOrganizationIdAndPhoneNumber(orgId, "+5511999999999")
+            leadRepository.findFirstByOrganizationIdAndPhoneNumberOrderByCreatedAtAsc(orgId, "+5511999999999")
         } returns Optional.empty()
         every { leadRepository.save(any()) } returns savedLead
         every { chatbotRouter.handle(savedLead.id, "Olá") } returns ChatbotResult(
@@ -144,7 +144,7 @@ class BotServiceTest {
 
         // Then
         verify(exactly = 0) { chatMessageRepository.save(any()) }
-        verify(exactly = 0) { leadRepository.findByOrganizationIdAndPhoneNumber(any(), any()) }
+        verify(exactly = 0) { leadRepository.findFirstByOrganizationIdAndPhoneNumberOrderByCreatedAtAsc(any(), any()) }
         verify(exactly = 0) { messageSenderService.sendText(any(), any(), any(), any(), any(), any(), any(), any()) }
     }
 
@@ -159,7 +159,7 @@ class BotServiceTest {
         botService.handleIncoming(phoneNumberId, message, null)
 
         // Then
-        verify(exactly = 0) { leadRepository.findByOrganizationIdAndPhoneNumber(any(), any()) }
+        verify(exactly = 0) { leadRepository.findFirstByOrganizationIdAndPhoneNumberOrderByCreatedAtAsc(any(), any()) }
         verify(exactly = 0) { chatMessageRepository.save(any()) }
         verify(exactly = 0) { messageSenderService.sendText(any(), any(), any(), any(), any(), any(), any(), any()) }
     }
@@ -176,7 +176,7 @@ class BotServiceTest {
 
         every { organizationRepository.findByWhatsappPhoneNumberId(phoneNumberId) } returns organization
         every {
-            leadRepository.findByOrganizationIdAndPhoneNumber(orgId, "+5511999999999")
+            leadRepository.findFirstByOrganizationIdAndPhoneNumberOrderByCreatedAtAsc(orgId, "+5511999999999")
         } returns Optional.of(lead)
 
         // When
@@ -195,7 +195,7 @@ class BotServiceTest {
 
         every { organizationRepository.findByWhatsappPhoneNumberId(phoneNumberId) } returns organization
         every {
-            leadRepository.findByOrganizationIdAndPhoneNumber(orgId, "+5511999999999")
+            leadRepository.findFirstByOrganizationIdAndPhoneNumberOrderByCreatedAtAsc(orgId, "+5511999999999")
         } returns Optional.of(lead)
         every { chatbotRouter.handle(lead.id, "João Silva") } returns ChatbotResult(
             message = "Resposta do bot",

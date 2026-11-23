@@ -8,6 +8,7 @@ import com.astro.leadflow.shared.modules.chatbot.domain.valueobject.BotOutput
 import com.astro.leadflow.shared.modules.chatbot.engine.BedrockEngine
 import com.astro.leadflow.shared.modules.chatbot.engine.LexEngine
 import com.astro.leadflow.shared.modules.chatbot.engine.TemplateEngine
+import com.astro.leadflow.shared.modules.chatbot.qualification.LeadQualificationService
 import com.astro.leadflow.shared.modules.chatbot.session.BotContextCache
 import com.astro.leadflow.shared.modules.chatbot.session.BotSessionService
 import com.astro.leadflow.shared.modules.chatbot.usage.AiQuotaGuard
@@ -37,6 +38,7 @@ class ChatbotRouterTest {
     private val handoffEvaluator = mockk<HandoffEvaluator>()
     private val aiQuotaGuard = mockk<AiQuotaGuard>()
     private val aiTokenTracker = mockk<AiTokenTracker>(relaxed = true)
+    private val leadQualificationService = mockk<LeadQualificationService>()
     private val organization = Organization(name = "Astro", slug = "astro")
     private val lead = Lead(organization = organization, phoneNumber = "+5511999999999", origin = "TEST")
     private val session = BotSession(organization = organization, lead = lead)
@@ -54,7 +56,8 @@ class ChatbotRouterTest {
             botContextCache,
             handoffEvaluator,
             aiQuotaGuard,
-            aiTokenTracker
+            aiTokenTracker,
+            leadQualificationService
         )
         every { leadRepository.findById(lead.id) } returns Optional.of(lead)
         every { botSessionService.getOrCreateActive(lead) } returns session
@@ -66,8 +69,9 @@ class ChatbotRouterTest {
         }
         every { botSessionService.markHandoff(session, any()) } returns session
         every { botContextCache.get(session.id) } returns emptyMap()
-        every { handoffEvaluator.evaluate(session, any()) } returns null
+        every { handoffEvaluator.evaluate(session, any(), any()) } returns null
         every { aiQuotaGuard.canUseTokens(any(), any()) } returns true
+        every { leadQualificationService.apply(lead, any()) } returns false
     }
 
     @Test
@@ -123,12 +127,37 @@ class ChatbotRouterTest {
     fun `marks handoff when evaluator returns reason`() {
         every { engineSelector.select(organization.id) } returns EngineSelection(EngineType.LEX, false)
         every { lexEngine.handle(any()) } returns BotOutput("humano", BotIntent.REQUEST_HUMAN, EngineType.LEX)
-        every { handoffEvaluator.evaluate(session, any()) } returns HandoffReason.REQUEST_HUMAN
+        every { handoffEvaluator.evaluate(session, any(), any()) } returns HandoffReason.REQUEST_HUMAN
 
         val result = router.handle(lead.id, "humano")
 
         assertTrue(result.handoff)
         assertEquals(HandoffReason.REQUEST_HUMAN, result.handoffReason)
         verify(exactly = 1) { botSessionService.markHandoff(session, HandoffReason.REQUEST_HUMAN) }
+    }
+
+    @Test
+    fun `falls back to template when engine throws`() {
+        every { engineSelector.select(organization.id) } returns EngineSelection(EngineType.LEX, false)
+        every { lexEngine.handle(any()) } throws IllegalStateException("lex down")
+        every { templateEngine.handle(any()) } returns BotOutput("template", BotIntent.FALLBACK, EngineType.TEMPLATE)
+
+        val result = router.handle(lead.id, "oi")
+
+        assertEquals(EngineType.TEMPLATE, result.engineUsed)
+    }
+
+    @Test
+    fun `hands off with summary message when lead becomes qualified`() {
+        every { engineSelector.select(organization.id) } returns EngineSelection(EngineType.LEX, false)
+        every { lexEngine.handle(any()) } returns BotOutput("outra", BotIntent.VEHICLE_INQUIRY, EngineType.LEX)
+        every { leadQualificationService.apply(lead, any()) } returns true
+        every { handoffEvaluator.evaluate(session, any(), true) } returns HandoffReason.QUALIFIED
+
+        val result = router.handle(lead.id, "civic")
+
+        assertTrue(result.handoff)
+        assertEquals(HandoffReason.QUALIFIED, result.handoffReason)
+        assertTrue(result.message.startsWith("Anotei"))
     }
 }
