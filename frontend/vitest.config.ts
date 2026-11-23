@@ -12,12 +12,15 @@ export default defineConfig({
     },
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
+    testTimeout: 15000,
     coverage: {
       provider: "v8",
       include: [
         "src/hooks/api/**/*.{ts,tsx}",
         "src/services/**/*.{ts,tsx}",
         "src/contexts/**/*.{ts,tsx}",
+        "src/pages/admin/AdminSystem**.{ts,tsx}",
+        "src/pages/Chatbot**.{ts,tsx}",
       ],
       exclude: [
         "src/**/*.d.ts",
@@ -29,6 +32,12 @@ export default defineConfig({
         functions: 80,
         branches: 80,
         statements: 80,
+        "src/pages/admin/AdminSystem**": { lines: 80, branches: 80, functions: 80, statements: 80 },
+        "src/pages/Chatbot**": { lines: 80, branches: 80, functions: 80, statements: 80 },
+        "src/services/chatbot**": { lines: 80, branches: 80, functions: 80, statements: 80 },
+        "src/services/admin-observability**": { lines: 80, branches: 80, functions: 80, statements: 80 },
+        "src/hooks/api/useChatbot**": { lines: 80, branches: 80, functions: 80, statements: 80 },
+        "src/hooks/api/useObservability**": { lines: 80, branches: 80, functions: 80, statements: 80 },
       },
     },
   },

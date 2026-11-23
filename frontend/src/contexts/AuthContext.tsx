@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { authService, AuthResponse, UserProfile } from '@/services/auth.service';
+import { authService, type AuthResponse, type UserProfile } from '@/services/auth.service';
 import { tokenStore } from '@/lib/api';
 import { onAuthSessionEnded } from '@/lib/auth-events';
 
@@ -8,8 +8,9 @@ interface AuthContextType {
   user: UserProfile | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string, phone?: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<UserProfile>;
+  register: (name: string, email: string, password: string, phone?: string) => Promise<UserProfile>;
+  refreshUser: () => Promise<UserProfile | null>;
   logout: () => Promise<void>;
 }
 
@@ -31,6 +32,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     queryClient.clear();
     setUser(null);
   }, [queryClient]);
+
+  const refreshUser = useCallback(async () => {
+    if (useMocks) {
+      return null;
+    }
+
+    const profile = await authService.getProfile();
+    setUser(profile);
+    return profile;
+  }, [useMocks]);
 
   useEffect(() => {
     if (useMocks) {
@@ -54,8 +65,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         id: 'mock-user-1',
         name: 'Usuario Demo',
         email: 'demo@astro.com',
-        role: 'ADMIN',
+        role: 'MANAGER',
         organizationId: 'org-1',
+        avatarUrl: null,
       });
       setIsLoading(false);
       return;
@@ -64,16 +76,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const hydrateSession = async () => {
       const token = tokenStore.accessToken;
       if (token) {
-        const profile = await authService.getProfile();
         tokenStore.set(token);
-        setUser(profile);
+        await refreshUser();
         return;
       }
 
       const auth = await authService.restoreSession();
       tokenStore.set(auth.accessToken);
-      const profile = await authService.getProfile();
-      setUser(profile);
+      await refreshUser();
     };
 
     hydrateSession()
@@ -82,7 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(null);
       })
       .finally(() => setIsLoading(false));
-  }, [useMocks]);
+  }, [refreshUser, useMocks]);
 
   useEffect(() => {
     if (useMocks || !user) {
@@ -145,20 +155,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async (email: string, password: string) => {
       if (useMocks) {
         tokenStore.set('mock-token');
-        setUser({
+        const mockUser = {
           id: 'mock-user-1',
           name: 'Usuario Demo',
           email,
-          role: 'ADMIN',
+          role: 'MANAGER',
           organizationId: 'org-1',
-        });
-        return;
+          avatarUrl: null,
+        };
+        setUser(mockUser);
+        return mockUser;
       }
 
       const auth: AuthResponse = await authService.login({ email, password });
       tokenStore.set(auth.accessToken);
       const profile = await authService.getProfile();
       setUser(profile);
+      return profile;
     },
     [useMocks],
   );
@@ -167,14 +180,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async (name: string, email: string, password: string, _phone?: string) => {
       if (useMocks) {
         tokenStore.set('mock-token');
-        setUser({
+        const mockUser = {
           id: 'mock-user-1',
           name,
           email,
-          role: 'VENDEDOR',
+          role: 'MANAGER',
           organizationId: 'org-1',
-        });
-        return;
+          avatarUrl: null,
+        };
+        setUser(mockUser);
+        return mockUser;
       }
 
       const normalizedSlug = email
@@ -194,6 +209,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       tokenStore.set(auth.accessToken);
       const profile = await authService.getProfile();
       setUser(profile);
+      return profile;
     },
     [useMocks],
   );
@@ -211,7 +227,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [clearSession, useMocks]);
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, register, refreshUser, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,6 +1,7 @@
 package com.astro.leadflow.shared.modules.saas.api
 
 import com.astro.leadflow.shared.modules.saas.api.responses.PlanResponse
+import com.astro.leadflow.shared.modules.saas.domain.Plan
 import com.astro.leadflow.shared.modules.saas.domain.PlanRepository
 import com.astro.leadflow.shared.modules.saas.mapper.SaasMapper
 import io.swagger.v3.oas.annotations.Operation
@@ -23,5 +24,7 @@ class PlanController(
         description = "Endpoint público — usado na landing page e tela de upgrade"
     )
     fun listPlans(): List<PlanResponse> =
-        planRepository.findAll().map { saasMapper.toPlanResponse(it) }
+        planRepository.findAll()
+            .sortedWith(compareBy<Plan>({ it.sortOrder }, { it.billingCycle.sortOrder }, { it.priceBrl }))
+            .map { saasMapper.toPlanResponse(it) }
 }

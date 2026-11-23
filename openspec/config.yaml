@@ -1,0 +1,48 @@
+schema: spec-driven
+
+context: |
+  Language: pt-BR
+  All artifacts must be written in pt-BR.
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+
+  Projeto: Astro LeadFlow, CRM SaaS multi-tenant para concessionarias de veiculos
+  (Astro Software Co.). Valor central: todo lead que entra deve ser visivel,
+  rastreavel e acionavel em segundos. Canais do MVP: Webmotors e Mercado Livre;
+  conversa via WhatsApp (Meta); cobranca via Abacate Pay. OLX fica fora do MVP.
+
+  Stack: backend Kotlin + Spring Boot 3.2.5 (JDK 21, PostgreSQL, Redis, Flyway, SQS);
+  frontend React 18 + Vite + Tailwind 3 + shadcn/ui + React Query.
+  Pacote canonico do backend: com.astro.leadflow.shared.modules.* (um classe por arquivo, sem DTO inline).
+
+  Regras que valem para toda change:
+  - Multi-tenancy: organizationId vem do JWT; chaves do React Query comecam com orgId; logout limpa o cache.
+  - RBAC: ASTRO_ADMIN (interno, sem organizacao), MANAGER (admin da organizacao), SELLER.
+  - Access token so em memoria; refresh via cookie httpOnly. Nunca em localStorage.
+  - Backend e a fonte da verdade dos contratos. Migrations Flyway sequenciais (V*__*.sql).
+  - PT-BR, BRL, icones Lucide, sem dark mode por padrao, responsivo em 375/768/1024/1440.
+  - Lead duplicado: isDuplicate=true, mas ainda dispara a mensagem. Reset de uso segue renewsAt.
+  - Comunicacao e um visualizador de log somente leitura com "Abrir no WhatsApp" (nao e chat in-app).
+  - Status, bloqueios e regras em aberto: openspec/STATUS.md.
+  - Testes backend exigem JDK 21 (export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64).
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always state what is out of scope
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
+
+# Per-operation guidance (optional)
+# Add advisory guidance for how apply and archive work should be conducted.
+# This is separate from artifact rules above.
+# Example:
+#   operations:
+#     apply:
+#       guidance:
+#         - Keep test summaries concise
+#     archive:
+#       guidance:
+#         - Summarize the archive outcome before finishing

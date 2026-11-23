@@ -1,0 +1,50 @@
+# STANDBY: so roda manualmente (workflow_dispatch) e depende da conta AWS, do role OIDC e da EC2 (ver infra/aws/README.md).
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Ambiente
+        type: choice
+        options: [staging, production]
+        default: staging
+      image_tag:
+        description: Tag das imagens no GHCR (ex. sha-abc1234, develop, main)
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: deploy-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      IMAGE_TAG: ${{ inputs.image_tag }}
+      INSTANCE_ID: ${{ vars.AWS_INSTANCE_ID }}
+    steps:
+      - name: Validar tag
+        run: echo "$IMAGE_TAG" | grep -Eq '^[A-Za-z0-9._-]+$' || { echo "tag invalida"; exit 1; }
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - name: Deploy via SSM
+        run: |
+          CMD_ID=$(aws ssm send-command \
+            --instance-ids "$INSTANCE_ID" \
+            --document-name AWS-RunShellScript \
+            --comment "deploy $IMAGE_TAG" \
+            --parameters "commands=[\"cd /opt/leadflow\",\"export IMAGE_TAG=$IMAGE_TAG\",\"docker compose -f docker-compose.prod.yml pull\",\"docker compose -f docker-compose.prod.yml up -d\"]" \
+            --query Command.CommandId --output text)
+          rc=0
+          aws ssm wait command-executed --command-id "$CMD_ID" --instance-id "$INSTANCE_ID" || rc=$?
+          aws ssm get-command-invocation --command-id "$CMD_ID" --instance-id "$INSTANCE_ID" \
+            --query '{Status:Status,Out:StandardOutputContent,Err:StandardErrorContent}' --output yaml
+          exit $rc

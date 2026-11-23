@@ -14,6 +14,10 @@ class ChatMessageMapper {
         content = message.content,
         messageType = message.messageType,
         status = message.status,
-        sentAt = message.sentAt
+        sentAt = message.sentAt,
+        senderType = message.senderType.name,
+        botSessionId = message.botSessionId,
+        intentDetected = message.intentDetected,
+        engineUsed = message.engineUsed
     )
 }

@@ -1,4 +1,4 @@
-export type UserRoleDTO = 'SUPER_ADMIN' | 'ADMIN' | 'MANAGER' | 'SELLER' | 'VENDEDOR';
+export type UserRoleDTO = 'ASTRO_ADMIN' | 'MANAGER' | 'SELLER';
 
 export type UserStatusDTO = 'ACTIVE' | 'SUSPENDED' | 'PENDING_VERIFICATION';
 
@@ -9,6 +9,7 @@ export interface UserResponseDTO {
   phoneNumber?: string | null;
   avatarUrl?: string | null;
   role: UserRoleDTO;
+  referralCode?: string | null;
   status: UserStatusDTO;
   organizationId?: string | null;
   organizationName?: string | null;
@@ -31,6 +32,7 @@ export interface UserSummaryResponseDTO {
   email: string;
   avatarUrl?: string | null;
   role: UserRoleDTO;
+  status: UserStatusDTO;
 }
 
 export interface AssignableUserResponseDTO {
@@ -72,9 +74,21 @@ export interface UpdateTwoFactorRequestDTO {
   smsEnabled: boolean;
 }
 
+export interface UpdateUserProfileRequestDTO {
+  name?: string;
+  phoneNumber?: string | null;
+  avatarUrl?: string | null;
+}
+
 export interface InviteUserRequestDTO {
   name: string;
   email: string;
-  role: Exclude<UserRoleDTO, 'SUPER_ADMIN'>;
+  role: 'SELLER';
+  phoneNumber?: string | null;
+}
+
+export interface UpdateTeamUserRequestDTO {
+  name: string;
+  email: string;
   phoneNumber?: string | null;
 }

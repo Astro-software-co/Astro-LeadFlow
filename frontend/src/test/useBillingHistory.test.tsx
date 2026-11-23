@@ -16,7 +16,7 @@ vi.mock('@/contexts/AuthContext', () => ({
       id: 'user-1',
       name: 'Ana Admin',
       email: 'ana@astro.com',
-      role: 'ADMIN',
+      role: 'MANAGER',
       organizationId: 'org-1',
     },
   }),

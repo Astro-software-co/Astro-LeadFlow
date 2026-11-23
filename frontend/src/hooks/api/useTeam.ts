@@ -13,6 +13,7 @@ function mapTeamMember(dto: UserSummaryResponseDTO): SettingsTeamMember {
     email: dto.email,
     avatarUrl: dto.avatarUrl ?? null,
     role: dto.role,
+    status: dto.status,
   };
 }
 
@@ -38,12 +39,13 @@ export interface UseTeamResult {
   refetch: () => Promise<unknown>;
 }
 
-export function useTeam(): UseTeamResult {
+export function useTeam(options?: { enabled?: boolean }): UseTeamResult {
   const { user } = useAuth();
   const orgId = user?.organizationId ?? 'unknown';
 
   const query = useQuery({
     queryKey: [orgId, 'settings', 'team'],
+    enabled: options?.enabled ?? true,
     staleTime: 30_000,
     queryFn: async (): Promise<UserSummaryResponseDTO[]> => {
       if (useMocks) {

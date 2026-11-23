@@ -11,9 +11,10 @@ import java.util.UUID
 
 interface LeadRepository : JpaRepository<Lead, UUID> {
 
-    fun findByOrganizationIdAndPhoneNumber(
-    organizationId: UUID,
-    phoneNumber: String
+    // Leads duplicados compartilham telefone; o inbound do WhatsApp usa o mais antigo.
+    fun findFirstByOrganizationIdAndPhoneNumberOrderByCreatedAtAsc(
+        organizationId: UUID,
+        phoneNumber: String
     ): Optional<Lead>
 
     fun findAllByOrganizationId(organizationId: UUID): List<Lead>

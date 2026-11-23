@@ -41,6 +41,8 @@ Backend:
 - PostgreSQL + Flyway
 - Redis para rate limit, anti-replay, blocklist de refresh token e sessao autenticada
 - integracoes preparadas para Meta, Webmotors e Mercado Livre
+- modulo `chatbot` para atendimento automatizado por plano, com mock deterministico em dev, Lex/Bedrock pendentes por flag, sessao canonica em Postgres e contexto quente em Redis
+- modulo `monitoring` para health operacional, erros de aplicacao, eventos de webhook e endpoints de observability do Astro admin
 
 SaaS:
 - planos
@@ -79,11 +81,15 @@ Autenticadas:
 - `/app/estoque`
 - `/app/estoque/:id`
 - `/app/comunicacao`
+- `/app/chatbot`
 - `/app/configuracoes`
+- `/admin/system`
 
 Observacao:
 - `/app/configuracoes` e protegida por papel `ADMIN` ou `MANAGER`
-- Comunicacao e um visualizador de logs com atalho para WhatsApp; nao e chat in-app
+- `/app/chatbot` e a tela manager de sessoes, metricas e configuracao somente leitura do bot
+- `/admin/system` e a tela Astro admin de visao geral, observability, webhooks, chatbot insights e infraestrutura
+- Comunicacao exibe mensagens de bot em modo somente leitura e bloqueia o input manual enquanto a sessao de bot esta `ACTIVE`
 
 ## API principal
 
@@ -109,6 +115,16 @@ Alguns endpoints relevantes:
 - `GET /analytics/kpis`
 - `GET /saas/subscription`
 - `GET /saas/billing-history`
+- `GET /chat/lead/{leadId}/bot-session`
+- `GET /chatbot/sessions`
+- `GET /chatbot/metrics`
+- `POST /chatbot/sessions/{id}/handoff`
+- `GET /admin/system/health`
+- `GET /admin/observability/overview`
+- `GET /admin/observability/errors`
+- `GET /admin/observability/webhooks`
+- `GET /admin/observability/chatbot-insights`
+- `GET /admin/observability/infrastructure`
 - `POST /webhooks/meta`
 - `POST /webhooks/webmotors`
 - `POST /webhooks/mercadolivre`
@@ -180,6 +196,12 @@ Defaults atuais do frontend:
 - `VITE_USE_MOCKS=false` em desenvolvimento
 - `VITE_USE_MOCKS=false` em E2E
 
+URLs publicas em desenvolvimento:
+- `APP_BASE_URL` controla callbacks de frontend
+- `PUBLIC_API_URL` controla webhooks externos quando o backend esta atras de `cloudflared`
+- `scripts/update-public-url.sh` atualiza `PUBLIC_API_URL` em `.env.local` a partir do log do tunnel
+- `scripts/validate-meta-integration.sh` valida o ciclo Meta local em modo mock
+
 Bootstrap dev do backend:
 - organizacao demo criada automaticamente quando ausente
 - usuario admin garantido: `admin@astro.dev`
@@ -245,6 +267,9 @@ Observacoes:
 ## Documentacao adicional
 
 - [`docs/HEALTH_REPORT.md`](docs/HEALTH_REPORT.md)
+- [`docs/RUNBOOK-CHATBOT.md`](docs/RUNBOOK-CHATBOT.md)
+- [`docs/RUNBOOK-CLOUDFLARED.md`](docs/RUNBOOK-CLOUDFLARED.md)
+- [`docs/RUNBOOK-META.md`](docs/RUNBOOK-META.md)
 - [`docs/varredura-geral-2026-04-17.md`](docs/varredura-geral-2026-04-17.md)
 - [`docs/README.md`](docs/README.md)
 - [`docs/notion/INDEX.md`](docs/notion/INDEX.md)

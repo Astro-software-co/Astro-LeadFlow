@@ -175,7 +175,7 @@ class LeadController(
         assignmentService.assumeLead(id)
 
     @PatchMapping("/{id}/assign")
-    @Operation(summary = "Admin ou Manager atribui lead a um vendedor")
+    @Operation(summary = "Manager atribui lead a um vendedor")
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "Lead atribuído com sucesso"),
         ApiResponse(responseCode = "400", description = "Vendedor inválido ou não pertence à organização"),
@@ -184,7 +184,7 @@ class LeadController(
         ApiResponse(responseCode = "404", description = "Lead não encontrado"),
         ApiResponse(responseCode = "500", description = "Erro interno do servidor")
     )
-    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    @PreAuthorize("hasRole('MANAGER')")
     fun assign(
         @PathVariable id: UUID,
         @Valid @RequestBody request: AssignLeadRequest
@@ -200,7 +200,7 @@ class LeadController(
         ApiResponse(responseCode = "404", description = "Lead não encontrado"),
         ApiResponse(responseCode = "500", description = "Erro interno do servidor")
     )
-    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    @PreAuthorize("hasRole('MANAGER')")
     fun delete(@PathVariable id: UUID) =
         leadService.delete(id)
 }

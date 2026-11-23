@@ -6,45 +6,29 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-const userSchema = z
-  .object({
-    nome: z
-      .string()
-      .min(3, 'Nome deve ter pelo menos 3 caracteres')
-      .max(100, 'Nome deve ter no maximo 100 caracteres')
-      .regex(/^[a-zA-ZÀ-ÿ\s]+$/, 'Nome deve conter apenas letras'),
-    email: z.string().email('E-mail invalido').max(255, 'E-mail deve ter no maximo 255 caracteres'),
-    senha: z
-      .string()
-      .min(8, 'Senha deve ter pelo menos 8 caracteres')
-      .max(50, 'Senha deve ter no maximo 50 caracteres')
-      .regex(/[A-Z]/, 'Senha deve conter pelo menos uma letra maiuscula')
-      .regex(/[a-z]/, 'Senha deve conter pelo menos uma letra minuscula')
-      .regex(/[0-9]/, 'Senha deve conter pelo menos um numero'),
-    confirmarSenha: z.string(),
-    role: z.enum(['ADMIN', 'SELLER'] as const),
-  })
-  .refine((data) => data.senha === data.confirmarSenha, {
-    message: 'As senhas nao coincidem',
-    path: ['confirmarSenha'],
-  });
+const userSchema = z.object({
+  nome: z
+    .string()
+    .min(3, 'Nome deve ter pelo menos 3 caracteres')
+    .max(100, 'Nome deve ter no maximo 100 caracteres')
+    .regex(/^[a-zA-ZÀ-ÿ\s]+$/, 'Nome deve conter apenas letras'),
+  email: z.string().email('E-mail invalido').max(255, 'E-mail deve ter no maximo 255 caracteres'),
+  role: z.literal('SELLER'),
+});
 
 type UserFormData = z.infer<typeof userSchema>;
 
 interface AddUserModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (user: { nome: string; email: string; role: 'ADMIN' | 'SELLER' }) => Promise<void> | void;
+  onSubmit: (user: { nome: string; email: string; role: 'SELLER' }) => Promise<void> | void;
 }
 
 export function AddUserModal({ open, onOpenChange, onSubmit }: AddUserModalProps) {
   const {
     register,
     handleSubmit,
-    setValue,
-    watch,
     reset,
     formState: { errors, isSubmitting },
   } = useForm<UserFormData>({
@@ -52,13 +36,9 @@ export function AddUserModal({ open, onOpenChange, onSubmit }: AddUserModalProps
     defaultValues: {
       nome: '',
       email: '',
-      senha: '',
-      confirmarSenha: '',
       role: 'SELLER',
     },
   });
-
-  const role = watch('role');
 
   const handleFormSubmit = async (data: UserFormData) => {
     await onSubmit({
@@ -112,82 +92,17 @@ export function AddUserModal({ open, onOpenChange, onSubmit }: AddUserModalProps
             {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="senha">Senha *</Label>
-              <Input
-                id="senha"
-                type="password"
-                placeholder="********"
-                {...register('senha')}
-                className={errors.senha ? 'border-destructive' : ''}
-              />
-              {errors.senha && <p className="text-xs text-destructive">{errors.senha.message}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="confirmarSenha">Confirmar Senha *</Label>
-              <Input
-                id="confirmarSenha"
-                type="password"
-                placeholder="********"
-                {...register('confirmarSenha')}
-                className={errors.confirmarSenha ? 'border-destructive' : ''}
-              />
-              {errors.confirmarSenha && <p className="text-xs text-destructive">{errors.confirmarSenha.message}</p>}
-            </div>
-          </div>
-
           <div className="space-y-2">
             <Label className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
-              Permissao *
+              Perfil
             </Label>
-            <Select value={role} onValueChange={(value: 'ADMIN' | 'SELLER') => setValue('role', value)}>
-              <SelectTrigger className={errors.role ? 'border-destructive' : ''}>
-                <SelectValue placeholder="Selecione a permissao" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="SELLER">
-                  <div className="flex items-center gap-2">
-                    <div className="h-2 w-2 rounded-full bg-kanban-completed" />
-                    Vendedor
-                  </div>
-                </SelectItem>
-                <SelectItem value="ADMIN">
-                  <div className="flex items-center gap-2">
-                    <div className="h-2 w-2 rounded-full bg-kanban-negotiation" />
-                    Administrador
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
+            <input type="hidden" {...register('role')} />
+            <div className="inline-flex items-center gap-2 rounded-md border border-border/50 px-3 py-2 text-sm text-foreground">
+              <div className="h-2 w-2 rounded-full bg-kanban-completed" />
+              Seller
+            </div>
             {errors.role && <p className="text-xs text-destructive">{errors.role.message}</p>}
-          </div>
-
-          <div className="rounded-lg bg-muted/50 p-4 text-sm">
-            {role === 'ADMIN' ? (
-              <div className="space-y-2">
-                <p className="font-medium text-foreground">Permissoes de Administrador:</p>
-                <ul className="list-inside list-disc space-y-1 text-muted-foreground">
-                  <li>Gerenciar todos os leads e vendas</li>
-                  <li>Editar cards de qualquer vendedor</li>
-                  <li>Gerenciar estoque completo</li>
-                  <li>Adicionar e remover usuarios</li>
-                  <li>Visualizar relatorios completos</li>
-                </ul>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <p className="font-medium text-foreground">Permissoes de Vendedor:</p>
-                <ul className="list-inside list-disc space-y-1 text-muted-foreground">
-                  <li>Assumir e gerenciar os proprios leads</li>
-                  <li>Mover cards apenas dos proprios atendimentos</li>
-                  <li>Visualizar estoque sem edicao</li>
-                  <li>Visualizar as proprias metricas</li>
-                </ul>
-              </div>
-            )}
           </div>
 
           <div className="flex justify-end gap-3 pt-4">

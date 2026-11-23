@@ -4,6 +4,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { useNotifications } from '@/contexts/NotificationContext';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,15 +26,22 @@ const navItems = [
   { label: 'Kanban', path: '/app/kanban' },
   { label: 'Estoque', path: '/app/estoque' },
   { label: 'Comunicacao', path: '/app/comunicacao' },
+  { label: 'Chatbot', path: '/app/chatbot' },
   { label: 'Configurações', path: '/app/configuracoes' },
 ];
 
 export function Header() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const { notifications, unreadCount, markAsRead, markAllAsRead, removeNotification } = useNotifications();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const userInitials = (user?.name || user?.email || 'U')
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join('') || 'U';
 
   const handleSignOut = async () => {
     await logout();
@@ -177,11 +185,21 @@ export function Header() {
                   aria-label="Abrir menu da conta"
                   className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-muted transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                 >
-                  <User className="h-5 w-5 text-muted-foreground" />
+                  <Avatar className="h-9 w-9">
+                    {user?.avatarUrl ? <AvatarImage src={user.avatarUrl} alt={user.name || 'Usuario'} /> : null}
+                    <AvatarFallback className="text-xs font-semibold text-muted-foreground">
+                      {user?.avatarUrl ? <User className="h-4 w-4" /> : userInitials}
+                    </AvatarFallback>
+                  </Avatar>
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+              <DropdownMenuContent align="end" className="w-64">
+                <DropdownMenuLabel>
+                  <div className="min-w-0 space-y-1">
+                    <p className="truncate text-sm font-medium text-foreground">{user?.name || 'Usuario'}</p>
+                    <p className="truncate text-xs font-normal text-muted-foreground">{user?.email || 'email nao informado'}</p>
+                  </div>
+                </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => navigate('/app/configuracoes')}>
                   <Settings className="mr-2 h-4 w-4" />

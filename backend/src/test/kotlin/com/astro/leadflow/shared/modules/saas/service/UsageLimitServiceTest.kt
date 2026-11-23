@@ -29,7 +29,7 @@ class UsageLimitServiceTest {
     private val organization = Organization(id = orgId, name = "Test", slug = "test")
     private val plan = Plan(
         name = "Básico",
-        monthlyPriceBrl = BigDecimal("149.00"),
+        priceBrl = BigDecimal("149.00"),
         messageLimit = 1000,
         marketplaceLimit = 2
     )

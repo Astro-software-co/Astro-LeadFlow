@@ -6,25 +6,26 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { getHomePathForRole } from '@/lib/navigation';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, user } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [form, setForm] = useState({ email: '', senha: '' });
 
   if (isAuthenticated) {
-    return <Navigate to="/app/dashboard" replace />;
+    return <Navigate to={getHomePathForRole(user?.role)} replace />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await login(form.email, form.senha);
+      const profile = await login(form.email, form.senha);
       toast.success('Login realizado com sucesso!');
-      navigate('/app/dashboard');
+      navigate(getHomePathForRole(profile.role), { replace: true });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Erro ao autenticar';
       toast.error(message);

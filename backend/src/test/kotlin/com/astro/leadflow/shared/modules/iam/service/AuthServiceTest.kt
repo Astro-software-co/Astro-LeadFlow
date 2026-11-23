@@ -34,6 +34,7 @@ class AuthServiceTest {
     @MockK lateinit var twoFactorService: TwoFactorService
     @MockK lateinit var refreshTokenBlocklistService: RefreshTokenBlocklistService
     @MockK lateinit var authSessionService: AuthSessionService
+    @MockK lateinit var userReferralCodeService: UserReferralCodeService
 
     private lateinit var authService: AuthService
 
@@ -48,11 +49,13 @@ class AuthServiceTest {
             twoFactorService,
             refreshTokenBlocklistService,
             authSessionService,
+            userReferralCodeService,
         )
+        every { userReferralCodeService.ensureReferralCode(any()) } returns "123456"
     }
 
     @Test
-    fun `registerOrganization should create org and admin user`() {
+    fun `registerOrganization should create org and manager user`() {
         val request = RegisterOrganizationRequest(
             organizationName = "Test Motors",
             slug = "test-motors",
@@ -78,6 +81,7 @@ class AuthServiceTest {
         Assertions.assertEquals("access_token", result.accessToken)
         verify(exactly = 1) { organizationRepository.save(any()) }
         verify(exactly = 1) { userRepository.save(any()) }
+        verify(exactly = 1) { userReferralCodeService.ensureReferralCode(user) }
     }
 
     @Test
@@ -256,7 +260,7 @@ class AuthServiceTest {
         name = "Test User",
         email = "user@test.com",
         passwordHash = "hashed_password",
-        role = Role.ADMIN,
+        role = Role.MANAGER,
         status = status,
         twoFactorEmailEnabled = twoFactorEmailEnabled,
     )

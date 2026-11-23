@@ -13,5 +13,9 @@ data class ChatMessageResponse(
     val content: String,
     val messageType: MessageType,
     val status: MessageStatus,
-    val sentAt: LocalDateTime
+    val sentAt: LocalDateTime,
+    val senderType: String = "USER",
+    val botSessionId: UUID? = null,
+    val intentDetected: String? = null,
+    val engineUsed: String? = null
 )

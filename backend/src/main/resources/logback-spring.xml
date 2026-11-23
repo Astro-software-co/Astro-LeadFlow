@@ -8,6 +8,11 @@
         </encoder>
     </appender>
 
+    <appender name="DB_ERROR" class="com.astro.leadflow.shared.modules.monitoring.error.DatabaseErrorAppender" />
+    <appender name="ASYNC_DB_ERROR" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="DB_ERROR" />
+    </appender>
+
     <!-- ── JSON appender (prod) ───────────────────────────────────────────
          Para ativar:
          1. Remova o comentário do appender abaixo
@@ -32,6 +37,7 @@
     <springProfile name="!prod">
         <root level="INFO">
             <appender-ref ref="CONSOLE" />
+            <appender-ref ref="ASYNC_DB_ERROR" />
         </root>
     </springProfile>
 

@@ -50,6 +50,8 @@ Modulos principais em `backend/src/main/kotlin/com/astro/leadflow/shared/modules
 - `communication`: timeline/mensageria e webhook Meta
 - `saas`: planos, assinatura, uso e marketplaces
 - `ingestion`: webhooks e integracoes com marketplaces
+- `chatbot`: engines, roteamento por plano, sessao de bot, handoff e quota de tokens
+- `monitoring`: health operacional, erros persistidos, logs de webhook e observability para Astro admin
 
 Camadas recorrentes:
 
@@ -124,6 +126,47 @@ Regras relevantes:
 - atribuicao explicita permite `SELLER` e `MANAGER`
 - filtro `assignedTo` agora usa diretorio dedicado de assignable users
 
+## Chatbot
+
+O modulo `chatbot` vive em `com.astro.leadflow.shared.modules.chatbot` e segue a divisao:
+
+- `domain`: entidades `BotSession` e `AiTokenUsage`, enums e value objects
+- `engine`: contrato `ChatbotEngine`, engines mock/template e stubs AWS marcados como `[AWS-PENDING]`
+- `routing`: selecao de engine, avaliacao de handoff e roteamento da conversa
+- `session`: persistencia canonica em Postgres e cache Redis com TTL de 30 minutos
+- `usage`: guarda de quota, tracker de tokens e alerta por email em 80%
+- `controller`: endpoints manager para sessoes, metricas e handoff manual
+
+O tier do plano controla o comportamento:
+
+- Basico: sem bot, resposta por template fixo
+- Profissional: Lex puro
+- Enterprise: Lex com fallback Bedrock apenas em `FallbackIntent`
+
+Em desenvolvimento, `chatbot.engine.mode=mock` usa keyword matching deterministico em `pt_BR`.
+
+## Comunicação e Meta API
+
+O webhook Meta continua em `communication`, mas o envio para WhatsApp passa por `MetaApiClient`:
+
+- `MockMetaApiClient` e o default local (`META_API_MODE=mock`)
+- `RealMetaApiClient` usa a Graph API quando `META_API_MODE=real`
+- o `MessageSenderService` mantem o contrato de envio e incrementa `MESSAGE_SENT` apenas em sucesso
+- inbound Meta roteia para `ChatbotRouter` quando o lead esta em `TALKING_TO_BOT`
+
+Mensagens geradas pelo bot sao gravadas em `chat_messages` com `sender_type=BOT`, `bot_session_id`, `intent_detected` e `engine_used`. A tela `/app/comunicacao` mostra essas mensagens como somente leitura e desabilita o input enquanto a sessao de bot esta `ACTIVE`.
+
+## Observability
+
+O modulo `monitoring` vive em `com.astro.leadflow.shared.modules.monitoring` e adiciona:
+
+- `GET /api/v1/admin/system/health` com flags booleanas mascaradas para segredos e dependencias
+- `application_error` para WARN/ERROR persistidos via appender Logback async
+- `webhook_event_log` para source, outcome, status HTTP, duracao e correlation id
+- endpoints `/api/v1/admin/observability/*` para overview, performance, erros, webhooks, chatbot insights e infraestrutura
+
+A tela Astro admin `/admin/system` consome esses endpoints em cinco abas: Visao Geral, Observability, Webhooks, Chatbot Insights e Infraestrutura.
+
 ## Persistencia
 
 - PostgreSQL guarda entidades de negocio
@@ -133,6 +176,7 @@ Regras relevantes:
   - anti-replay
   - blocklist de refresh tokens
   - sessoes autenticadas deslizantes
+  - contexto quente de sessoes do chatbot
 
 ## Integracoes
 

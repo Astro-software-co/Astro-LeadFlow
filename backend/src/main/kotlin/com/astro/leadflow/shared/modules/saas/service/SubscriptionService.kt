@@ -2,6 +2,7 @@ package com.astro.leadflow.shared.modules.saas.service
 
 import com.astro.leadflow.shared.exception.AccessDeniedException
 import com.astro.leadflow.shared.exception.BusinessException
+import com.astro.leadflow.shared.exception.InvalidOperationException
 import com.astro.leadflow.shared.exception.ResourceNotFoundException
 import com.astro.leadflow.shared.modules.iam.domain.OrganizationRepository
 import com.astro.leadflow.shared.modules.saas.api.responses.BillingHistoryResponse
@@ -72,8 +73,8 @@ class SubscriptionService(
                 id = usage.id,
                 billedAt = billedAt,
                 issuedAt = usage.createdAt.toLocalDate(),
-                description = "Plano " + subscription.plan.name + " - " + "%02d/%04d".format(usage.periodMonth, usage.periodYear),
-                amountBrl = subscription.plan.monthlyPriceBrl,
+                description = subscription.plan.displayName() + " - " + "%02d/%04d".format(usage.periodMonth, usage.periodYear),
+                amountBrl = subscription.plan.priceBrl,
                 status = toBillingStatus(subscription.status),
                 invoiceUrl = null,
             )
@@ -82,13 +83,10 @@ class SubscriptionService(
 
     @Transactional
     fun changePlan(planId: UUID): SubscriptionResponse {
-        val orgId = SecurityUtils.getCurrentOrganizationId()
-        val subscription = subscriptionRepository.findByOrganizationId(orgId)
-            .orElseThrow { ResourceNotFoundException("Subscription", orgId) }
-        val newPlan = planRepository.findById(planId)
-            .orElseThrow { ResourceNotFoundException("Plan", planId) }
-        subscription.plan = newPlan
-        return saasMapper.toSubscriptionResponse(subscriptionRepository.save(subscription))
+        if (!planRepository.existsById(planId)) {
+            throw ResourceNotFoundException("Plan", planId)
+        }
+        throw InvalidOperationException("Troca de plano deve ser confirmada via checkout Abacate Pay e webhook de pagamento.")
     }
 
     @Transactional

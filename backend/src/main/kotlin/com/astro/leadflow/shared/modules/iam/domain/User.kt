@@ -36,6 +36,9 @@ class User(
     @Column(nullable = false)
     var role: Role = Role.SELLER,
 
+    @Column(name = "referral_code", length = 6, unique = true)
+    var referralCode: String? = null,
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     var status: UserStatus = UserStatus.ACTIVE,
@@ -80,8 +83,15 @@ class User(
     @PreUpdate
     fun onUpdate() { updatedAt = LocalDateTime.now() }
 
-    override fun getAuthorities(): Collection<GrantedAuthority> =
-        listOf(SimpleGrantedAuthority("ROLE_${role.name}"))
+    override fun getAuthorities(): Collection<GrantedAuthority> {
+        val base = SimpleGrantedAuthority("ROLE_${role.name}")
+        return when (role) {
+            Role.MANAGER, Role.SELLER ->
+                listOf(base, SimpleGrantedAuthority("ROLE_DEALERSHIP"))
+            Role.ASTRO_ADMIN ->
+                listOf(SimpleGrantedAuthority("ROLE_ASTRO_ADMIN"))
+        }
+    }
 
     override fun getPassword(): String = passwordHash
     override fun getUsername(): String = email

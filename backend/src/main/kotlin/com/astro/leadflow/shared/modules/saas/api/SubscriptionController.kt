@@ -25,7 +25,7 @@ import java.util.UUID
 @RestController
 @RequestMapping("/api/v1/saas")
 @Tag(name = "SaaS — Assinatura", description = "Planos, quotas e marketplaces")
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasRole('MANAGER')")
 class SubscriptionController(
     private val subscriptionService: SubscriptionService,
     private val usageLimitService: UsageLimitService,

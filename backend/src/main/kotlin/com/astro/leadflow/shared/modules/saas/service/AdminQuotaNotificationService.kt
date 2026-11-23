@@ -17,11 +17,11 @@ class AdminQuotaNotificationService(
         organizationId: UUID,
         marketplaceType: MarketplaceType
     ) {
-        val adminEmails = userRepository.findActiveByOrganizationAndRole(organizationId, Role.ADMIN)
+        val adminEmails = userRepository.findActiveByOrganizationAndRole(organizationId, Role.MANAGER)
             .map { it.email }
 
         log.warn(
-            "Marketplace {} atingiu limite individual na organização {}. Admins notificados: {}",
+            "Marketplace {} atingiu limite individual na organização {}. Managers notificados: {}",
             marketplaceType,
             organizationId,
             adminEmails.joinToString(", ")

@@ -47,19 +47,45 @@ class SecurityConfig(
                     // ── Webhooks (protegidos por API Key no Gateway)
                     .requestMatchers("/api/v1/webhooks/**").permitAll()
 
+                    // ── Onboarding público ─────────────────────────
+                    .requestMatchers(HttpMethod.POST, "/api/onboarding").permitAll()
+
                     // ── Planos públicos (landing page) ─────────────
                     .requestMatchers(HttpMethod.GET, "/api/v1/plans").permitAll()
 
                     // ── Actuator (health público, demais restritos) ─
                     .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
-                    .requestMatchers("/actuator/**").hasRole("SUPER_ADMIN")
+                    .requestMatchers("/actuator/**").hasRole("ASTRO_ADMIN")
 
-                    // ── Admin interno ──────────────────────────────
-                    .requestMatchers("/api/v1/admin/**").hasRole("SUPER_ADMIN")
+                    // ── Admin Astro (onboarding + finance dashboard + referral summary)
+                    .requestMatchers("/api/v1/admin/**").hasRole("ASTRO_ADMIN")
+                    .requestMatchers("/api/admin/**").hasRole("ASTRO_ADMIN")
+
+                    // ── Referral (somente MANAGER) ─────────────────
+                    .requestMatchers("/api/referral/**").hasRole("MANAGER")
+                    .requestMatchers("/api/v1/referral/**").hasRole("MANAGER")
+
+                    // ── Perfil do usuario autenticado ──────────────
+                    .requestMatchers(
+                        "/api/v1/users/me",
+                        "/api/v1/users/me/**"
+                    ).authenticated()
+
+                    // ── APIs de concessionária ─────────────────────
+                    .requestMatchers(
+                        "/api/v1/users/**",
+                        "/api/v1/leads/**",
+                        "/api/v1/kanban/**",
+                        "/api/v1/vehicles/**",
+                        "/api/v1/chat/**",
+                        "/api/v1/saas/**",
+                        "/api/v1/analytics/**",
+                        "/api/v1/referrals/**"
+                    ).hasRole("DEALERSHIP")
 
                     // ── Operações restritas ────────────────────────
                     .requestMatchers(HttpMethod.DELETE, "/**")
-                    .hasAnyRole("ADMIN", "SUPER_ADMIN")
+                    .hasRole("MANAGER")
 
                     // ── Tudo mais requer autenticação ──────────────
                     .anyRequest().authenticated()

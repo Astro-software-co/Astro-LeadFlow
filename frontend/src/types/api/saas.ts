@@ -1,7 +1,12 @@
+export type BillingCycle = 'WEEKLY' | 'MONTHLY' | 'SEMIANNUALLY' | 'ANNUALLY';
+
 export interface SubscriptionDTO {
   planId: string;
   planName: string;
-  monthlyPriceBrl: number;
+  planDescription: string;
+  priceBrl: number;
+  billingCycle: BillingCycle;
+  billingCycleLabel: string;
   messageLimit: number;
   marketplaceLimit: number;
   status: 'ACTIVE' | 'SUSPENDED' | 'TRIAL' | 'CANCELLED' | 'PAST_DUE';
@@ -30,8 +35,12 @@ export interface UsageSummaryDTO {
 
 export interface PlanDTO {
   id: string;
+  code: string;
   name: string;
-  monthlyPriceBrl: number;
+  description: string;
+  priceBrl: number;
+  billingCycle: BillingCycle;
+  billingCycleLabel: string;
   messageLimit: number;
   marketplaceLimit: number;
 }

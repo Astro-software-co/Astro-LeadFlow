@@ -15,6 +15,10 @@ vi.mock('@/hooks/api/useLeads', () => ({
   useLeadActivities: () => ({ data: [], isLoading: false }),
 }));
 
+vi.mock('@/hooks/api/useAssignableUsers', () => ({
+  useAssignableUsers: () => ({ data: [], isLoading: false }),
+}));
+
 vi.mock('@/features/leads/components', () => ({
   LeadsLoadingState: () => <div data-testid="leads-loading">Loading</div>,
   LeadsErrorState: ({ onRetry }: { onRetry: () => void }) => (

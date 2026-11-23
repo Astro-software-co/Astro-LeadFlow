@@ -4,12 +4,14 @@ import com.astro.leadflow.shared.modules.iam.domain.Organization
 import com.astro.leadflow.shared.modules.iam.domain.Role
 import com.astro.leadflow.shared.modules.iam.domain.User
 import com.astro.leadflow.shared.modules.iam.domain.UserRepository
+import com.astro.leadflow.shared.modules.referrals.service.ReferralService
 import com.astro.leadflow.shared.modules.saas.api.requests.AbacatePayWebhookCheckout
 import com.astro.leadflow.shared.modules.saas.api.requests.AbacatePayWebhookData
 import com.astro.leadflow.shared.modules.saas.api.requests.AbacatePayWebhookEvent
 import com.astro.leadflow.shared.modules.saas.api.requests.AbacatePayWebhookPayment
 import com.astro.leadflow.shared.modules.saas.api.requests.AbacatePayWebhookSubscription
 import com.astro.leadflow.shared.modules.saas.api.requests.CreateSubscriptionCheckoutRequest
+import com.astro.leadflow.shared.modules.saas.domain.BillingCycle
 import com.astro.leadflow.shared.modules.saas.domain.BillingHistoryEntryRepository
 import com.astro.leadflow.shared.modules.saas.domain.Plan
 import com.astro.leadflow.shared.modules.saas.domain.PlanRepository
@@ -18,17 +20,14 @@ import com.astro.leadflow.shared.modules.saas.domain.SubscriptionRepository
 import com.astro.leadflow.shared.modules.saas.domain.SubscriptionStatus
 import com.astro.leadflow.shared.modules.saas.infra.AbacateCheckoutResponse
 import com.astro.leadflow.shared.modules.saas.infra.AbacateCustomerResponse
-import com.astro.leadflow.shared.modules.saas.infra.AbacatePayClient
+import com.astro.leadflow.shared.modules.saas.infra.AbacatePayGateway
 import com.astro.leadflow.shared.modules.saas.infra.AbacateProductResponse
 import com.astro.leadflow.shared.modules.saas.mapper.SaasMapper
 import com.astro.leadflow.shared.util.SecurityUtils
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
-import io.mockk.just
 import io.mockk.mockkObject
-import io.mockk.runs
-import io.mockk.slot
 import io.mockk.unmockkObject
 import io.mockk.verify
 import org.junit.jupiter.api.AfterEach
@@ -47,22 +46,24 @@ class AbacatePaySubscriptionServiceTest {
     @MockK private lateinit var planRepository: PlanRepository
     @MockK private lateinit var userRepository: UserRepository
     @MockK private lateinit var billingHistoryEntryRepository: BillingHistoryEntryRepository
-    @MockK private lateinit var abacatePayClient: AbacatePayClient
+    @MockK private lateinit var abacatePayGateway: AbacatePayGateway
+    @MockK private lateinit var referralService: ReferralService
 
     private lateinit var service: AbacatePaySubscriptionService
 
     private val organization = Organization(name = "Astro Motors", slug = "astro-motors", cnpj = "12.345.678/0001-90")
     private val currentPlan = Plan(
         name = "Básico",
-        monthlyPriceBrl = BigDecimal("149.00"),
+        priceBrl = BigDecimal("149.00"),
         messageLimit = 1000,
         marketplaceLimit = 1,
     )
     private val targetPlan = Plan(
         name = "Profissional",
-        monthlyPriceBrl = BigDecimal("299.00"),
+        priceBrl = BigDecimal("299.00"),
         messageLimit = 3000,
         marketplaceLimit = 3,
+        billingCycle = BillingCycle.MONTHLY,
     )
     private val user = User(
         organization = organization,
@@ -70,7 +71,7 @@ class AbacatePaySubscriptionServiceTest {
         email = "admin@astro.test",
         passwordHash = "hash",
         phoneNumber = "(11) 99999-0000",
-        role = Role.ADMIN,
+        role = Role.MANAGER,
     )
     private val subscription = Subscription(
         organization = organization,
@@ -86,7 +87,8 @@ class AbacatePaySubscriptionServiceTest {
             planRepository,
             userRepository,
             billingHistoryEntryRepository,
-            abacatePayClient,
+            abacatePayGateway,
+            referralService,
             SaasMapper(),
             "http://localhost:5173",
         )
@@ -99,6 +101,7 @@ class AbacatePaySubscriptionServiceTest {
         every { subscriptionRepository.save(any()) } answers { firstArg() }
         every { planRepository.save(any()) } answers { firstArg() }
         every { billingHistoryEntryRepository.save(any()) } answers { firstArg() }
+        every { referralService.generateCommissionIfFirstPayment(any(), any()) } returns Unit
     }
 
     @AfterEach
@@ -110,23 +113,23 @@ class AbacatePaySubscriptionServiceTest {
     fun `createCheckout should provision remote resources and return checkout url`() {
         every { planRepository.findById(targetPlan.id) } returns Optional.of(targetPlan)
         every {
-            abacatePayClient.createProduct(any())
+            abacatePayGateway.createProduct(any())
         } returns AbacateProductResponse(
             id = "prod_123",
             externalId = "leadflow-plan:${targetPlan.id}",
-            name = targetPlan.name,
+            name = targetPlan.displayName(),
             price = 29900,
             cycle = "MONTHLY",
         )
         every {
-            abacatePayClient.createCustomer(any())
+            abacatePayGateway.createCustomer(any())
         } returns AbacateCustomerResponse(
             id = "cust_123",
             email = user.email,
             name = user.name,
         )
         every {
-            abacatePayClient.createSubscriptionCheckout(any())
+            abacatePayGateway.createSubscriptionCheckout(any())
         } returns AbacateCheckoutResponse(
             id = "bill_123",
             url = "https://app.abacatepay.com/pay/bill_123",
@@ -146,9 +149,9 @@ class AbacatePaySubscriptionServiceTest {
         assertEquals("cust_123", subscription.abacateCustomerId)
         assertEquals("bill_123", subscription.abacateCheckoutId)
         assertEquals("PENDING", subscription.abacateCheckoutStatus)
-        verify(exactly = 1) { abacatePayClient.createProduct(any()) }
-        verify(exactly = 1) { abacatePayClient.createCustomer(any()) }
-        verify(exactly = 1) { abacatePayClient.createSubscriptionCheckout(any()) }
+        verify(exactly = 1) { abacatePayGateway.createProduct(any()) }
+        verify(exactly = 1) { abacatePayGateway.createCustomer(any()) }
+        verify(exactly = 1) { abacatePayGateway.createSubscriptionCheckout(any()) }
     }
 
     @Test
@@ -166,6 +169,7 @@ class AbacatePaySubscriptionServiceTest {
                     id = "subs_123",
                     amount = 29900,
                     status = "ACTIVE",
+                    frequency = "MONTHLY",
                     createdAt = "2026-04-23T12:00:00Z",
                     updatedAt = "2026-04-23T12:00:05Z",
                 ),
@@ -195,5 +199,23 @@ class AbacatePaySubscriptionServiceTest {
         assertNull(subscription.abacateCheckoutUrl)
         assertEquals(LocalDate.of(2026, 5, 23), subscription.renewsAt)
         verify(exactly = 1) { billingHistoryEntryRepository.save(any()) }
+        verify(exactly = 1) {
+            referralService.generateCommissionIfFirstPayment(organization.id, any())
+        }
+    }
+
+    @Test
+    fun `handleWebhook should mark subscription past due on payment failure`() {
+        every { subscriptionRepository.findByAbacateSubscriptionId("subs_123") } returns Optional.of(subscription)
+
+        service.handleWebhook(
+            AbacatePayWebhookEvent(
+                id = "evt_fail",
+                event = "subscription.payment_failed",
+                data = AbacatePayWebhookData(subscription = AbacatePayWebhookSubscription(id = "subs_123")),
+            )
+        )
+
+        assertEquals(SubscriptionStatus.PAST_DUE, subscription.status)
     }
 }

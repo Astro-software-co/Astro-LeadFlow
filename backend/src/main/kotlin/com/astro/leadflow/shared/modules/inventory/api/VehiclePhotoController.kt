@@ -18,7 +18,7 @@ import java.util.UUID
 @RestController
 @RequestMapping("/api/v1/vehicles/{vehicleId}/photos")
 @Tag(name = "Inventory — Fotos", description = "Upload e gestão de fotos de veículos")
-@PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+@PreAuthorize("hasRole('MANAGER')")
 class VehiclePhotoController(
     private val vehiclePhotoService: VehiclePhotoService
 ) {

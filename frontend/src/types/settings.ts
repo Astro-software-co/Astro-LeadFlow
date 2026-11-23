@@ -1,6 +1,6 @@
 import type { AccentColor, ThemeMode } from '@/types';
 
-export type SettingsSectionId = 'general' | 'notifications' | 'security' | 'payments' | 'assinatura';
+export type SettingsSectionId = 'general' | 'notifications' | 'security' | 'payments' | 'assinatura' | 'referrals';
 export type SettingsLoadState = 'loading' | 'ready' | 'error';
 
 export interface SettingsProfile {
@@ -20,6 +20,7 @@ export interface SettingsTeamMember {
   email: string;
   avatarUrl?: string | null;
   role: string;
+  status: string;
 }
 
 export type BillingHistoryStatus = 'PAID' | 'PENDING' | 'FAILED';

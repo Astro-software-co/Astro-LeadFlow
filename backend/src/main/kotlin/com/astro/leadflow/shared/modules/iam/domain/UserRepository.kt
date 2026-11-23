@@ -10,12 +10,17 @@ interface UserRepository : JpaRepository<User, UUID> {
     @EntityGraph(attributePaths = ["organization"])
     fun findByEmail(email: String): Optional<User>
     fun existsByEmail(email: String): Boolean
+    fun existsByReferralCode(referralCode: String): Boolean
+    fun findByReferralCode(referralCode: String): Optional<User>
     fun findAllByOrganizationId(organizationId: UUID): List<User>
+    fun findFirstByOrganizationIdAndRoleOrderByCreatedAtAsc(organizationId: UUID, role: Role): Optional<User>
     fun findAllByOrganizationIdAndStatusAndRoleIn(
         organizationId: UUID,
         status: UserStatus,
         roles: Collection<Role>,
     ): List<User>
+
+    fun findAllByRoleAndStatus(role: Role, status: UserStatus): List<User>
 
     @EntityGraph(attributePaths = ["organization"])
     @Query("SELECT u FROM User u WHERE u.id = :id")

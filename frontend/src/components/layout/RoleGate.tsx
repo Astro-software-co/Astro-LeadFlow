@@ -1,8 +1,9 @@
 import { ShieldAlert } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { isUserRole, type UserRole } from '@/lib/rbac';
 
 interface RoleGateProps {
-  allowedRoles: string[];
+  allowedRoles: UserRole[];
   children: React.ReactNode;
   fallback?: React.ReactNode;
 }
@@ -24,7 +25,7 @@ function DefaultFallback() {
 export function RoleGate({ allowedRoles, children, fallback }: RoleGateProps) {
   const { user } = useAuth();
 
-  if (!user || !allowedRoles.includes(user.role)) {
+  if (!user || !isUserRole(user.role) || !allowedRoles.includes(user.role)) {
     return fallback ?? <DefaultFallback />;
   }
 

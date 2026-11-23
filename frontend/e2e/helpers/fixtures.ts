@@ -23,6 +23,17 @@ let cachedCredentials: AuthCredentials | null = null;
 
 async function loginThroughUi(page: Page, email: string, password: string): Promise<boolean> {
   await page.goto("/app/login");
+
+  // canAuthenticateApi shares the browser cookie jar, so the refresh cookie may
+  // already be set — hydrateSession restores the session and Login redirects
+  // to /app/dashboard before the form ever renders.
+  try {
+    await page.waitForURL("**/app/dashboard", { timeout: 5_000 });
+    return true;
+  } catch {
+    // Not redirected — form should be visible, fill it normally.
+  }
+
   await page.getByLabel(/e-?mail/i).fill(email);
   await page.getByLabel(/^senha$/i).fill(password);
   await page.getByRole("button", { name: /entrar/i }).click();

@@ -77,7 +77,7 @@ export interface Seller {
   id: string;
   nome: string;
   email: string;
-  role: 'ADMIN' | 'VENDEDOR';
+  role: 'MANAGER' | 'SELLER';
 }
 
 export interface KPIData {

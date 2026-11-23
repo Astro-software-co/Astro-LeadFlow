@@ -28,6 +28,7 @@ class AuthService(
     private val twoFactorService: TwoFactorService,
     private val refreshTokenBlocklistService: RefreshTokenBlocklistService,
     private val authSessionService: AuthSessionService,
+    private val userReferralCodeService: UserReferralCodeService,
 ) {
 
     @Transactional
@@ -42,16 +43,17 @@ class AuthService(
         val organization = organizationRepository.save(
             Organization(name = request.organizationName, slug = request.slug)
         )
-        val admin = userRepository.save(
+        val manager = userRepository.save(
             User(
                 organization = organization,
                 name = request.adminName,
                 email = request.adminEmail,
                 passwordHash = passwordEncoder.encode(request.password),
-                role = Role.ADMIN,
+                role = Role.MANAGER,
             )
         )
-        return issueTokensForNewSession(admin)
+        userReferralCodeService.ensureReferralCode(manager)
+        return issueTokensForNewSession(manager)
     }
 
     @Transactional

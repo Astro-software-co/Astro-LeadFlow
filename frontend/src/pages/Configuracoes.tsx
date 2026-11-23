@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
+import { hasPermission } from '@/lib/rbac';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { usersService } from '@/services/users.service';
@@ -10,6 +12,7 @@ import {
   GeneralTab,
   NotificationsTab,
   PaymentsTab,
+  ReferralTab,
   SecurityTab,
   accentColorOptions,
   settingsTabs,
@@ -20,7 +23,13 @@ import {
   useTeam,
 } from '@/modules/saas';
 import type { UserProfileResponseDTO } from '@/types/api/users';
-import type { NotificationPreferences, SecuritySettings, SettingsLoadState, SettingsSectionId } from '@/types/settings';
+import type {
+  NotificationPreferences,
+  SecuritySettings,
+  SettingsLoadState,
+  SettingsSectionId,
+  SettingsTeamMember,
+} from '@/types/settings';
 
 const defaultNotifPrefs: NotificationPreferences = {
   newLead: true,
@@ -100,24 +109,40 @@ export default function Configuracoes() {
   const [isSavingNotifications, setIsSavingNotifications] = useState(false);
   const [isSavingTwoFactor, setIsSavingTwoFactor] = useState(false);
   const [isSavingPassword, setIsSavingPassword] = useState(false);
+  const [isUpdatingAvatar, setIsUpdatingAvatar] = useState(false);
   const [isInvitingMember, setIsInvitingMember] = useState(false);
   const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
+  const [mutatingMemberId, setMutatingMemberId] = useState<string | null>(null);
 
+  const { user, refreshUser } = useAuth();
   const { theme, setTheme, accentColor, setAccentColor } = useTheme();
   const { notifications, unreadCount, markAsRead, markAllAsRead, removeNotification } = useNotifications();
+  const canManageTeam = hasPermission(user?.role, 'team:view');
+  const canManageBilling = hasPermission(user?.role, 'billing:view');
+  const visibleTabs = useMemo(
+    () => settingsTabs.filter((tab) => (user?.role === 'SELLER' ? tab.id === 'general' || tab.id === 'security' : true)),
+    [user?.role],
+  );
   const {
     profile,
     notificationPreferences,
     securitySettings: profileSecuritySettings,
+    refetch: refetchProfile,
   } = useProfile();
-  const { team, state: teamState, refetch: refetchTeam } = useTeam();
-  const { history, state: historyState, refetch: refetchHistory } = useBillingHistory();
+  const { team, state: teamState, refetch: refetchTeam } = useTeam({ enabled: canManageTeam });
+  const { history, state: historyState, refetch: refetchHistory } = useBillingHistory({ enabled: canManageBilling });
   const {
     data: subscription,
     isPending: isSubscriptionPending,
     isError: isSubscriptionError,
     refetch: refetchSubscription,
-  } = useSubscription();
+  } = useSubscription({ enabled: canManageBilling });
+
+  useEffect(() => {
+    if (!visibleTabs.some((tab) => tab.id === activeSection)) {
+      setActiveSection(visibleTabs[0]?.id ?? 'general');
+    }
+  }, [activeSection, visibleTabs]);
 
   useEffect(() => {
     if (notificationPreferences) {
@@ -142,6 +167,24 @@ export default function Configuracoes() {
   const applyProfileSettings = (userProfile: UserProfileResponseDTO) => {
     setNotifPrefs(mapNotificationPreferences(userProfile));
     setSecuritySettings(mapSecuritySettings(userProfile));
+  };
+
+  const handleUpdateAvatar = async (avatarUrl: string) => {
+    if (useMocks) {
+      toast.success('Foto de perfil atualizada.');
+      return;
+    }
+
+    setIsUpdatingAvatar(true);
+    try {
+      await usersService.updateProfile({ avatarUrl });
+      await Promise.all([refetchProfile(), refreshUser()]);
+      toast.success('Foto de perfil atualizada.');
+    } catch {
+      toast.error('Nao foi possivel atualizar a foto de perfil.');
+    } finally {
+      setIsUpdatingAvatar(false);
+    }
   };
 
   const handleToggleNotificationPreference = async (
@@ -221,7 +264,7 @@ export default function Configuracoes() {
     }
   };
 
-  const handleInviteMember = async (member: { nome: string; email: string; role: 'ADMIN' | 'SELLER' }) => {
+  const handleInviteMember = async (member: { nome: string; email: string; role: 'SELLER' }) => {
     if (useMocks) {
       toast.success('Usuario cadastrado com sucesso!');
       return;
@@ -241,6 +284,63 @@ export default function Configuracoes() {
       throw new Error('invite-member-failed');
     } finally {
       setIsInvitingMember(false);
+    }
+  };
+
+  const handleUpdateMember = async (memberId: string, values: { name: string; email: string; phoneNumber?: string | null }) => {
+    if (useMocks) {
+      toast.success('Usuario atualizado com sucesso!');
+      return;
+    }
+
+    setMutatingMemberId(memberId);
+    try {
+      await usersService.updateTeamUser(memberId, values);
+      await refetchTeam();
+      toast.success('Usuario atualizado com sucesso!');
+    } catch {
+      toast.error('Nao foi possivel atualizar o usuario.');
+      throw new Error('update-member-failed');
+    } finally {
+      setMutatingMemberId(null);
+    }
+  };
+
+  const handleSuspendMember = async (member: SettingsTeamMember) => {
+    if (useMocks) {
+      toast.success('Usuario suspenso com sucesso!');
+      return;
+    }
+
+    setMutatingMemberId(member.id);
+    try {
+      await usersService.suspendUser(member.id);
+      await refetchTeam();
+      toast.success('Usuario suspenso com sucesso!');
+    } catch {
+      toast.error('Nao foi possivel suspender o usuario.');
+      throw new Error('suspend-member-failed');
+    } finally {
+      setMutatingMemberId(null);
+    }
+  };
+
+  const handleReactivateMember = async (member: SettingsTeamMember) => {
+    if (useMocks) {
+      toast.success('Usuario reativado com sucesso!');
+      return;
+    }
+
+    setMutatingMemberId(member.id);
+    try {
+      await usersService.reactivateUser(member.id);
+      await refetchTeam();
+      toast.success('Usuario reativado com sucesso!');
+    } catch {
+      toast.error('Nao foi possivel reativar o usuario.');
+      throw new Error('reactivate-member-failed');
+    } finally {
+      setMutatingMemberId(null);
     }
   };
 
@@ -282,13 +382,13 @@ export default function Configuracoes() {
           <p className="text-muted-foreground">Gerencie as configuracoes do sistema</p>
         </div>
 
-        <div className="flex gap-2 border-b border-border/50 pb-0">
-          {settingsTabs.map((tab) => (
+        <div className="flex gap-2 overflow-x-auto border-b border-border/50 pb-0">
+          {visibleTabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveSection(tab.id)}
               className={cn(
-                'flex items-center gap-2 border-b-2 -mb-px px-4 py-2.5 text-sm font-medium transition-colors',
+                'flex shrink-0 items-center gap-2 border-b-2 -mb-px px-4 py-2.5 text-sm font-medium transition-colors',
                 activeSection === tab.id
                   ? 'border-primary text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground',
@@ -315,13 +415,20 @@ export default function Configuracoes() {
               setAccentColor(value);
               toast.success(`Cor alterada para ${labelForAccent(value)}`);
             }}
+            onUpdateAvatar={handleUpdateAvatar}
             onRetryTeam={() => {
               void refetchTeam();
             }}
             onInviteMember={handleInviteMember}
+            onUpdateMember={handleUpdateMember}
+            onSuspendMember={handleSuspendMember}
+            onReactivateMember={handleReactivateMember}
             onDeleteMember={handleDeleteMember}
+            canManageTeam={canManageTeam}
+            isUpdatingAvatar={isUpdatingAvatar}
             isInvitingMember={isInvitingMember}
             removingMemberId={removingMemberId}
+            mutatingMemberId={mutatingMemberId}
           />
         )}
 
@@ -365,6 +472,8 @@ export default function Configuracoes() {
         )}
 
         {activeSection === 'assinatura' && <AssinaturaTab />}
+
+        {activeSection === 'referrals' && <ReferralTab />}
       </div>
     </>
   );

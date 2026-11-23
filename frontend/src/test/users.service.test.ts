@@ -23,7 +23,7 @@ describe('usersService', () => {
         id: 'u-1',
         name: 'Ana',
         email: 'ana@astro.com',
-        role: 'ADMIN',
+        role: 'MANAGER',
         status: 'ACTIVE',
         organizationId: 'org-1',
         organizationName: 'Astro',
@@ -45,9 +45,21 @@ describe('usersService', () => {
     expect(profile.id).toBe('u-1');
   });
 
+  it('updateProfile maps payload to /users/me', async () => {
+    vi.mocked(api.patch).mockResolvedValueOnce({ data: { id: 'u-1', avatarUrl: 'data:image/png;base64,abc' } });
+
+    await usersService.updateProfile({
+      avatarUrl: 'data:image/png;base64,abc',
+    });
+
+    expect(api.patch).toHaveBeenCalledWith('/users/me', {
+      avatarUrl: 'data:image/png;base64,abc',
+    });
+  });
+
   it('listTeam normalizes array response', async () => {
     vi.mocked(api.get).mockResolvedValueOnce({
-      data: [{ id: 'u-1', name: 'Ana', email: 'ana@astro.com', role: 'ADMIN' }],
+      data: [{ id: 'u-1', name: 'Ana', email: 'ana@astro.com', role: 'MANAGER', status: 'ACTIVE' }],
     });
 
     const users = await usersService.listTeam();
@@ -59,9 +71,9 @@ describe('usersService', () => {
 
   it('listTeam normalizes content/data/items response variants', async () => {
     vi.mocked(api.get)
-      .mockResolvedValueOnce({ data: { content: [{ id: 'u-1', name: 'Ana', email: 'ana@astro.com', role: 'ADMIN' }] } })
-      .mockResolvedValueOnce({ data: { data: [{ id: 'u-2', name: 'Bia', email: 'bia@astro.com', role: 'MANAGER' }] } })
-      .mockResolvedValueOnce({ data: { items: [{ id: 'u-3', name: 'Cris', email: 'cris@astro.com', role: 'SELLER' }] } });
+      .mockResolvedValueOnce({ data: { content: [{ id: 'u-1', name: 'Ana', email: 'ana@astro.com', role: 'MANAGER', status: 'ACTIVE' }] } })
+      .mockResolvedValueOnce({ data: { data: [{ id: 'u-2', name: 'Bia', email: 'bia@astro.com', role: 'MANAGER', status: 'ACTIVE' }] } })
+      .mockResolvedValueOnce({ data: { items: [{ id: 'u-3', name: 'Cris', email: 'cris@astro.com', role: 'SELLER', status: 'ACTIVE' }] } });
 
     const fromContent = await usersService.listTeam();
     const fromData = await usersService.listTeam();
@@ -121,13 +133,13 @@ describe('usersService', () => {
     });
   });
 
-  it('inviteUser maps payload to /users/invite and normalizes role', async () => {
+  it('inviteUser maps seller payload to /users/invite', async () => {
     vi.mocked(api.post).mockResolvedValueOnce({ data: { id: 'u-2' } });
 
     await usersService.inviteUser({
       name: 'Vendor Test',
       email: 'vendor@astro.test',
-      role: 'VENDEDOR',
+      role: 'SELLER',
     });
 
     expect(api.post).toHaveBeenCalledWith('/users/invite', {
@@ -135,6 +147,32 @@ describe('usersService', () => {
       email: 'vendor@astro.test',
       role: 'SELLER',
     });
+  });
+
+  it('updateTeamUser maps payload to /users/:id', async () => {
+    vi.mocked(api.patch).mockResolvedValueOnce({ data: { id: 'u-2' } });
+
+    await usersService.updateTeamUser('u-2', {
+      name: 'Vendor Test',
+      email: 'vendor@astro.test',
+      phoneNumber: null,
+    });
+
+    expect(api.patch).toHaveBeenCalledWith('/users/u-2', {
+      name: 'Vendor Test',
+      email: 'vendor@astro.test',
+      phoneNumber: null,
+    });
+  });
+
+  it('suspendUser and reactivateUser call member lifecycle endpoints', async () => {
+    vi.mocked(api.patch).mockResolvedValue({ data: null });
+
+    await usersService.suspendUser('u-2');
+    await usersService.reactivateUser('u-2');
+
+    expect(api.patch).toHaveBeenCalledWith('/users/u-2/suspend');
+    expect(api.patch).toHaveBeenCalledWith('/users/u-2/reactivate');
   });
 
   it('deleteUser calls /users/:id', async () => {

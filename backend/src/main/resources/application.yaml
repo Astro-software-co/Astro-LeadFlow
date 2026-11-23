@@ -70,7 +70,8 @@ springdoc:
   packages-to-scan: com.astro.leadflow.shared
 
 app:
-  base-url: ${APP_BASE_URL:http://localhost:8080}
+  base-url: ${APP_BASE_URL:http://localhost:3001}
+  public-api-url: ${PUBLIC_API_URL:http://localhost:8080}
   auth:
     refresh-cookie:
       name: ${AUTH_REFRESH_COOKIE_NAME:astro_refresh_token}
@@ -85,10 +86,33 @@ app:
     refresh-expiration-ms: ${JWT_REFRESH_MS:900000}
   meta:
     api-url: ${META_API_URL:https://graph.facebook.com/v18.0}
-    access-token: ${META_ACCESS_TOKEN:}
-    phone-number-id: ${META_PHONE_NUMBER_ID:}
-    webhook-verify-token: ${META_WEBHOOK_TOKEN:dev-webhook-token}
-    webhook-secret: ${META_WEBHOOK_SECRET:}
+    access-token: ${META_ACCESS_TOKEN:${META_WHATSAPP_ACCESS_TOKEN:}}
+    phone-number-id: ${META_PHONE_NUMBER_ID:${META_WHATSAPP_PHONE_NUMBER_ID:}}
+    webhook-verify-token: ${META_WEBHOOK_TOKEN:${META_VERIFY_TOKEN:dev-webhook-token}}
+    webhook-secret: ${META_WEBHOOK_SECRET:${META_APP_SECRET:}}
+    webhook:
+      app-secret: ${META_APP_SECRET:${META_WEBHOOK_SECRET:}}
+      verify-token: ${META_VERIFY_TOKEN:${META_WEBHOOK_TOKEN:dev-webhook-token}}
+      api-version: ${META_WEBHOOK_API_VERSION:v18.0}
+    api:
+      mode: ${META_API_MODE:mock}
+      base-url: ${META_API_BASE_URL:https://graph.facebook.com/v18.0}
+      access-token: ${META_WHATSAPP_ACCESS_TOKEN:${META_ACCESS_TOKEN:}}
+      phone-number-id: ${META_WHATSAPP_PHONE_NUMBER_ID:${META_PHONE_NUMBER_ID:}}
+  mailhog:
+    host: ${MAILHOG_HOST:localhost}
+    port: ${MAILHOG_PORT:1025}
+    from: ${MAILHOG_FROM:no-reply@astroleadflow.local}
+  chatbot:
+    engine:
+      mode: ${CHATBOT_ENGINE_MODE:mock}
+    aws:
+      lex:
+        bot-id: ${AWS_LEX_BOT_ID:}
+        bot-alias-id: ${AWS_LEX_BOT_ALIAS_ID:}
+        locale-id: ${AWS_LEX_LOCALE_ID:pt_BR}
+      bedrock:
+        model-id: ${AWS_BEDROCK_MODEL_ID:}
   abacatepay:
     api-url: ${ABACATEPAY_API_URL:https://api.abacatepay.com/v2}
     api-key: ${ABACATEPAY_API_KEY:}
@@ -130,6 +154,17 @@ marketplace:
     redirect-uri: ${ML_REDIRECT_URI:http://localhost:8080/api/v1/auth/mercadolivre/callback}
   reconciliation:
     cron: ${MARKETPLACE_RECONCILIATION_CRON:0 0 3 * * *}
+
+meta:
+  api:
+    mode: ${META_API_MODE:mock}
+    base-url: ${META_API_BASE_URL:https://graph.facebook.com/v18.0}
+    access-token: ${META_WHATSAPP_ACCESS_TOKEN:${META_ACCESS_TOKEN:}}
+    phone-number-id: ${META_WHATSAPP_PHONE_NUMBER_ID:${META_PHONE_NUMBER_ID:}}
+  webhook:
+    app-secret: ${META_APP_SECRET:${META_WEBHOOK_SECRET:}}
+    verify-token: ${META_VERIFY_TOKEN:${META_WEBHOOK_TOKEN:dev-webhook-token}}
+    api-version: ${META_WEBHOOK_API_VERSION:v18.0}
 
 logging:
   level:

@@ -6,10 +6,11 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ExternalLink, MessageCircle, User, Phone, Loader2, Search } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { ExternalLink, MessageCircle, User, Phone, Loader2, Search, Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLeads } from '@/modules/crm';
-import { useChat } from '@/modules/communication';
+import { useBotSession, useChat, useForceBotHandoff, useSendMessage } from '@/modules/communication';
 
 function StatusBadge({ status }: { status: ChatMessageDTO['status'] }) {
   const config = {
@@ -28,10 +29,14 @@ function StatusBadge({ status }: { status: ChatMessageDTO['status'] }) {
 export default function Comunicacao() {
   const [selectedLeadId, setSelectedLeadId] = useState<string | undefined>(undefined);
   const [leadSearch, setLeadSearch] = useState('');
+  const [message, setMessage] = useState('');
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const leadsQuery = useLeads({ size: 50 });
   const chatQuery = useChat(selectedLeadId);
+  const botSessionQuery = useBotSession(selectedLeadId);
+  const forceHandoff = useForceBotHandoff(selectedLeadId);
+  const sendMessage = useSendMessage(selectedLeadId);
 
   const leads = leadsQuery.data?.content ?? [];
   const filteredLeads = leadSearch.trim()
@@ -42,6 +47,7 @@ export default function Comunicacao() {
       )
     : leads;
   const selectedLead = leads.find((l) => l.id === selectedLeadId);
+  const activeBotSession = botSessionQuery.data?.session?.status === 'ACTIVE' ? botSessionQuery.data.session : null;
 
   // Auto-scroll to bottom when chat messages change
   useEffect(() => {
@@ -53,6 +59,7 @@ export default function Comunicacao() {
 
   function renderMessage(msg: ChatMessageDTO) {
     const isOutbound = msg.direction === 'OUTBOUND';
+    const isBot = msg.senderType === 'BOT';
     const date = new Date(msg.sentAt);
     const timeStr = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
@@ -61,11 +68,26 @@ export default function Comunicacao() {
         <div
           className={cn(
             'max-w-[75%] px-4 py-2',
-            isOutbound
+            isBot
+              ? 'bg-purple-50 text-purple-950 border border-purple-100 rounded-2xl rounded-br-sm'
+              : isOutbound
               ? 'bg-primary text-primary-foreground rounded-2xl rounded-br-sm'
               : 'bg-muted text-foreground rounded-2xl rounded-bl-sm',
           )}
         >
+          {isBot && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge variant="outline" className="mb-1 border-purple-200 bg-white text-[10px] text-purple-700">
+                  🤖 Bot
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Intent: {msg.intentDetected ?? 'nao detectada'}</p>
+                <p>Engine: {msg.engineUsed ?? 'nao informada'}</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
           <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
         </div>
         <div className="flex items-center gap-1 mt-1">
@@ -73,6 +95,19 @@ export default function Comunicacao() {
           {isOutbound && <StatusBadge status={msg.status} />}
         </div>
       </div>
+    );
+  }
+
+  function handleSend() {
+    const trimmed = message.trim();
+    if (!selectedLead || !trimmed || activeBotSession) return;
+    sendMessage.mutate(
+      {
+        leadId: selectedLead.id,
+        phoneNumber: selectedLead.telefone,
+        message: trimmed,
+      },
+      { onSuccess: () => setMessage('') },
     );
   }
 
@@ -192,6 +227,25 @@ export default function Comunicacao() {
                 )}
               </div>
 
+              {activeBotSession && (
+                <div className="border-b border-purple-100 bg-purple-50 px-4 py-3 text-sm text-purple-950">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <p>
+                      Bot esta atendendo este lead — intent atual: <strong>{activeBotSession.currentIntent ?? 'n/a'}</strong> — fallback:{' '}
+                      <strong>{activeBotSession.fallbackCount}/3</strong>
+                    </p>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={forceHandoff.isPending}
+                      onClick={() => forceHandoff.mutate(activeBotSession.id)}
+                    >
+                      Forcar handoff
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               {/* Chat messages */}
               <ScrollArea ref={scrollAreaRef} className="flex-1 p-4" aria-label="Historico de mensagens">
                 {chatQuery.isLoading ? (
@@ -227,6 +281,33 @@ export default function Comunicacao() {
                   <div className="space-y-3">{chatQuery.data?.map(renderMessage)}</div>
                 )}
               </ScrollArea>
+
+              <div className="border-t border-border/50 p-4">
+                <div className="flex gap-2">
+                  <Input
+                    value={message}
+                    onChange={(event) => setMessage(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') handleSend();
+                    }}
+                    disabled={Boolean(activeBotSession) || sendMessage.isPending}
+                    placeholder={
+                      activeBotSession
+                        ? 'Bot ativo — assuma o atendimento para responder manualmente'
+                        : 'Digite uma mensagem'
+                    }
+                  />
+                  <Button
+                    type="button"
+                    size="icon"
+                    disabled={Boolean(activeBotSession) || sendMessage.isPending || !message.trim()}
+                    onClick={handleSend}
+                    aria-label="Enviar mensagem"
+                  >
+                    {sendMessage.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
             </>
           )}
         </div>

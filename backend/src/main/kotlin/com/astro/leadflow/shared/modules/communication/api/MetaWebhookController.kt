@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*
 @Tag(name = "Communication — Webhook", description = "Webhook oficial da Meta/WhatsApp")
 class MetaWebhookController(
     private val botService: BotService,
-    @Value("\${app.meta.webhook-verify-token}") private val verifyToken: String
+    @Value("\${meta.webhook.verify-token:\${app.meta.webhook-verify-token:dev-webhook-token}}") private val verifyToken: String
 ) {
 
     @GetMapping

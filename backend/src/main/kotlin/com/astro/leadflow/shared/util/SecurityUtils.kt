@@ -19,7 +19,7 @@ object SecurityUtils {
 
     fun assertOrganizationAccess(resourceOrganizationId: UUID) {
         val user = getCurrentUser()
-        if (user.role == Role.SUPER_ADMIN) return
+        if (user.role == Role.ASTRO_ADMIN) return
         if (user.organization?.id != resourceOrganizationId)
             throw AccessDeniedException("Acesso negado a recurso de outra organização.")
     }

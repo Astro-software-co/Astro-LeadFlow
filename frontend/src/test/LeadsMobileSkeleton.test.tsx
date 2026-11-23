@@ -16,6 +16,10 @@ vi.mock('@/hooks/api/useLeads', () => ({
   useLeadActivities: () => ({ data: undefined, isLoading: false }),
 }));
 
+vi.mock('@/hooks/api/useAssignableUsers', () => ({
+  useAssignableUsers: () => ({ data: [], isLoading: false }),
+}));
+
 vi.mock('@/mappers/leads.mapper', () => ({
   mapKanbanColumnToPipelineStage: vi.fn(),
 }));

@@ -59,4 +59,26 @@ describe("chatService", () => {
     expect(api.post).toHaveBeenCalledWith("/chat/send", payload);
     expect(result).toEqual(dto);
   });
+
+  it("getBotSession fetches active or latest bot session for a lead", async () => {
+    const dto = {
+      session: {
+        id: "bot-session-1",
+        leadId: "lead-1",
+        leadName: "Ana Cliente",
+        leadPhone: "+5511999999999",
+        status: "ACTIVE" as const,
+        currentIntent: "vehicle_inquiry",
+        engineUsed: "LEX",
+        fallbackCount: 1,
+        createdAt: "2026-04-13T00:00:00.000Z",
+      },
+    };
+    vi.mocked(api.get).mockResolvedValueOnce({ data: dto });
+
+    const result = await chatService.getBotSession("lead-1");
+
+    expect(api.get).toHaveBeenCalledWith("/chat/lead/lead-1/bot-session");
+    expect(result).toEqual(dto);
+  });
 });

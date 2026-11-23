@@ -3,12 +3,13 @@ package com.astro.leadflow.shared.modules.iam.service
 import com.astro.leadflow.shared.modules.iam.api.requests.ChangePasswordRequest
 import com.astro.leadflow.shared.modules.iam.api.requests.CreateUserRequest
 import com.astro.leadflow.shared.modules.iam.api.requests.UpdateNotificationsRequest
+import com.astro.leadflow.shared.modules.iam.api.requests.UpdateTeamUserRequest
 import com.astro.leadflow.shared.modules.iam.api.requests.UpdateTwoFactorRequest
 import com.astro.leadflow.shared.modules.iam.api.requests.UpdateUserRequest
 import com.astro.leadflow.shared.modules.iam.api.requests.UpdateUserRoleRequest
 import com.astro.leadflow.shared.modules.iam.api.responses.AssignableUserResponse
 import com.astro.leadflow.shared.modules.iam.api.responses.UserResponse
-import com.astro.leadflow.shared.modules.crm.api.responses.UserSummaryResponse
+import com.astro.leadflow.shared.modules.iam.api.responses.UserSummaryResponse
 import com.astro.leadflow.shared.modules.iam.domain.OrganizationRepository
 import com.astro.leadflow.shared.modules.iam.domain.Role
 import com.astro.leadflow.shared.modules.iam.domain.User
@@ -31,14 +32,16 @@ class UserService(
     private val userRepository: UserRepository,
     private val organizationRepository: OrganizationRepository,
     private val passwordEncoder: PasswordEncoder,
-    private val userMapper: UserMapper
+    private val userMapper: UserMapper,
+    private val userReferralCodeService: UserReferralCodeService
 ) {
 
-    @Transactional(readOnly = true)
+    @Transactional
     fun getMe(): UserResponse {
         val userId = SecurityUtils.getCurrentUser().id
         val user = userRepository.findById(userId)
             .orElseThrow { ResourceNotFoundException("User", userId) }
+        userReferralCodeService.ensureReferralCode(user)
         return userMapper.toResponse(user)
     }
 
@@ -91,8 +94,10 @@ class UserService(
         if (userRepository.existsByEmail(request.email))
             throw DuplicateResourceException("User", "email", request.email)
 
-        if (request.role == Role.SUPER_ADMIN)
-            throw AccessDeniedException("Role SUPER_ADMIN não pode ser atribuída via painel.")
+        assertManager()
+        if (request.role != Role.SELLER) {
+            throw AccessDeniedException("Managers podem criar apenas usuários SELLER.")
+        }
 
         val tempPassword = UUID.randomUUID().toString().replace("-", "").take(12)
         val user = userRepository.save(
@@ -106,6 +111,7 @@ class UserService(
                 status = UserStatus.PENDING_VERIFICATION
             )
         )
+        userReferralCodeService.ensureReferralCode(user)
         return userMapper.toResponse(user)
     }
 
@@ -113,6 +119,8 @@ class UserService(
     fun listOrganizationUsers(): List<UserSummaryResponse> {
         val orgId = SecurityUtils.getCurrentOrganizationId()
         return userRepository.findAllByOrganizationId(orgId)
+            .filter { user -> user.role in listOf(Role.MANAGER, Role.SELLER) }
+            .filterNot { user -> user.isAstroPlatformAdminEmail() }
             .map { user -> userMapper.toSummary(user) }
     }
 
@@ -124,6 +132,7 @@ class UserService(
             status = UserStatus.ACTIVE,
             roles = listOf(Role.SELLER, Role.MANAGER),
         )
+            .filterNot { user -> user.isAstroPlatformAdminEmail() }
             .sortedBy { it.name.lowercase() }
             .map(userMapper::toAssignable)
     }
@@ -138,9 +147,29 @@ class UserService(
     fun updateUserRole(userId: UUID, request: UpdateUserRoleRequest): UserResponse {
         val orgId = SecurityUtils.getCurrentOrganizationId()
         val user = findUserInOrg(userId, orgId)
-        if (request.role == Role.SUPER_ADMIN)
-            throw AccessDeniedException("Role SUPER_ADMIN não pode ser atribuída via painel.")
+        assertManager()
+        assertSellerTarget(user)
+        if (request.role != Role.SELLER) {
+            throw AccessDeniedException("Managers podem manter usuários apenas como SELLER.")
+        }
         user.role = request.role
+        return userMapper.toResponse(userRepository.save(user))
+    }
+
+    @Transactional
+    fun updateTeamUser(userId: UUID, request: UpdateTeamUserRequest): UserResponse {
+        val orgId = SecurityUtils.getCurrentOrganizationId()
+        val user = findUserInOrg(userId, orgId)
+        assertManager()
+        assertSellerTarget(user)
+
+        if (!user.email.equals(request.email, ignoreCase = true) && userRepository.existsByEmail(request.email)) {
+            throw DuplicateResourceException("User", "email", request.email)
+        }
+
+        user.name = request.name
+        user.email = request.email
+        user.phoneNumber = request.phoneNumber
         return userMapper.toResponse(userRepository.save(user))
     }
 
@@ -151,6 +180,8 @@ class UserService(
         if (currentUser.id == userId)
             throw InvalidOperationException("Você não pode suspender sua própria conta.")
         val user = findUserInOrg(userId, orgId)
+        assertManager()
+        assertSellerTarget(user)
         if (user.status == UserStatus.SUSPENDED)
             throw InvalidOperationException("Usuário já está suspenso.")
         user.status = UserStatus.SUSPENDED
@@ -161,6 +192,8 @@ class UserService(
     fun reactivateUser(userId: UUID): UserResponse {
         val orgId = SecurityUtils.getCurrentOrganizationId()
         val user = findUserInOrg(userId, orgId)
+        assertManager()
+        assertSellerTarget(user)
         if (user.status == UserStatus.ACTIVE)
             throw InvalidOperationException("Usuário já está ativo.")
         user.status = UserStatus.ACTIVE
@@ -174,6 +207,8 @@ class UserService(
         if (currentUser.id == userId)
             throw InvalidOperationException("Você não pode remover sua própria conta.")
         val user = findUserInOrg(userId, orgId)
+        assertManager()
+        assertSellerTarget(user)
         userRepository.delete(user)
     }
 
@@ -183,5 +218,24 @@ class UserService(
         if (!user.belongsToOrganization(orgId))
             throw AccessDeniedException("Usuário não pertence a esta organização.")
         return user
+    }
+
+    private fun assertManager() {
+        if (SecurityUtils.getCurrentUser().role != Role.MANAGER) {
+            throw AccessDeniedException("Apenas MANAGER pode gerenciar a equipe da organização.")
+        }
+    }
+
+    private fun assertSellerTarget(user: User) {
+        if (user.role != Role.SELLER) {
+            throw AccessDeniedException("Managers podem alterar apenas usuários SELLER.")
+        }
+    }
+
+    private fun User.isAstroPlatformAdminEmail(): Boolean =
+        email.equals(ASTRO_ADMIN_EMAIL, ignoreCase = true)
+
+    private companion object {
+        const val ASTRO_ADMIN_EMAIL = "admin@astro.dev"
     }
 }

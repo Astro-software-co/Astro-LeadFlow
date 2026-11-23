@@ -4,6 +4,7 @@ Historical note: este arquivo registra uma consolidacao anterior. Para o estado 
 
 Data original da analise: 2026-04-17  
 Estado revalidado em: 2026-04-20  
+Fechamento cross-phase: 2026-04-29
 Escopo: backend, frontend, integracoes, testes, e consolidacao da Phase 12
 
 ## Contexto
@@ -31,22 +32,24 @@ Esta varredura originou a Phase 12 do roadmap. Em 2026-04-20 o codigo foi cruzad
 - Cobertura zero em `users.service` e `billing-history.service`
 - Falta de execucao E2E consolidada
 
-## O que continua aberto apos a varredura
+## Fechamento posterior das pendencias nao criticas
+
+Em 2026-04-29, os itens que ainda apareciam como abertos neste snapshot foram fechados ou reclassificados como externos ao repositorio:
 
 1. **Persistencia de sessao apos refresh**
-   - estado atual: comportamento intencional de relogin
-   - pendencia: registrar se isso fica como regra oficial do produto ou sobe para v1.2
+   - fechamento: sessao restaura pelo refresh cookie httpOnly; access token continua apenas em memoria
 
 2. **Diretorio dedicado para `assignedTo`**
-   - estado atual: filtro depende do dataset carregado
-   - pendencia: criar endpoint dedicado ou aceitar a restricao atual
+   - fechamento: `GET /api/v1/users/assignable` existe e o frontend consome via `useAssignableUsers`
 
 3. **Redirect router-aware em 401**
-   - estado atual: `window.location.href`
-   - pendencia: substituir por evento consumido pelo React Router
+   - fechamento: `frontend/src/lib/api.ts` emite evento de sessao encerrada; nao ha `window.location.href` no cliente API
 
 4. **Cleanup tecnico**
-   - `hooks/use-toast.ts` ainda existe embora Sonner seja o caminho canonico
+   - fechamento: componente/dependencia Radix toast removidos; Sonner permanece canonico
+
+5. **Publicacao Notion**
+   - fechamento para repo: `docs/notion/` e pacote exportado/historico pronto; publicar em workspace e distribuicao externa
 
 ## Validacao objetiva da baseline atual
 
@@ -57,4 +60,4 @@ Esta varredura originou a Phase 12 do roadmap. Em 2026-04-20 o codigo foi cruzad
 
 ## Conclusao
 
-A varredura de 2026-04-17 esta tecnicamente fechada pela Phase 12. O que resta nao e mais uma pendencia critica de integracao ou seguranca da baseline; agora sao itens de governanca, produto e cleanup que devem ser tratados no fechamento do milestone ou promovidos para v1.2.
+A varredura de 2026-04-17 esta tecnicamente fechada pela Phase 12. A rechecagem de 2026-04-29 fechou tambem os residuos documentais e de cleanup que ainda apareciam como abertos. O unico trabalho ativo restante no roadmap e a Phase 14.

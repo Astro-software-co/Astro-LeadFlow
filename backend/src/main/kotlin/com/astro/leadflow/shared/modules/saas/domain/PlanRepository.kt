@@ -5,5 +5,5 @@ import java.util.Optional
 import java.util.UUID
 
 interface PlanRepository : JpaRepository<Plan, UUID> {
-    fun findByName(name: String): Optional<Plan>
+    fun findByCode(code: String): Optional<Plan>
 }

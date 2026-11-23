@@ -60,6 +60,20 @@ function isRefreshRequest(url?: string) {
   return typeof url === 'string' && url.includes('/auth/refresh');
 }
 
+function isAuthRequest(url?: string) {
+  return typeof url === 'string' && url.includes('/auth/');
+}
+
+function shouldAttemptSessionRefresh(status: number | undefined, url?: string): boolean {
+  if (status === 401) {
+    return true;
+  }
+
+  // Spring Security returns 403 for role-protected endpoints when an expired
+  // access token is ignored by the JWT filter and the request becomes anonymous.
+  return status === 403 && Boolean(tokenStore.accessToken) && !isAuthRequest(url);
+}
+
 // Refresh queue mechanism — prevents concurrent refresh attempts
 let isRefreshing = false;
 let failedQueue: Array<{
@@ -91,15 +105,15 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config as (typeof error.config & { _retry?: boolean }) | undefined;
 
-    if (error.response?.status === 401 && isRefreshRequest(originalRequest?.url)) {
+    if ((error.response?.status === 401 || error.response?.status === 403) && isRefreshRequest(originalRequest?.url)) {
       tokenStore.clear();
       emitAuthSessionEnded();
       return Promise.reject(error);
     }
 
-    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+    if (shouldAttemptSessionRefresh(error.response?.status, originalRequest?.url) && originalRequest && !originalRequest._retry) {
       if (isRefreshing) {
-        // Queue subsequent 401s while refresh is in progress
+        // Queue subsequent auth failures while refresh is in progress
         return new Promise<string>((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })

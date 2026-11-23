@@ -14,7 +14,10 @@ const updateVehicleMutation = {
 
 vi.mock('@/hooks/api/useVehicles', () => ({
   useVehicle: (id?: string) => useVehicleMock(id),
+  useVehiclePhotos: () => ({ data: [], refetch: vi.fn() }),
   useUpdateVehicle: () => updateVehicleMutation,
+  useDeleteVehicle: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useReorderVehiclePhotos: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }));
 
 vi.mock('@/components/modals/AddVehicleModal', () => ({

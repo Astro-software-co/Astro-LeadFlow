@@ -10,7 +10,7 @@ const profileHookResult = {
     email: 'ana@astro.com',
     phoneNumber: null,
     avatarUrl: null,
-    role: 'ADMIN',
+    role: 'MANAGER',
     organizationId: 'org-1',
     organizationName: 'Astro Motors',
   },
@@ -58,7 +58,10 @@ const subscriptionHookResult = {
   data: {
     planId: 'plan-pro',
     planName: 'Profissional',
-    monthlyPriceBrl: 299,
+    planDescription: 'Plano Profissional para operacoes com mais volume.',
+    priceBrl: 299,
+    billingCycle: 'MONTHLY' as const,
+    billingCycleLabel: 'Mensal',
     messageLimit: 1000,
     marketplaceLimit: 3,
     status: 'ACTIVE' as const,
@@ -85,6 +88,18 @@ vi.mock('@/contexts/NotificationContext', () => ({
     markAsRead: vi.fn(),
     markAllAsRead: vi.fn(),
     removeNotification: vi.fn(),
+  }),
+}));
+
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: {
+      id: 'user-1',
+      name: 'Ana Manager',
+      email: 'ana@astro.com',
+      role: 'MANAGER',
+      organizationId: 'org-1',
+    },
   }),
 }));
 
@@ -124,6 +139,10 @@ vi.mock('@/components/settings/AssinaturaTab', () => ({
   AssinaturaTab: () => <div data-testid="assinatura-tab">Assinatura tab</div>,
 }));
 
+vi.mock('@/components/settings/ReferralTab', () => ({
+  ReferralTab: () => <div data-testid="referral-tab">Referral tab</div>,
+}));
+
 describe('Configuracoes page container', () => {
   it('renders and switches tab composition from container state', async () => {
     render(
@@ -150,5 +169,9 @@ describe('Configuracoes page container', () => {
     const subBtn = screen.getByRole('button', { name: /Assinatura/i });
     fireEvent.click(subBtn);
     expect(await screen.findByTestId('assinatura-tab')).toBeInTheDocument();
-  }, 10000);
+
+    const referralsBtn = screen.getByRole('button', { name: /Indicacoes/i });
+    fireEvent.click(referralsBtn);
+    expect(await screen.findByTestId('referral-tab')).toBeInTheDocument();
+  }, 20000);
 });

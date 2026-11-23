@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Limite mensal de tokens de IA</title>
+</head>
+<body>
+  <h1>Sua organização atingiu 80% do limite mensal de tokens de IA</h1>
+  <p>
+    A organização <strong th:text="${organizationName}">Organização</strong>
+    consumiu <strong th:text="${usedTokens}">0</strong> de
+    <strong th:text="${maxTokens}">0</strong> tokens disponíveis neste mês.
+  </p>
+  <p>
+    Uso atual: <strong th:text="${usagePercent}">0</strong>%.
+  </p>
+  <p>
+    Caso o limite seja atingido, o chatbot voltará para respostas de template fixo
+    até o próximo ciclo ou ajuste de plano.
+  </p>
+</body>
+</html>
