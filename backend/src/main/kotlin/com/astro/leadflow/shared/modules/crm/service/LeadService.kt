@@ -136,13 +136,6 @@ class LeadService(
         leadRepository.save(lead)
     }
 
-    @Transactional
-    fun delete(leadId: UUID) {
-        val orgId = SecurityUtils.getCurrentOrganizationId()
-        val lead = findLeadInOrg(leadId, orgId)
-        leadRepository.delete(lead)
-    }
-
     fun findLeadInOrg(leadId: UUID, orgId: UUID): Lead =
         leadRepository.findByOrganizationIdAndId(orgId, leadId)
             .orElseThrow { ResourceNotFoundException("Lead", leadId) }

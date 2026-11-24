@@ -189,18 +189,4 @@ class LeadController(
         @PathVariable id: UUID,
         @Valid @RequestBody request: AssignLeadRequest
     ): LeadResponse = assignmentService.assignTo(id, request.userId)
-
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Operation(summary = "Remove lead permanentemente")
-    @ApiResponses(
-        ApiResponse(responseCode = "204", description = "Lead removido com sucesso"),
-        ApiResponse(responseCode = "401", description = "Não autenticado"),
-        ApiResponse(responseCode = "403", description = "Sem permissão para remover leads"),
-        ApiResponse(responseCode = "404", description = "Lead não encontrado"),
-        ApiResponse(responseCode = "500", description = "Erro interno do servidor")
-    )
-    @PreAuthorize("hasRole('MANAGER')")
-    fun delete(@PathVariable id: UUID) =
-        leadService.delete(id)
 }
