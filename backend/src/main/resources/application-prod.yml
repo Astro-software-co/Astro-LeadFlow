@@ -55,9 +55,6 @@ marketplace:
   reconciliation:
     enabled: ${MARKETPLACE_RECONCILIATION_ENABLED:false}
     cron: ${MARKETPLACE_RECONCILIATION_CRON:0 0 3 * * *}
-  webmotors:
-    client-id: ${WEBMOTORS_CLIENT_ID:}
-    client-secret: ${WEBMOTORS_CLIENT_SECRET:}
   mercadolivre:
     app-id: ${ML_APP_ID:}
     client-secret: ${ML_CLIENT_SECRET:}

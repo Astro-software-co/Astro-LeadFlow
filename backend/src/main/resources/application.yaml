@@ -140,11 +140,6 @@ app:
 
 marketplace:
   webhook-token: ${MARKETPLACE_WEBHOOK_TOKEN:}
-  webmotors:
-    base-url: ${WEBMOTORS_BASE_URL:https://api-webmotors.sensedia.com}
-    oauth-url: ${WEBMOTORS_OAUTH_URL:https://api-webmotors.sensedia.com/oauth/v1/access-token}
-    client-id: ${WEBMOTORS_CLIENT_ID:}
-    client-secret: ${WEBMOTORS_CLIENT_SECRET:}
   mercadolivre:
     base-url: ${ML_BASE_URL:https://api.mercadolibre.com}
     oauth-url: ${ML_OAUTH_URL:https://api.mercadolibre.com/oauth/token}

@@ -30,25 +30,6 @@ class MarketplaceCredential(
     @Column(name = "last_reconciled_at")
     var lastReconciledAt: LocalDateTime? = null,
 
-    // Webmotors
-    @Column(name = "wm_client_id")
-    var wmClientId: String? = null,
-
-    @Column(name = "wm_client_secret")
-    var wmClientSecret: String? = null,
-
-    @Column(name = "wm_access_token")
-    var wmAccessToken: String? = null,
-
-    @Column(name = "wm_token_expires_at")
-    var wmTokenExpiresAt: LocalDateTime? = null,
-
-    @Column(name = "wm_integrator_email")
-    var wmIntegratorEmail: String? = null,
-
-    @Column(name = "wm_cnpj", length = 20)
-    var wmCnpj: String? = null,
-
     // Mercado Livre
     @Column(name = "ml_app_id")
     var mlAppId: String? = null,

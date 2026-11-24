@@ -4,6 +4,8 @@
 
 ## 1. Webmotors
 
+> **Modelo adotado (2026-11-23):** consulta por **polling** (*password grant* + `GET /lead/v1/leads` + aceite/recusa), conforme a collection Postman. Não há webhook Webmotors no sistema. Implementação: `docs/integrations/webmotors.md`.
+
 | Tema | O que encontrei | Fonte |
 |---|---|---|
 | Quem acessa | O app se registra no Portal do Desenvolvedor (Sensedia) e recebe Client ID/Secret. O **lojista** cria no Cockpit CRM um usuário com perfil "Integrador de API" (um por loja) e entrega e-mail e senha ao parceiro. | [Autenticação](https://portal-webmotors.sensedia.com/api-portal/documentacao/autenticacao), [Inclusão de Leads](https://portal-webmotors.sensedia.com/api-portal/documentacao/insercao-de-leads) |
@@ -55,12 +57,12 @@
 |---|---|---|---|
 | 1 | **Com `APP_AWS_ENABLED=false` (padrão), webhooks de marketplace são gravados e nunca processados.** O producer retorna `null` e o `MarketplaceLeadConsumer` só existe com `app.aws.enabled=true`. A ingestão de marketplace só funciona com SQS. | `MarketplaceSqsProducer.publishMarketplaceLead`, `MarketplaceLeadConsumer` (`@ConditionalOnProperty`) | Alta |
 | 2 | **Autenticação do webhook por `X-Webhook-Token`.** Não achei na doc do ML como configurar header customizado na callback URL (só a URL). Com o token configurado, notificações reais do ML podem receber 401. Com o token vazio, o endpoint fica aberto (`return true`). Webmotors: **[NC]**. A doc de segurança do ML cita HMAC. | `MarketplaceWebhookController.validateToken` | Alta |
-| 3 | **Webmotors assumido como webhook, mas só achei API de consulta.** O fetcher diz "exclusivamente webhook-driven" e `fetchLeadsSince` retorna lista vazia. Se não houver push, nenhum lead Webmotors entra. | `WebmotorsLeadFetcher`, `MarketplaceReconciliationJob` (só ML) | Alta |
+| 3 | ~~**Webmotors assumido como webhook, mas só achei API de consulta.**~~ **Resolvido (2026-11-23, change `webmotors-leads-polling`):** a Webmotors entra só por polling da API de Consulta de Leads (módulo `integrations/webmotors`); o webhook, o `WebmotorsLeadFetcher` e o `WebmotorsAuthService` do `ingestion` foram removidos. | `integrations/webmotors` | — |
 | 4 | **Refresh token do ML é rotativo e de uso único.** Dois fluxos simultâneos (consumer e job das 3h) podem refrescar a mesma credencial e invalidar o token. Não há lock nem transação por credencial. Se o refresh falhar com `invalid_grant`, não há reautorização guiada. | `MercadoLivreAuthService.refreshToken` | Média |
 | 5 | **Lead sem telefone é descartado.** `normalize` lança exceção; o consumer faz `throw e` e o SQS reentrega até a DLQ. Contatos `question` do ML podem vir sem telefone **[NC]**. Não há caminho "sem WhatsApp" (e-mail, ou criar lead com status pendente). | `LeadNormalizationService.normalize`, `MarketplaceLeadConsumer` | Média |
 | 6 | **ML: marca, modelo e ano ficam `null`.** O `vehicleInterest` vira só o `contactType`, o que deixa o lead pouco acionável. Os dados ficam no anúncio (`item_id`); buscar o item é provável solução, **[NC]** nesta pesquisa. | `MercadoLivreLeadFetcher` | Média |
 | 7 | **Webhook ML engole exceções e responde 200.** Se o SQS falhar, o evento fica sem fila e só a reconciliação do ML o recupera (e ela vem desligada por padrão). Para Webmotors não há recuperação. | `receiveMercadoLivre`, `marketplace.reconciliation.enabled` | Média |
-| 8 | **Resolução da organização.** Webmotors depende de `Organization.cnpj` casando com o `Cnpj` do webhook (formatação com ou sem máscara pode divergir). ML depende de `mlUserId` salvo no OAuth. | `resolveOrganization` | Média |
+| 8 | **Resolução da organização.** ML depende de `mlUserId` salvo no OAuth. (A Webmotors não usa mais webhook: a conta é por organização em `webmotors_accounts` e o `store_id` filtra os leads.) | `resolveOrganization` | Média |
 | 9 | **Deduplicação só por telefone** na organização, independente do marketplace ou do veículo. | `LeadIngestionService` | Baixa |
 | 10 | **Meta: versão v18.0 fixa** em dois blocos de config e no cliente. | `application.yaml`, `RealMetaApiClient` | Média |
 | 11 | **Meta: `sendTemplate` é chamado só com o nome**; sem `components`, o `welcome_lead` precisa ser um template sem variáveis. Se o template aprovado tiver variáveis (nome, veículo), o envio falha. | `MessageSenderService.sendTemplate` | Média |
@@ -89,7 +91,7 @@
 | 3 | Gap 4: serializar o refresh por credencial. |
 | 4 | Gap 5 e 6: aceitar lead sem telefone e buscar os dados do anúncio no ML. |
 | 5 | Gap 10 a 12: subir a versão da Graph API, parametrizar `components` e testar o webhook com um POST assinado real. |
-| 6 | Gap 3: depende da resposta da Webmotors (push ou polling). Se for pull, criar um job de polling análogo ao do ML. |
+| 6 | ~~Gap 3~~: resolvido — polling em `integrations/webmotors` (ver `docs/integrations/webmotors.md`). |
 | 7 | Gap 13: criptografar credenciais em repouso. |
 
 ## 6. Perguntas abertas

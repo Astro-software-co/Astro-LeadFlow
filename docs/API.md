@@ -121,6 +121,5 @@ Filtros relevantes de `GET /leads`:
 | `PATCH` | `/organization/whatsapp` |
 | `GET` | `/auth/mercadolivre/connect` |
 | `GET` | `/auth/mercadolivre/callback` |
-| `POST` | `/webhooks/webmotors` |
 | `POST` | `/webhooks/mercadolivre` |
 | `POST` | `/webhooks/scraper` |

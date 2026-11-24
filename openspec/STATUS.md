@@ -12,7 +12,8 @@ Fotografia mantida junto das specs. O comportamento implementado está em `opens
 | Billing (Abacate Pay) | Implementado, só testado com mocks | `specs/billing-abacatepay`, change `abacatepay-sandbox-validation` |
 | Chatbot | Funcional em mock; slots gravam no Lead, handoff com histórico, atendimento 24h | `specs/chatbot-qualification`, change `lex-real-engine` |
 | WhatsApp (Meta) | Mock; nunca validado contra a Meta real | `specs/whatsapp-communication`, change `meta-whatsapp-real` |
-| Ingestão Webmotors / Mercado Livre | Código existe com falhas conhecidas | `specs/lead-ingestion`, change `ingestion-hardening` |
+| Ingestão Webmotors (polling) | Implementado em `integrations/webmotors`; não homologado com a Webmotors real (suposições H1–H13) | change `webmotors-leads-polling` |
+| Ingestão Mercado Livre | Código existe com falhas conhecidas | `specs/lead-ingestion`, change `ingestion-hardening` |
 | E-mail em produção | Só MailHog | change `email-ses-prod` |
 | CI/CD e deploy AWS | Scaffold em standby, nada executado | change `aws-deploy-activation` |
 | Perfil `prod` | Criado, boot não testado | `backend/src/main/resources/application-prod.yml` |
@@ -38,7 +39,7 @@ Decidir antes de implementar a change indicada.
 |---|---|---|---|
 | 1 | Lead sem telefone: criar como pendente? Quem trata? | Descartado (vai à DLQ) | `ingestion-hardening` |
 | 2 | Chave de duplicidade: só telefone ou telefone mais veículo? | Só telefone | `ingestion-hardening` |
-| 3 | Webmotors entrega por push ou só por consulta? | Código assume push | `ingestion-hardening` |
+| 3 | ~~Webmotors entrega por push ou só por consulta?~~ | **Resolvida (2026-11-23):** só consulta; polling em `integrations/webmotors`, legado por webhook removido | `webmotors-leads-polling` |
 | 4 | Horário comercial por organização e mensagem de handoff fora do horário | Fixo 9h–18h, sem aviso ao cliente | `lex-real-engine` |
 | 5 | Quem absorve o custo das mensagens da Meta (limite do plano ou repasse)? `welcome_lead` como UTILITY ou MARKETING? | Indefinido | `meta-whatsapp-real` |
 | 6 | O que acontece com a organização em `PAST_DUE` (manter, limitar, bloquear)? | Só muda o status | `abacatepay-sandbox-validation` |

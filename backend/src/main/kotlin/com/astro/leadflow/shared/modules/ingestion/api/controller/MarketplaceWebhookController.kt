@@ -1,7 +1,6 @@
 package com.astro.leadflow.shared.modules.ingestion.api.controller
 
 import com.astro.leadflow.shared.modules.ingestion.api.requests.MercadoLivreWebhookRequest
-import com.astro.leadflow.shared.modules.ingestion.api.requests.WebmotorsWebhookRequest
 import com.astro.leadflow.shared.modules.ingestion.domain.MarketplaceLeadEvent
 import com.astro.leadflow.shared.modules.ingestion.domain.MarketplaceWebhookEvent
 import com.astro.leadflow.shared.modules.ingestion.domain.MarketplaceWebhookEventRepository
@@ -20,7 +19,9 @@ import org.springframework.web.bind.annotation.*
 /**
  * Estratégia de autenticação: API Key estática por ambiente (header X-Webhook-Token).
  *
- * Motivo: Webmotors e Mercado Livre não documentam suporte a HMAC-SHA256 em seus
+ * A Webmotors não usa webhook: entra por polling (módulo integrations/webmotors).
+ *
+ * Motivo: o Mercado Livre não documenta suporte a HMAC-SHA256 em seus
  * webhooks de leads. HMAC (opção a) não é viável. IP allowlist (opção c) é frágil
  * pois os IPs de origem podem mudar sem aviso. A API Key estática (opção b) é a
  * abordagem mais prática: simples de configurar no painel do marketplace e segura
@@ -39,49 +40,6 @@ class MarketplaceWebhookController(
 
     companion object {
         private const val TOKEN_HEADER = "X-Webhook-Token"
-    }
-
-    @PostMapping("/webmotors")
-    @Operation(summary = "Webhook Webmotors — recebe notificação de lead")
-    fun receiveWebmotors(
-        @RequestHeader(TOKEN_HEADER, required = false) token: String?,
-        @RequestBody payload: WebmotorsWebhookRequest
-    ): ResponseEntity<Unit> {
-        if (!validateToken(token)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
-        }
-
-        return try {
-            val rawJson = objectMapper.writeValueAsString(payload)
-
-            val event = webhookEventRepository.save(
-                MarketplaceWebhookEvent(
-                    marketplaceType = MarketplaceType.WEBMOTORS,
-                    externalLeadId = payload.idLead,
-                    rawPayload = rawJson
-                )
-            )
-
-            val leadEvent = MarketplaceLeadEvent(
-                marketplaceType = MarketplaceType.WEBMOTORS,
-                externalLeadId = payload.idLead,
-                cnpj = payload.cnpj,
-                leadTypeId = payload.idTipoLead,
-                webhookEventId = event.id
-            )
-
-            val msgId = sqsProducer.publishMarketplaceLead(leadEvent)
-
-            event.status = WebhookEventStatus.QUEUED
-            event.sqsMessageId = msgId
-            webhookEventRepository.save(event)
-
-            log.info("Webhook Webmotors recebido e enfileirado. leadId={} cnpj={}", payload.idLead, payload.cnpj)
-            ResponseEntity.ok().build()
-        } catch (e: Exception) {
-            log.error("Erro ao processar webhook Webmotors. payload={} error={}", payload, e.message, e)
-            ResponseEntity.ok().build()
-        }
     }
 
     @PostMapping("/mercadolivre")

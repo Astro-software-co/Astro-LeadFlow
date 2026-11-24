@@ -192,10 +192,10 @@ L8 (devolver mudança de etapa do Kanban à Webmotors com `/status`; o cliente j
 ### 7.5 Como validar
 Testes em `backend/src/test/kotlin/.../integrations/webmotors/` (47): cifra, extrator, cliente HTTP (sem rede), sync, importador, decisões, lease, adaptador e repositórios em H2.
 
-## 8. Relação com o fluxo por webhook que já existe na `develop`
+## 8. Fluxo legado por webhook (removido)
 
-A `develop` já traz uma integração Webmotors **por webhook** (módulo `ingestion`: `MarketplaceWebhookController`, `WebmotorsLeadFetcher`, `WebmotorsAuthService`, tabela `marketplace_credentials`, reconciliação diária). Ela assume outro contrato da Webmotors: notificação `IdLead/Cnpj/IdTipoLead`, auth em dois passos com e-mail do integrador e detalhe em `/leads/v1/{id}`.
+A `develop` trazia uma integração Webmotors **por webhook** no módulo `ingestion` (`POST /api/v1/webhooks/webmotors`, `WebmotorsLeadFetcher`, `WebmotorsAuthService`, colunas `wm_*` em `marketplace_credentials`, propriedades `marketplace.webmotors.*`). Ela assumia outro contrato (notificação `IdLead/Cnpj/IdTipoLead`, auth em dois passos, detalhe em `/leads/v1/{id}`) que não aparece na collection e nunca rodou contra a Webmotors real.
 
-O módulo deste documento implementa a **API de Consulta de Leads** (a do formulário/collection Postman): *password grant*, polling em `/lead/v1/leads` e aceite/recusa. São contratos distintos e hoje coexistem sem se tocar: tabelas separadas (`V19` vs `V3`), nenhum bean compartilhado, rotas diferentes (`/api/v1/integrations/webmotors` vs `/api/v1/webhooks/webmotors`).
+**Decisão D1 (2026-11-23): polling é o único caminho.** O fluxo legado foi removido (T1.6): endpoint, request, fetcher, auth service e seus testes apagados; colunas `wm_*` removidas na `V20__drop_legacy_webmotors_credentials.sql`; propriedades e variáveis `WEBMOTORS_BASE_URL/OAUTH_URL/CLIENT_ID/CLIENT_SECRET` retiradas. Continuam: `MarketplaceType.WEBMOTORS` (cota, `marketplace_configs`, origem do lead) e `Organization.cnpj`.
 
-Pendente de decisão: se os dois fluxos serão mantidos (e como evitar o mesmo lead entrar duas vezes, já que o dedupe é por telefone no CRM e por id externo em cada fluxo) ou se um substitui o outro depois da homologação. A migration deste módulo é `V19__webmotors_leads_polling.sql` (renomeada de `V5` no merge com a `develop`, que já ocupa `V1`–`V18`).
+A migration deste módulo é `V19__webmotors_leads_polling.sql` (renomeada de `V5` no merge com a `develop`, que já ocupa `V1`–`V18`).

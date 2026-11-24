@@ -122,7 +122,6 @@ O endpoint retorna as colunas com os leads agrupados por etapa, otimizado para r
 | Método | Endpoint | Descrição |
 |---|---|---|
 | `POST` | `/webhooks/meta` | Receber eventos do Meta (WhatsApp Business) |
-| `POST` | `/webhooks/webmotors` | Receber leads do Webmotors |
 | `POST` | `/webhooks/mercadolivre` | Receber leads do Mercado Livre |
 
 **Segurança dos webhooks:**

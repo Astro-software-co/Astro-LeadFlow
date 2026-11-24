@@ -409,12 +409,6 @@ const groups = [
       }, noAuth, [param('webhookSecret', '{{ _.abacatepay_webhook_secret }}')]),
       get('Mercado Livre Connect URL', '/api/v1/auth/mercadolivre/connect', [param('organizationId', '{{ _.organization_id }}')]),
       get('Mercado Livre OAuth Callback', '/api/v1/auth/mercadolivre/callback', [param('code', 'auth-code-from-ml'), param('state', '{{ _.organization_id }}:nonce')], noAuth),
-      post('Webhook Webmotors', '/api/v1/webhooks/webmotors', {
-        IdLead: 'wm-lead-001',
-        CodigoCliente: 'cliente-123',
-        Cnpj: '12345678000190',
-        IdTipoLead: 1,
-      }, noAuth, [], [{ name: 'X-Webhook-Token', value: '{{ _.webhook_token }}' }]),
       post('Webhook Mercado Livre', '/api/v1/webhooks/mercadolivre', {
         _id: 'ml-notification-001',
         resource: '/vis/leads/ml-lead-001',

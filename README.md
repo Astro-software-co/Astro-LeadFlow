@@ -126,7 +126,6 @@ Alguns endpoints relevantes:
 - `GET /admin/observability/chatbot-insights`
 - `GET /admin/observability/infrastructure`
 - `POST /webhooks/meta`
-- `POST /webhooks/webmotors`
 - `POST /webhooks/mercadolivre`
 
 ## Autenticacao e sessao
