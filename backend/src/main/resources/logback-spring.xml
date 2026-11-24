@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
+    <!-- Máscara de PII e segredos (T1.5): %maskedMsg e %maskedEx substituem %msg e o stack trace. -->
+    <conversionRule conversionWord="maskedMsg" converterClass="com.astro.leadflow.shared.config.PiiMaskingConverter" />
+    <conversionRule conversionWord="maskedEx" converterClass="com.astro.leadflow.shared.config.PiiMaskingThrowableConverter" />
+
     <!-- ── Console appender (dev/default) ─────────────────────────────────── -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} [%X{correlationId:-}] [%X{orgId:-}] - %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} [%X{correlationId:-}] [%X{orgId:-}] - %maskedMsg%n%maskedEx</pattern>
         </encoder>
     </appender>
 

@@ -4,6 +4,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.classic.spi.IThrowableProxy
 import com.astro.leadflow.shared.modules.monitoring.domain.entity.ApplicationError
 import com.astro.leadflow.shared.modules.monitoring.domain.enums.LogLevel
+import com.astro.leadflow.shared.util.PiiMasker
 import org.springframework.stereotype.Component
 import java.util.UUID
 
@@ -24,8 +25,9 @@ class ApplicationErrorWriter(
                 loggerName = event.loggerName,
                 correlationId = mdc["correlationId"] ?: mdc["correlation-id"],
                 organizationId = parseUuid(mdc["orgId"] ?: mdc["organizationId"]),
-                message = event.formattedMessage.take(4000),
-                stackTrace = event.throwableProxy?.toStackTraceString(),
+                // O appender não tem layout: a máscara de PII é aplicada aqui antes de persistir.
+                message = PiiMasker.redact(event.formattedMessage).take(4000),
+                stackTrace = event.throwableProxy?.toStackTraceString()?.let(PiiMasker::redact),
                 requestPath = mdc["requestPath"],
                 requestMethod = mdc["requestMethod"],
                 userId = parseUuid(mdc["userId"])
