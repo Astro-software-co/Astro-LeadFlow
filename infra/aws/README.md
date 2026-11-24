@@ -3,6 +3,7 @@
 Automação que cria tudo o que o deploy precisa. **Passo a passo completo:** [`docs/DEPLOY-AWS-STAGING.md`](../../docs/DEPLOY-AWS-STAGING.md).
 
 ```bash
+./infra/aws/preflight.sh                                # só leitura: mostra quem você é e descobre travas da conta/organização
 cp infra/aws/config.env.example infra/aws/config.env   # ajuste GH_REPO, BUDGET_EMAIL etc.
 ./infra/aws/bootstrap.sh --dry-run                      # mostra o que seria criado, sem alterar nada
 ./infra/aws/bootstrap.sh                                # cria (idempotente; pode rodar de novo)

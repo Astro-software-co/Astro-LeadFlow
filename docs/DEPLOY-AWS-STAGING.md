@@ -45,9 +45,28 @@ Segredos: SSM Parameter Store (/leadflow/staging/*) ──► .env gerado a cada
 
 ### 3.1 Segurança da conta (faça ANTES de qualquer coisa)
 1. **Usuário raiz:** ativar **MFA** e **não usar** no dia a dia (nem criar chaves de acesso para ele).
-2. Criar um **usuário administrador** (IAM Identity Center é o ideal; IAM user com MFA serve) e usar **credenciais temporárias**: `aws configure sso` → `aws sso login --profile leadflow-admin`. Evite chaves de longa duração.
+2. **Credenciais temporárias, nunca chaves de longa duração.** Duas formas:
+   - **IAM Identity Center (SSO)** + `aws configure sso`, se a conta for independente e você puder habilitá-lo; ou
+   - **AWS CloudShell** (seção 3.2), que já vem autenticada com a sua sessão do console. **Use esta se o Identity Center for bloqueado** (ex.: `explicit deny in a service control policy` em `sso:CreateInstance`, comum em conta-membro de uma Organization).
 3. Em *Billing → Account → IAM user and role access to Billing information*: **ativar**, senão o passo do orçamento falha para usuários não raiz.
-4. Conferir se a conta está sob o plano de uso esperado (free tier/créditos) e que o e-mail de cobrança é lido por alguém.
+4. Conferir se o e-mail de cobrança é lido por alguém.
+
+### 3.2 Alternativa sem SSO: rodar pelo CloudShell
+O CloudShell (ícone `>_` na barra superior do console, região **us-east-1**) já tem o AWS CLI, `git` e `jq`, e usa as permissões da sua sessão atual.
+1. No GitHub, abra a branch `claude/marketplace-integrations-ynztxc` → **Code → Download ZIP** (sem tokens).
+2. No CloudShell: **Actions → Upload file** e envie o ZIP. Depois:
+   ```bash
+   unzip -q Astro-LeadFlow-*.zip && cd Astro-LeadFlow-*/
+   cp infra/aws/config.env.example infra/aws/config.env && nano infra/aws/config.env   # GH_REPO e BUDGET_EMAIL; deixe AWS_PROFILE vazio
+   bash infra/aws/preflight.sh          # descobre travas da conta/organização (só leitura)
+   bash infra/aws/bootstrap.sh --dry-run
+   bash infra/aws/bootstrap.sh
+   ```
+   (Use `bash ...` porque o ZIP perde o bit de execução.)
+3. O passo 7 (GitHub) imprime as variáveis para você cadastrar à mão, pois o CloudShell não tem `gh` autenticado.
+4. O CloudShell encerra por inatividade; o script é idempotente, basta rodar de novo.
+
+> **Conta-membro de uma Organization:** políticas de controle (SCP) podem negar serviços ou ações (ex.: criação de provedor OIDC, instâncias grandes, regiões). O `preflight.sh` mostra o que for bloqueado; o que não puder ser liberado por você precisa ser pedido ao administrador da organização.
 
 ## 4. Criar a infraestrutura
 

@@ -24,6 +24,9 @@ echo "Região    : $AWS_REGION"
 echo "Ambiente  : $ENVNAME   (repo GitHub: $GH_REPO)"
 echo "Instância : $INSTANCE_TYPE   Bucket: $BUCKET"
 [[ "${DRY_RUN:-0}" == "1" ]] && echo ">>> DRY RUN: nada será alterado <<<"
+echo; echo "--- checagem prévia (somente leitura) ---"
+bash "$DIR/preflight.sh" || true
+echo "-----------------------------------------"
 if [[ "$ASSUME_YES" != "1" && "${DRY_RUN:-0}" != "1" ]]; then
   read -r -p "Criar/atualizar os recursos acima nesta conta? [digite 'sim'] " ans
   [[ "$ans" == "sim" ]] || { echo "cancelado"; exit 1; }
