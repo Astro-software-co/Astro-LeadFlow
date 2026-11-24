@@ -72,3 +72,10 @@ out/
 .codex
 CLAUDE.md
 .claude
+
+# AWS: configuração local e estado dos scripts (contêm IDs da conta; nunca commitar)
+infra/aws/config.env
+infra/aws/.state/
+
+infra/aws/*.generated
+infra/aws/*.generated.env
