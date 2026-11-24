@@ -57,7 +57,7 @@ Contrato de sessao:
 | `PATCH` | `/leads/{id}/archive` | arquiva |
 | `PATCH` | `/leads/{id}/assume` | usuario assume o lead |
 | `PATCH` | `/leads/{id}/assign` | admin/manager atribui lead |
-| `DELETE` | `/leads/{id}` | remove |
+| `DELETE` | `/leads/{id}?includeSamePhone=&reason=` | exclusão manual irreversível (`MANAGER`): card, mensagens, sessões do bot e propostas vinculadas; eventos de marketplace ficam sem vínculo. Para manter métricas, use a anonimização |
 | `GET` | `/kanban/board` | board agrupado por coluna |
 
 Filtros relevantes de `GET /leads`:
@@ -113,6 +113,15 @@ Filtros relevantes de `GET /leads`:
 | `POST` | `/saas/marketplaces` | `ADMIN` |
 | `PATCH` | `/saas/marketplaces/{id}` | `ADMIN` |
 | `DELETE` | `/saas/marketplaces/{id}` | `ADMIN` |
+
+## Privacidade (LGPD) — somente `MANAGER`
+
+| Metodo | Rota | Observacao |
+|---|---|---|
+| `POST` | `/privacy/requests` | `{type: ANONYMIZATION\|ACCESS\|CORRECTION\|DELETION, identifier, channel?, receivedAt?}`; guarda só HMAC e dica; prazo `privacy.sla-days` (15) |
+| `GET` | `/privacy/requests?status=` | lista com `overdue` |
+| `POST` | `/privacy/requests/{id}/execute` | `{identifier, resultSummary?}`; identificador divergente → 422; anonimização e exclusão são irreversíveis |
+| `POST` | `/privacy/requests/{id}/reject` | `{reason}` |
 
 ## Integracoes
 

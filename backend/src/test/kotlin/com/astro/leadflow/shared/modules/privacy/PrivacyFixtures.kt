@@ -39,11 +39,13 @@ class PrivacyFixtures(private val jdbc: JdbcTemplate) {
     }
 
     fun inbox(org: UUID, lead: UUID): UUID {
-        val account = UUID.randomUUID()
-        jdbc.update(
-            "INSERT INTO webmotors_accounts (id, organization_id, client_id_enc, client_secret_enc, username_enc, password_enc) VALUES (?, ?, 'a', 'b', 'c', 'd')",
-            account, org
-        )
+        val account = jdbc.queryForList("SELECT id FROM webmotors_accounts WHERE organization_id = ?", UUID::class.java, org)
+            .firstOrNull() ?: UUID.randomUUID().also {
+            jdbc.update(
+                "INSERT INTO webmotors_accounts (id, organization_id, client_id_enc, client_secret_enc, username_enc, password_enc) VALUES (?, ?, 'a', 'b', 'c', 'd')",
+                it, org
+            )
+        }
         return UUID.randomUUID().also {
             jdbc.update(
                 "INSERT INTO webmotors_lead_inbox (id, organization_id, account_id, external_id, status, message, raw_payload, lead_id) VALUES (?, ?, ?, ?, 'IMPORTED', 'Tenho interesse', '{}', ?)",

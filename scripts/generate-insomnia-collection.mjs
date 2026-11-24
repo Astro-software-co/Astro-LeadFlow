@@ -24,6 +24,7 @@ const envData = {
   user_id: '00000000-0000-0000-0000-000000000000',
   seller_user_id: '00000000-0000-0000-0000-000000000000',
   lead_id: '00000000-0000-0000-0000-000000000000',
+  privacy_request_id: '00000000-0000-0000-0000-000000000000',
   vehicle_id: '00000000-0000-0000-0000-000000000000',
   vehicle_photo_id: '00000000-0000-0000-0000-000000000000',
   plan_id: '00000000-0000-0000-0000-000000000000',
@@ -195,7 +196,18 @@ const groups = [
       patch('Archive Lead', '/api/v1/leads/{{ _.lead_id }}/archive', null),
       patch('Assume Lead', '/api/v1/leads/{{ _.lead_id }}/assume', null),
       patch('Assign Lead', '/api/v1/leads/{{ _.lead_id }}/assign', { userId: '{{ _.seller_user_id }}' }),
-      del('Delete Lead', '/api/v1/leads/{{ _.lead_id }}'),
+      del('Delete Lead (irreversivel; ?includeSamePhone=true exclui os outros cards do telefone)', '/api/v1/leads/{{ _.lead_id }}?includeSamePhone=false&reason=Pedido%20do%20cliente'),
+    ],
+  },
+  {
+    id: 'privacy',
+    name: '04b Privacidade (LGPD)',
+    description: 'Solicitacoes de titulares (MANAGER). O identificador nao e gravado; a execucao exige o identificador de novo.',
+    requests: [
+      post('Create Data Subject Request', '/api/v1/privacy/requests', { type: 'ANONYMIZATION', identifier: '+5511900000000', channel: 'EMAIL' }),
+      get('List Data Subject Requests', '/api/v1/privacy/requests', [param('status', 'RECEIVED', true)]),
+      post('Execute Data Subject Request', '/api/v1/privacy/requests/{{ _.privacy_request_id }}/execute', { identifier: '+5511900000000' }),
+      post('Reject Data Subject Request', '/api/v1/privacy/requests/{{ _.privacy_request_id }}/reject', { reason: 'Identidade nao confirmada pela controladora.' }),
     ],
   },
   {

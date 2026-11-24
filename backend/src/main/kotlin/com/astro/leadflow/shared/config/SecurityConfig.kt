@@ -75,6 +75,7 @@ class SecurityConfig(
 
                     // ── Integrações de marketplace (somente MANAGER) ─
                     .requestMatchers("/api/v1/integrations/**").hasRole("MANAGER")
+                    .requestMatchers("/api/v1/privacy/**").hasRole("MANAGER")
 
                     // ── APIs de concessionária ─────────────────────
                     .requestMatchers(

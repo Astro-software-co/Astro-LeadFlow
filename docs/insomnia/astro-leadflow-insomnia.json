@@ -1,14 +1,14 @@
 {
   "_type": "export",
   "__export_format": 4,
-  "__export_date": "2026-11-24T00:29:12.055Z",
+  "__export_date": "2026-11-24T02:40:34.982Z",
   "__export_source": "Astro LeadFlow generated Insomnia collection",
   "resources": [
     {
       "_id": "wrk_astro_leadflow",
       "parentId": null,
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "name": "Astro LeadFlow API",
       "description": "Colecao completa de endpoints do backend Astro LeadFlow, organizada por modulo.",
       "scope": "collection",
@@ -17,8 +17,8 @@
     {
       "_id": "env_astro_leadflow_base",
       "parentId": "wrk_astro_leadflow",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "name": "Base Environment",
       "data": {
         "base_url": "http://localhost:8080",
@@ -34,6 +34,7 @@
         "user_id": "00000000-0000-0000-0000-000000000000",
         "seller_user_id": "00000000-0000-0000-0000-000000000000",
         "lead_id": "00000000-0000-0000-0000-000000000000",
+        "privacy_request_id": "00000000-0000-0000-0000-000000000000",
         "vehicle_id": "00000000-0000-0000-0000-000000000000",
         "vehicle_photo_id": "00000000-0000-0000-0000-000000000000",
         "plan_id": "00000000-0000-0000-0000-000000000000",
@@ -60,6 +61,7 @@
           "user_id",
           "seller_user_id",
           "lead_id",
+          "privacy_request_id",
           "vehicle_id",
           "vehicle_photo_id",
           "plan_id",
@@ -80,8 +82,8 @@
     {
       "_id": "fld_auth",
       "parentId": "wrk_astro_leadflow",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "name": "00 Auth & Sessao",
       "description": "Login, refresh, 2FA, registro e logout.",
       "environment": {},
@@ -116,8 +118,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_auth",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 0
     },
     {
@@ -147,8 +149,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_auth",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 1
     },
     {
@@ -178,8 +180,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_auth",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 2
     },
     {
@@ -209,8 +211,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_auth",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 3
     },
     {
@@ -244,15 +246,15 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_auth",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 4
     },
     {
       "_id": "fld_iam_users",
       "parentId": "wrk_astro_leadflow",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "name": "01 IAM - Usuarios",
       "description": "Perfil, equipe, RBAC e preferencias de usuario.",
       "environment": {},
@@ -283,8 +285,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_iam_users",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 0
     },
     {
@@ -318,8 +320,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_iam_users",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 1
     },
     {
@@ -353,8 +355,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_iam_users",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 2
     },
     {
@@ -388,8 +390,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_iam_users",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 3
     },
     {
@@ -423,8 +425,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_iam_users",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 4
     },
     {
@@ -450,8 +452,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_iam_users",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 5
     },
     {
@@ -477,8 +479,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_iam_users",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 6
     },
     {
@@ -504,8 +506,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_iam_users",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 7
     },
     {
@@ -539,8 +541,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_iam_users",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 8
     },
     {
@@ -574,8 +576,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_iam_users",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 9
     },
     {
@@ -609,8 +611,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_iam_users",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 10
     },
     {
@@ -636,8 +638,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_iam_users",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 11
     },
     {
@@ -663,8 +665,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_iam_users",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 12
     },
     {
@@ -690,15 +692,15 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_iam_users",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 13
     },
     {
       "_id": "fld_iam_org",
       "parentId": "wrk_astro_leadflow",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "name": "02 IAM - Organizacao",
       "description": "Dados da organizacao e credenciais WhatsApp/Meta por organizacao.",
       "environment": {},
@@ -729,8 +731,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_iam_org",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 0
     },
     {
@@ -764,8 +766,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_iam_org",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 1
     },
     {
@@ -799,15 +801,15 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_iam_org",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 2
     },
     {
       "_id": "fld_onboarding",
       "parentId": "wrk_astro_leadflow",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "name": "03 Onboarding",
       "description": "Solicitacao publica e aprovacao/rejeicao pelo Astro Admin.",
       "environment": {},
@@ -842,8 +844,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_onboarding",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 0
     },
     {
@@ -890,8 +892,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_onboarding",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 1
     },
     {
@@ -917,8 +919,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_onboarding",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 2
     },
     {
@@ -944,8 +946,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_onboarding",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 3
     },
     {
@@ -979,8 +981,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_onboarding",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 4
     },
     {
@@ -1017,8 +1019,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_onboarding",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 5
     },
     {
@@ -1044,8 +1046,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_onboarding",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 6
     },
     {
@@ -1071,8 +1073,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_onboarding",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 7
     },
     {
@@ -1106,15 +1108,15 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_onboarding",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 8
     },
     {
       "_id": "fld_crm",
       "parentId": "wrk_astro_leadflow",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "name": "04 CRM - Leads",
       "description": "CRUD, timeline, movimentacao de etapa, atribuicao e arquivamento.",
       "environment": {},
@@ -1153,8 +1155,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_crm",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 0
     },
     {
@@ -1221,8 +1223,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_crm",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 1
     },
     {
@@ -1248,8 +1250,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_crm",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 2
     },
     {
@@ -1275,8 +1277,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_crm",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 3
     },
     {
@@ -1310,8 +1312,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_crm",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 4
     },
     {
@@ -1345,8 +1347,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_crm",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 5
     },
     {
@@ -1372,8 +1374,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_crm",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 6
     },
     {
@@ -1399,8 +1401,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_crm",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 7
     },
     {
@@ -1434,15 +1436,15 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_crm",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 8
     },
     {
-      "_id": "req_delete_lead",
-      "name": "Delete Lead",
+      "_id": "req_delete_lead_irreversivel_includesamephone_true_exclui_os_outros_cards_do_telefone",
+      "name": "Delete Lead (irreversivel; ?includeSamePhone=true exclui os outros cards do telefone)",
       "description": "",
-      "url": "{{ _.base_url }}/api/v1/leads/{{ _.lead_id }}",
+      "url": "{{ _.base_url }}/api/v1/leads/{{ _.lead_id }}?includeSamePhone=false&reason=Pedido%20do%20cliente",
       "method": "DELETE",
       "body": {},
       "parameters": [],
@@ -1461,20 +1463,170 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_crm",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 9
+    },
+    {
+      "_id": "fld_privacy",
+      "parentId": "wrk_astro_leadflow",
+      "modified": 1795488034982,
+      "created": 1795488034982,
+      "name": "04b Privacidade (LGPD)",
+      "description": "Solicitacoes de titulares (MANAGER). O identificador nao e gravado; a execucao exige o identificador de novo.",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": 5,
+      "_type": "request_group"
+    },
+    {
+      "_id": "req_create_data_subject_request",
+      "name": "Create Data Subject Request",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/privacy/requests",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"type\": \"ANONYMIZATION\",\n  \"identifier\": \"+5511900000000\",\n  \"channel\": \"EMAIL\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_privacy",
+      "modified": 1795488034982,
+      "created": 1795488034982,
+      "metaSortKey": 0
+    },
+    {
+      "_id": "req_list_data_subject_requests",
+      "name": "List Data Subject Requests",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/privacy/requests",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "name": "status",
+          "value": "RECEIVED",
+          "disabled": true
+        }
+      ],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_privacy",
+      "modified": 1795488034982,
+      "created": 1795488034982,
+      "metaSortKey": 1
+    },
+    {
+      "_id": "req_execute_data_subject_request",
+      "name": "Execute Data Subject Request",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/privacy/requests/{{ _.privacy_request_id }}/execute",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"identifier\": \"+5511900000000\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_privacy",
+      "modified": 1795488034982,
+      "created": 1795488034982,
+      "metaSortKey": 2
+    },
+    {
+      "_id": "req_reject_data_subject_request",
+      "name": "Reject Data Subject Request",
+      "description": "",
+      "url": "{{ _.base_url }}/api/v1/privacy/requests/{{ _.privacy_request_id }}/reject",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"reason\": \"Identidade nao confirmada pela controladora.\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.access_token }}",
+        "prefix": "Bearer"
+      },
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request",
+      "parentId": "fld_privacy",
+      "modified": 1795488034982,
+      "created": 1795488034982,
+      "metaSortKey": 3
     },
     {
       "_id": "fld_kanban",
       "parentId": "wrk_astro_leadflow",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "name": "05 CRM - Kanban",
       "description": "Board agrupado por etapa.",
       "environment": {},
       "environmentPropertyOrder": null,
-      "metaSortKey": 5,
+      "metaSortKey": 6,
       "_type": "request_group"
     },
     {
@@ -1500,20 +1652,20 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_kanban",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 0
     },
     {
       "_id": "fld_inventory",
       "parentId": "wrk_astro_leadflow",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "name": "06 Estoque - Veiculos",
       "description": "Cadastro, filtros, detalhe e resumo de estoque.",
       "environment": {},
       "environmentPropertyOrder": null,
-      "metaSortKey": 6,
+      "metaSortKey": 7,
       "_type": "request_group"
     },
     {
@@ -1547,8 +1699,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_inventory",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 0
     },
     {
@@ -1615,8 +1767,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_inventory",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 1
     },
     {
@@ -1642,8 +1794,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_inventory",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 2
     },
     {
@@ -1677,8 +1829,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_inventory",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 3
     },
     {
@@ -1704,8 +1856,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_inventory",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 4
     },
     {
@@ -1731,20 +1883,20 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_inventory",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 5
     },
     {
       "_id": "fld_vehicle_photos",
       "parentId": "wrk_astro_leadflow",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "name": "07 Estoque - Fotos",
       "description": "Upload, listagem, remocao e ordenacao de fotos.",
       "environment": {},
       "environmentPropertyOrder": null,
-      "metaSortKey": 7,
+      "metaSortKey": 8,
       "_type": "request_group"
     },
     {
@@ -1786,8 +1938,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_vehicle_photos",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 0
     },
     {
@@ -1813,8 +1965,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_vehicle_photos",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 1
     },
     {
@@ -1840,8 +1992,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_vehicle_photos",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 2
     },
     {
@@ -1875,20 +2027,20 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_vehicle_photos",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 3
     },
     {
       "_id": "fld_analytics",
       "parentId": "wrk_astro_leadflow",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "name": "08 Analytics",
       "description": "KPIs e graficos do dashboard operacional.",
       "environment": {},
       "environmentPropertyOrder": null,
-      "metaSortKey": 8,
+      "metaSortKey": 9,
       "_type": "request_group"
     },
     {
@@ -1914,8 +2066,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_analytics",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 0
     },
     {
@@ -1941,8 +2093,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_analytics",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 1
     },
     {
@@ -1968,20 +2120,20 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_analytics",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 2
     },
     {
       "_id": "fld_communication",
       "parentId": "wrk_astro_leadflow",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "name": "09 Comunicacao - WhatsApp",
       "description": "Historico do lead, envio manual e sessao de bot por lead.",
       "environment": {},
       "environmentPropertyOrder": null,
-      "metaSortKey": 9,
+      "metaSortKey": 10,
       "_type": "request_group"
     },
     {
@@ -2007,8 +2159,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_communication",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 0
     },
     {
@@ -2034,8 +2186,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_communication",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 1
     },
     {
@@ -2069,20 +2221,20 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_communication",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 2
     },
     {
       "_id": "fld_chatbot",
       "parentId": "wrk_astro_leadflow",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "name": "10 Chatbot",
       "description": "Sessao, metricas e handoff manual do bot.",
       "environment": {},
       "environmentPropertyOrder": null,
-      "metaSortKey": 10,
+      "metaSortKey": 11,
       "_type": "request_group"
     },
     {
@@ -2124,8 +2276,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_chatbot",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 0
     },
     {
@@ -2151,8 +2303,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_chatbot",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 1
     },
     {
@@ -2178,8 +2330,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_chatbot",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 2
     },
     {
@@ -2205,20 +2357,20 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_chatbot",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 3
     },
     {
       "_id": "fld_saas",
       "parentId": "wrk_astro_leadflow",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "name": "11 SaaS - Planos Billing Marketplaces",
       "description": "Planos, assinatura, checkout AbacatePay, uso, billing history e quotas de marketplace.",
       "environment": {},
       "environmentPropertyOrder": null,
-      "metaSortKey": 11,
+      "metaSortKey": 12,
       "_type": "request_group"
     },
     {
@@ -2240,8 +2392,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_saas",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 0
     },
     {
@@ -2267,8 +2419,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_saas",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 1
     },
     {
@@ -2294,8 +2446,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_saas",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 2
     },
     {
@@ -2329,8 +2481,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_saas",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 3
     },
     {
@@ -2356,8 +2508,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_saas",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 4
     },
     {
@@ -2383,8 +2535,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_saas",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 5
     },
     {
@@ -2410,8 +2562,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_saas",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 6
     },
     {
@@ -2437,8 +2589,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_saas",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 7
     },
     {
@@ -2472,8 +2624,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_saas",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 8
     },
     {
@@ -2507,8 +2659,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_saas",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 9
     },
     {
@@ -2534,20 +2686,20 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_saas",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 10
     },
     {
       "_id": "fld_referrals",
       "parentId": "wrk_astro_leadflow",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "name": "12 Indicacoes",
       "description": "Programa de indicacao para concessionaria e visao Astro Admin.",
       "environment": {},
       "environmentPropertyOrder": null,
-      "metaSortKey": 12,
+      "metaSortKey": 13,
       "_type": "request_group"
     },
     {
@@ -2573,8 +2725,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_referrals",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 0
     },
     {
@@ -2600,8 +2752,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_referrals",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 1
     },
     {
@@ -2627,8 +2779,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_referrals",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 2
     },
     {
@@ -2654,8 +2806,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_referrals",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 3
     },
     {
@@ -2681,8 +2833,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_referrals",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 4
     },
     {
@@ -2708,8 +2860,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_referrals",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 5
     },
     {
@@ -2735,20 +2887,20 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_referrals",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 6
     },
     {
       "_id": "fld_admin",
       "parentId": "wrk_astro_leadflow",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "name": "13 Astro Admin - Financeiro Observability Sistema",
       "description": "Dashboards administrativos, erros, webhooks, infraestrutura e saude.",
       "environment": {},
       "environmentPropertyOrder": null,
-      "metaSortKey": 13,
+      "metaSortKey": 14,
       "_type": "request_group"
     },
     {
@@ -2774,8 +2926,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_admin",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 0
     },
     {
@@ -2801,8 +2953,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_admin",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 1
     },
     {
@@ -2828,8 +2980,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_admin",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 2
     },
     {
@@ -2891,8 +3043,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_admin",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 3
     },
     {
@@ -2918,8 +3070,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_admin",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 4
     },
     {
@@ -2976,8 +3128,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_admin",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 5
     },
     {
@@ -3014,8 +3166,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_admin",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 6
     },
     {
@@ -3041,8 +3193,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_admin",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 7
     },
     {
@@ -3068,8 +3220,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_admin",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 8
     },
     {
@@ -3095,20 +3247,20 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_admin",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 9
     },
     {
       "_id": "fld_integrations",
       "parentId": "wrk_astro_leadflow",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "name": "14 Webhooks e Marketplaces",
       "description": "Meta, AbacatePay, Webmotors, Mercado Livre, scraper/Napista e OAuth Mercado Livre.",
       "environment": {},
       "environmentPropertyOrder": null,
-      "metaSortKey": 14,
+      "metaSortKey": 15,
       "_type": "request_group"
     },
     {
@@ -3146,8 +3298,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_integrations",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 0
     },
     {
@@ -3177,8 +3329,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_integrations",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 1
     },
     {
@@ -3214,8 +3366,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_integrations",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 2
     },
     {
@@ -3247,8 +3399,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_integrations",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 3
     },
     {
@@ -3281,8 +3433,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_integrations",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 4
     },
     {
@@ -3316,8 +3468,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_integrations",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 5
     },
     {
@@ -3351,8 +3503,8 @@
       "settingFollowRedirects": "global",
       "_type": "request",
       "parentId": "fld_integrations",
-      "modified": 1795480152055,
-      "created": 1795480152055,
+      "modified": 1795488034982,
+      "created": 1795488034982,
       "metaSortKey": 6
     }
   ]
