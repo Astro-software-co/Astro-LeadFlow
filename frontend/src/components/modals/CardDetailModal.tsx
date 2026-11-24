@@ -15,6 +15,7 @@ import { KanbanCard, Lead } from '@/types';
 import { cn } from '@/lib/utils';
 import { ChevronDown } from 'lucide-react';
 import { formatDateTime } from '@/lib/formatters';
+import { LeadPrivacyActions } from '@/components/leads/LeadPrivacyActions';
 
 const leadSchema = z.object({
   nome: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
@@ -287,6 +288,13 @@ export function CardDetailModal({ open, onOpenChange, card, onUpdate }: CardDeta
               <span className="font-medium text-foreground">{card.vendedorNome}</span>
             </div>
           )}
+
+          <LeadPrivacyActions
+            leadId={card.leadId}
+            leadName={card.lead.nome}
+            phone={card.lead.telefone}
+            onDone={() => onOpenChange(false)}
+          />
 
           <div className="flex justify-end gap-3 pt-4 border-t">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

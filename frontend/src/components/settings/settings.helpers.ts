@@ -1,5 +1,6 @@
 import {
   Bell,
+  Lock,
   CreditCard,
   Monitor,
   Moon,
@@ -39,6 +40,7 @@ export const settingsTabs: SettingsTabItem[] = [
   { id: 'payments', label: 'Pagamentos', icon: CreditCard },
   { id: 'assinatura', label: 'Assinatura', icon: PackageCheck },
   { id: 'referrals', label: 'Indicacoes', icon: Share2 },
+  { id: 'privacy', label: 'Privacidade', icon: Lock },
 ];
 
 export const themeOptions: ThemeOptionItem[] = [

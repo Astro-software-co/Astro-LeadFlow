@@ -1,4 +1,5 @@
 import { Car, User, Archive, ChevronRight } from 'lucide-react';
+import { LeadPrivacyActions } from '@/components/leads/LeadPrivacyActions';
 import { KanbanCard as KanbanCardType, CardTag } from '@/types';
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/lib/formatters';
@@ -98,6 +99,7 @@ export function KanbanCardComponent({ card, onAssume, onAdvance, onArchive, isDr
               Arquivar
             </button>
           )}
+          <LeadPrivacyActions leadId={card.leadId} leadName={card.lead.nome} phone={card.lead.telefone} compact deleteOnly />
           {showAdvanceButton && (
             <button
               onClick={(e) => {

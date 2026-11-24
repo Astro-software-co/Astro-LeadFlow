@@ -15,6 +15,8 @@ export type AppPermission =
   | 'settings:security_update'
   | 'leads:view'
   | 'leads:update'
+  | 'leads:delete'
+  | 'privacy:manage'
   | 'stock:view';
 
 export const ROLE_PERMISSIONS: Record<UserRole, AppPermission[]> = {
@@ -30,6 +32,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, AppPermission[]> = {
     'settings:security_update',
     'leads:view',
     'leads:update',
+    'leads:delete',
+    'privacy:manage',
     'stock:view',
   ],
   SELLER: ['settings:security_update', 'leads:view', 'leads:update', 'stock:view'],

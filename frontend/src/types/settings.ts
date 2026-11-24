@@ -1,6 +1,6 @@
 import type { AccentColor, ThemeMode } from '@/types';
 
-export type SettingsSectionId = 'general' | 'notifications' | 'security' | 'payments' | 'assinatura' | 'referrals';
+export type SettingsSectionId = 'general' | 'notifications' | 'security' | 'payments' | 'assinatura' | 'referrals' | 'privacy';
 export type SettingsLoadState = 'loading' | 'ready' | 'error';
 
 export interface SettingsProfile {

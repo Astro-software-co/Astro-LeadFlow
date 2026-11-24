@@ -12,6 +12,7 @@ import {
   GeneralTab,
   NotificationsTab,
   PaymentsTab,
+  PrivacyTab,
   ReferralTab,
   SecurityTab,
   accentColorOptions,
@@ -474,6 +475,8 @@ export default function Configuracoes() {
         {activeSection === 'assinatura' && <AssinaturaTab />}
 
         {activeSection === 'referrals' && <ReferralTab />}
+
+        {activeSection === 'privacy' && <PrivacyTab />}
       </div>
     </>
   );

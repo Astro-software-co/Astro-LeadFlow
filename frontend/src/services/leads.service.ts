@@ -1,4 +1,5 @@
 import api from '@/lib/api';
+import type { DeleteLeadOptions } from '@/types/api/privacy';
 import {
   LeadActivityResponseDTO,
   LeadCreateRequestDTO,
@@ -114,8 +115,13 @@ export const leadsService = {
     await api.patch(`/leads/${id}/archive`);
   },
 
-  async delete(id: string): Promise<void> {
-    await api.delete(`/leads/${id}`);
+  /** Exclusão irreversível (MANAGER). Ver DeleteLeadOptions. */
+  async delete(id: string, options: DeleteLeadOptions = {}): Promise<void> {
+    const params = {
+      ...(options.includeSamePhone ? { includeSamePhone: true } : {}),
+      ...(options.reason ? { reason: options.reason } : {}),
+    };
+    await api.delete(`/leads/${id}`, Object.keys(params).length ? { params } : undefined);
   },
 
   async assume(id: string): Promise<LeadResponseDTO> {
