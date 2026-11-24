@@ -13,11 +13,11 @@ class NormalizationService {
             digits.startsWith("55") && digits.length >= 12 -> "+$digits"
             digits.length == 11 -> "+55$digits"
             digits.length == 10 -> "+55$digits"
-            else -> throw BusinessException("Número de telefone inválido: $raw")
+            else -> throw BusinessException("Número de telefone inválido.")
         }
 
         if (!isValidBrazilianPhone(normalized))
-            throw BusinessException("Número de telefone inválido: $raw")
+            throw BusinessException("Número de telefone inválido.")
 
         return normalized
     }

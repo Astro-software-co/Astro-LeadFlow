@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.security.SecureRandom
 import java.time.LocalDateTime
+import com.astro.leadflow.shared.util.PiiMasker
 
 @Service
 class TwoFactorService(
@@ -45,7 +46,7 @@ class TwoFactorService(
 
     private fun sendCodeByWhatsApp(phoneNumber: String, code: String) {
         if (systemPhoneNumberId.isBlank() || systemAccessToken.isBlank()) {
-            log.warn("Credenciais Meta não configuradas. 2FA via WhatsApp ignorado para {}", phoneNumber)
+            log.warn("Credenciais Meta não configuradas. 2FA via WhatsApp ignorado para {}", PiiMasker.maskPhone(phoneNumber))
             return
         }
         try {
@@ -63,9 +64,9 @@ class TwoFactorService(
                     )
                 )
             )
-            log.debug("Código 2FA enviado via WhatsApp para {}", phoneNumber)
+            log.debug("Código 2FA enviado via WhatsApp para {}", PiiMasker.maskPhone(phoneNumber))
         } catch (e: Exception) {
-            log.error("Falha ao enviar código 2FA via WhatsApp para {}. error={}", phoneNumber, e.message)
+            log.error("Falha ao enviar código 2FA via WhatsApp para {}. error={}", PiiMasker.maskPhone(phoneNumber), e.message)
         }
     }
 

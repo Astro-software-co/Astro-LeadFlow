@@ -60,14 +60,13 @@ class AbacatePayClient(
                 .block()
 
             if (envelope?.success != true || envelope.data == null) {
-                log.error("AbacatePay retornou envelope inválido. path={} payload={} envelope={}", path, payload, envelope)
+                log.error("AbacatePay retornou envelope inválido. path={} success={}", path, envelope?.success)
                 throw ExternalServiceException("AbacatePay", envelope?.error ?: "Resposta sem dados")
             }
 
             return envelope.data
         } catch (e: WebClientResponseException) {
-            val body = e.responseBodyAsString
-            log.error("AbacatePay erro HTTP {} em {}. body={}", e.statusCode.value(), path, body)
+            log.error("AbacatePay erro HTTP {} em {}", e.statusCode.value(), path)
             throw ExternalServiceException("AbacatePay", "HTTP ${e.statusCode.value()} ao chamar $path")
         } catch (e: ExternalServiceException) {
             throw e

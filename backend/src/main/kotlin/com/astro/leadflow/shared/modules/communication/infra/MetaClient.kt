@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.reactive.function.client.bodyToMono
+import com.astro.leadflow.shared.util.PiiMasker
 
 @Component
 class MetaClient(
@@ -77,16 +78,16 @@ class MetaClient(
             val messageId = messages?.firstOrNull()?.get("id") as? String
 
             if (messageId == null) {
-                log.error("Meta API retornou resposta sem messageId. to={} response={}", toPhone, response)
-                throw ExternalServiceException("Meta/WhatsApp", "Resposta sem messageId para $toPhone")
+                log.error("Meta API retornou resposta sem messageId. to={}", PiiMasker.maskPhone(toPhone))
+                throw ExternalServiceException("Meta/WhatsApp", "Resposta sem messageId")
             }
 
-            log.debug("Mensagem enviada com sucesso. to={} messageId={}", toPhone, messageId)
+            log.debug("Mensagem enviada com sucesso. to={} messageId={}", PiiMasker.maskPhone(toPhone), messageId)
             return messageId
         } catch (e: WebClientResponseException) {
             val status = e.statusCode.value()
             val body = e.responseBodyAsString
-            log.error("Meta API erro HTTP {} ao enviar para {}. body={}", status, toPhone, body)
+            log.error("Meta API erro HTTP {} ao enviar para {}", status, PiiMasker.maskPhone(toPhone))
 
             val errorMessage = when (status) {
                 401 -> "Token de acesso inválido ou expirado"
@@ -95,11 +96,11 @@ class MetaClient(
                 else -> "Erro HTTP $status"
             }
 
-            throw ExternalServiceException("Meta/WhatsApp", "$errorMessage (to=$toPhone)")
+            throw ExternalServiceException("Meta/WhatsApp", errorMessage)
         } catch (e: ExternalServiceException) {
             throw e
         } catch (e: Exception) {
-            log.error("Erro inesperado ao enviar mensagem para {}. error={}", toPhone, e.message, e)
+            log.error("Erro inesperado ao enviar mensagem para {}. error={}", PiiMasker.maskPhone(toPhone), e.message, e)
             throw ExternalServiceException("Meta/WhatsApp", "Erro inesperado: ${e.message}")
         }
     }

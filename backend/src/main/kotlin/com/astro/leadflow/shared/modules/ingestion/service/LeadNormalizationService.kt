@@ -15,7 +15,7 @@ class LeadNormalizationService {
      */
     fun normalize(raw: RawMarketplaceLead, organization: Organization): ScrapedLeadDTO {
         val phone = raw.buyerPhone?.takeIf { it.isNotBlank() }
-            ?: throw IllegalArgumentException("Lead ${raw.externalId} sem telefone — descartado")
+            ?: throw IllegalArgumentException("Lead de marketplace sem telefone — descartado")
 
         val vehicleInterest = buildVehicleInterest(raw)
         val source = sourceFor(raw.marketplaceType)

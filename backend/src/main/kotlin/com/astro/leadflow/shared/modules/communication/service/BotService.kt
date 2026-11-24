@@ -10,6 +10,7 @@ import com.astro.leadflow.shared.modules.crm.domain.PipelineStage
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.astro.leadflow.shared.util.PiiMasker
 
 @Service
 @Deprecated("Use ChatbotRouter for bot conversations; this service remains as Meta webhook adapter.")
@@ -40,7 +41,7 @@ class BotService(
         val lead = leadRepository
             .findFirstByOrganizationIdAndPhoneNumberOrderByCreatedAtAsc(organization.id, phoneNumber)
             .orElseGet {
-                log.info("Novo lead inbound criado. phone={} org={}", phoneNumber, organization.id)
+                log.info("Novo lead inbound criado. phone={} org={}", PiiMasker.maskPhone(phoneNumber), organization.id)
                 leadRepository.save(
                     Lead(
                         organization = organization,

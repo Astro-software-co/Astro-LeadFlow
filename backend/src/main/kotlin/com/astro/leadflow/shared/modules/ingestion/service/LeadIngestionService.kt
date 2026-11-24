@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.astro.leadflow.shared.util.PiiMasker
 
 @Service
 class LeadIngestionService(
@@ -54,7 +55,7 @@ class LeadIngestionService(
             return
         }
 
-        log.info("AWS desabilitado. Processando lead localmente: {} | {}", normalizedPhone, dto.organizationSlug)
+        log.info("AWS desabilitado. Processando lead localmente: {} | {}", PiiMasker.maskPhone(normalizedPhone), dto.organizationSlug)
         processFromQueue(normalizedLead)
     }
 
@@ -67,7 +68,7 @@ class LeadIngestionService(
             organization.id, dto.phoneNumber
         )
         if (alreadyExists) {
-            log.debug("Lead já existe na fila. phone={} org={}", dto.phoneNumber, dto.organizationSlug)
+            log.debug("Lead já existe na fila. phone={} org={}", PiiMasker.maskPhone(dto.phoneNumber), dto.organizationSlug)
             return
         }
 
@@ -87,7 +88,7 @@ class LeadIngestionService(
         val marketplace = normalizationService.normalizeMarketplace(command.origin)
         val duplicate = leadRepository.existsByOrganizationIdAndPhoneNumber(organization.id, phone)
         if (duplicate) {
-            log.info("Lead duplicado recebido: {} | org: {}", phone, organization.slug)
+            log.info("Lead duplicado recebido: {} | org: {}", PiiMasker.maskPhone(phone), organization.slug)
         }
 
         val lead = leadRepository.save(
@@ -104,7 +105,7 @@ class LeadIngestionService(
             )
         )
         if (!duplicate) {
-            log.info("Lead salvo com sucesso. id={} phone={} org={}", lead.id, phone, organization.slug)
+            log.info("Lead salvo com sucesso. id={} phone={} org={}", lead.id, PiiMasker.maskPhone(phone), organization.slug)
         }
         if (!command.sendWelcome) return lead
 
@@ -131,7 +132,7 @@ class LeadIngestionService(
                 templateName = "welcome_lead",
                 marketplaceName = marketplace
             )
-            log.info("Mensagem de boas-vindas enviada para {}", phone)
+            log.info("Mensagem de boas-vindas enviada. leadId={}", lead.id)
         } catch (e: QuotaExceededException) {
             log.warn(
                 "Quota excedida ao enviar boas-vindas. Lead salvo sem mensagem. leadId={} org={} marketplace={}",

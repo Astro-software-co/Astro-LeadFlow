@@ -8,6 +8,7 @@ import org.springframework.core.ParameterizedTypeReference
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
+import com.astro.leadflow.shared.util.PiiMasker
 
 @Component
 @ConditionalOnProperty(prefix = "meta.api", name = ["mode"], havingValue = "real")
@@ -77,18 +78,18 @@ class RealMetaApiClient(
             val messages = response?.get("messages") as? List<Map<String, Any>>
             val messageId = messages?.firstOrNull()?.get("id") as? String
             if (messageId.isNullOrBlank()) {
-                log.error("Meta API retornou resposta sem messageId. to={} response={}", toPhone, response)
-                throw ExternalServiceException("Meta/WhatsApp", "Resposta sem messageId para $toPhone")
+                log.error("Meta API retornou resposta sem messageId. to={}", PiiMasker.maskPhone(toPhone))
+                throw ExternalServiceException("Meta/WhatsApp", "Resposta sem messageId")
             }
             return messageId
         } catch (e: WebClientResponseException) {
             val status = e.statusCode.value()
-            log.error("Meta API erro HTTP {} ao enviar para {}. body={}", status, toPhone, e.responseBodyAsString)
+            log.error("Meta API erro HTTP {} ao enviar para {}", status, PiiMasker.maskPhone(toPhone))
             throw ExternalServiceException("Meta/WhatsApp", "HTTP $status ao chamar /$phoneNumberId/messages")
         } catch (e: ExternalServiceException) {
             throw e
         } catch (e: Exception) {
-            log.error("Erro inesperado ao enviar mensagem Meta para {}. error={}", toPhone, e.message, e)
+            log.error("Erro inesperado ao enviar mensagem Meta para {}. error={}", PiiMasker.maskPhone(toPhone), e.message, e)
             throw ExternalServiceException("Meta/WhatsApp", e.message ?: "Erro inesperado")
         }
     }
