@@ -65,6 +65,10 @@ class Lead(
     @Column(name = "is_duplicate", nullable = false)
     var isDuplicate: Boolean = false,
 
+    /** Preenchido quando os dados pessoais foram anonimizados (LGPD); o card e as métricas ficam. */
+    @Column(name = "anonymized_at")
+    var anonymizedAt: LocalDateTime? = null,
+
     @Column(name = "created_at", nullable = false, updatable = false)
     val createdAt: LocalDateTime = LocalDateTime.now(),
 
