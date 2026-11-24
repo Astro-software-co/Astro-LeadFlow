@@ -13,6 +13,7 @@ import com.astro.leadflow.shared.modules.iam.domain.OrganizationRepository
 import com.astro.leadflow.shared.modules.inventory.domain.VehicleRepository
 import io.mockk.*
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -32,6 +33,10 @@ class LeadServiceTest {
 
     private val orgId = UUID.randomUUID()
     private val organization = Organization(id = orgId, name = "Test Motors", slug = "test")
+
+    // mockkObject é global na JVM: sem desfazer, o mock vaza para os testes seguintes.
+    @AfterEach
+    fun unmockSecurityUtils() = unmockkObject(com.astro.leadflow.shared.util.SecurityUtils)
 
     @BeforeEach
     fun setup() {

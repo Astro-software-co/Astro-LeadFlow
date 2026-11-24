@@ -16,9 +16,6 @@ import com.astro.leadflow.shared.modules.integrations.webmotors.service.Webmotor
 import com.astro.leadflow.shared.modules.integrations.webmotors.service.WebmotorsDecisionService
 import com.astro.leadflow.shared.modules.integrations.webmotors.service.WebmotorsInboxService
 import com.astro.leadflow.shared.modules.integrations.webmotors.service.WebmotorsSyncCoordinator
-import com.astro.leadflow.shared.util.SecurityUtils
-import io.mockk.unmockkObject
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
@@ -58,10 +55,6 @@ class WebmotorsControllerSecurityTest {
         organization = organization, name = "U", email = "u-${role.name}@test.local",
         passwordHash = "x", role = role
     )
-
-    // PipelineServiceTest faz mockkObject(SecurityUtils) sem desfazer; garante o SecurityUtils real aqui.
-    @BeforeEach
-    fun realSecurityUtils() = unmockkObject(SecurityUtils)
 
     private fun auth(u: User) = authentication(UsernamePasswordAuthenticationToken(u, null, u.authorities))
 
