@@ -21,7 +21,7 @@ class LeadNormalizationServiceTest {
     )
 
     private fun buildRaw(
-        type: MarketplaceType = MarketplaceType.WEBMOTORS,
+        type: MarketplaceType = MarketplaceType.MERCADO_LIVRE,
         phone: String? = "11999998888",
         name: String? = "João Silva",
         email: String? = "joao@email.com",
@@ -38,7 +38,7 @@ class LeadNormalizationServiceTest {
         vehicleBrand = brand,
         vehicleModel = model,
         vehicleYear = year,
-        listingId = "WM-12345",
+        listingId = "MLB-12345",
         listingUrl = null,
         contactType = contactType,
         receivedAt = Instant.now(),
@@ -62,8 +62,8 @@ class LeadNormalizationServiceTest {
         assertEquals("11999998888", dto.phoneNumber)
         assertEquals("joao@email.com", dto.email)
         assertEquals("Toyota Corolla 2023", dto.vehicleInterest)
-        assertEquals("MARKETPLACE_WEBMOTORS", dto.source)
-        assertEquals("WEBMOTORS", dto.marketplaceType)
+        assertEquals("MARKETPLACE_MERCADO_LIVRE", dto.source)
+        assertEquals("MERCADO_LIVRE", dto.marketplaceType)
     }
 
     @Test

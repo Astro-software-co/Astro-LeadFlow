@@ -1,6 +1,5 @@
 package com.astro.leadflow.shared.modules.ingestion.consumer
 
-import com.astro.leadflow.shared.modules.iam.domain.OrganizationRepository
 import com.astro.leadflow.shared.modules.ingestion.domain.MarketplaceWebhookEventRepository
 import com.astro.leadflow.shared.modules.ingestion.service.LeadIngestionService
 import com.astro.leadflow.shared.modules.ingestion.service.LeadNormalizationService
@@ -39,7 +38,6 @@ class MarketplaceLeadConsumerContextTest {
                 MercadoLivreLeadFetcher(mockk<MercadoLivreAuthService>(), ObjectMapper(), WebClient.builder(), "http://localhost")
             })
             .withBean(MarketplaceCredentialRepository::class.java, { mockk() })
-            .withBean(OrganizationRepository::class.java, { mockk() })
             .withBean(LeadNormalizationService::class.java, { mockk() })
             .withBean(LeadIngestionService::class.java, { mockk() })
             .withBean(MarketplaceWebhookEventRepository::class.java, { mockk() })

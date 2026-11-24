@@ -40,7 +40,7 @@ class MarketplaceReconciliationJob(
         log.info("Iniciando job de reconciliação de leads de marketplaces")
         val since = Instant.now().minus(25, ChronoUnit.HOURS)
 
-        // Webmotors não tem endpoint de listagem — só ML
+        // Só o Mercado Livre tem reconciliação; a Webmotors entra por polling (integrations/webmotors)
         val mlCredentials = credentialRepository.findAllByMarketplaceTypeAndIsActiveTrue(MarketplaceType.MERCADO_LIVRE)
         log.info("Reconciliando {} credenciais ML", mlCredentials.size)
 

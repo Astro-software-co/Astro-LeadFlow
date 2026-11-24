@@ -10,6 +10,5 @@ interface OrganizationRepository : JpaRepository<Organization, UUID> {
     fun existsByName(name: String): Boolean
     fun findByWhatsappPhoneNumberId(phoneNumberId: String): Organization?
     fun findByApiKey(apiKey: String): Organization?
-    fun findByCnpj(cnpj: String): Organization?
     fun findByReferralCode(referralCode: String): Optional<Organization>
 }

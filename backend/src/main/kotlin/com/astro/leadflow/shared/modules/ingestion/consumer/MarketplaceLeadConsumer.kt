@@ -6,7 +6,6 @@ import com.astro.leadflow.shared.modules.ingestion.domain.WebhookEventStatus
 import com.astro.leadflow.shared.modules.ingestion.service.LeadIngestionService
 import com.astro.leadflow.shared.modules.ingestion.service.LeadNormalizationService
 import com.astro.leadflow.shared.modules.ingestion.service.marketplace.MarketplaceLeadFetcher
-import com.astro.leadflow.shared.modules.iam.domain.OrganizationRepository
 import com.astro.leadflow.shared.modules.saas.domain.MarketplaceCredentialRepository
 import com.astro.leadflow.shared.modules.saas.domain.MarketplaceType
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -22,7 +21,6 @@ import java.time.LocalDateTime
 class MarketplaceLeadConsumer(
     private val fetchers: List<MarketplaceLeadFetcher>,
     private val credentialRepository: MarketplaceCredentialRepository,
-    private val organizationRepository: OrganizationRepository,
     private val normalizationService: LeadNormalizationService,
     private val leadIngestionService: LeadIngestionService,
     private val webhookEventRepository: MarketplaceWebhookEventRepository,
@@ -106,11 +104,6 @@ class MarketplaceLeadConsumer(
     }
 
     private fun resolveOrganization(event: MarketplaceLeadEvent) = when (event.marketplaceType) {
-        MarketplaceType.WEBMOTORS -> {
-            val cnpj = event.cnpj
-            if (cnpj != null) organizationRepository.findByCnpj(cnpj)
-            else null
-        }
         MarketplaceType.MERCADO_LIVRE -> {
             val mlUserId = event.externalUserId?.toLongOrNull()
             if (mlUserId != null) {
@@ -118,6 +111,7 @@ class MarketplaceLeadConsumer(
                     ?.organization
             } else null
         }
-        MarketplaceType.OLX -> null
+        // Só o Mercado Livre entra por webhook; a Webmotors usa polling (integrations/webmotors).
+        else -> null
     }
 }

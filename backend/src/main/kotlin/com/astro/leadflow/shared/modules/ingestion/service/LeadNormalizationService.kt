@@ -42,9 +42,5 @@ class LeadNormalizationService {
         return parts.joinToString(" ").ifBlank { raw.contactType ?: "" }
     }
 
-    private fun sourceFor(type: MarketplaceType): String = when (type) {
-        MarketplaceType.WEBMOTORS -> "MARKETPLACE_WEBMOTORS"
-        MarketplaceType.MERCADO_LIVRE -> "MARKETPLACE_MERCADO_LIVRE"
-        MarketplaceType.OLX -> "MARKETPLACE_OLX"
-    }
+    private fun sourceFor(type: MarketplaceType): String = "MARKETPLACE_${type.name}"
 }
