@@ -64,6 +64,11 @@ class WebmotorsControllerSecurityTest {
     }
 
     @Test
+    fun `qualquer API protegida sem token responde 401 (entry point global)`() {
+        mvc.perform(get("/api/v1/leads")).andExpect(status().isUnauthorized)
+    }
+
+    @Test
     fun `SELLER responde 403`() {
         mvc.perform(get("/api/v1/integrations/webmotors/proposals").with(auth(user(Role.SELLER))))
             .andExpect(status().isForbidden)

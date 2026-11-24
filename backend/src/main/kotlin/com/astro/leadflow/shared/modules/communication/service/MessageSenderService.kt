@@ -31,8 +31,8 @@ class MessageSenderService(
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    // Cota e Meta falham antes de gravar: não podem marcar como rollback-only a transação de quem chamou (o lead já salvo).
-    @Transactional(noRollbackFor = [QuotaExceededException::class, ExternalServiceException::class])
+    // Cota, Meta e falta de credencial falham antes de gravar: não podem marcar como rollback-only a transação de quem chamou (o lead já salvo).
+    @Transactional(noRollbackFor = [QuotaExceededException::class, ExternalServiceException::class, WhatsappNotConfiguredException::class])
     fun sendText(
         lead: Lead,
         organization: Organization,
@@ -82,8 +82,8 @@ class MessageSenderService(
         return chatMessage
     }
 
-    // Cota e Meta falham antes de gravar: não podem marcar como rollback-only a transação de quem chamou (o lead já salvo).
-    @Transactional(noRollbackFor = [QuotaExceededException::class, ExternalServiceException::class])
+    // Cota, Meta e falta de credencial falham antes de gravar: não podem marcar como rollback-only a transação de quem chamou (o lead já salvo).
+    @Transactional(noRollbackFor = [QuotaExceededException::class, ExternalServiceException::class, WhatsappNotConfiguredException::class])
     fun sendTemplate(
         lead: Lead,
         organization: Organization,
@@ -144,12 +144,11 @@ class MessageSenderService(
                 accessToken = accessToken.ifBlank { "mock-access-token" }
             )
         }
-        require(phoneNumberId.isNotBlank()) {
-            "PhoneNumberId não configurado para organização ${organization.id}"
-        }
-        require(accessToken.isNotBlank()) {
-            "WhatsApp token não configurado para organização ${organization.id}"
-        }
+        // WhatsappNotConfiguredException está em noRollbackFor: falta de credencial não desfaz o lead de quem chamou.
+        if (phoneNumberId.isBlank())
+            throw WhatsappNotConfiguredException("PhoneNumberId não configurado para organização ${organization.id}")
+        if (accessToken.isBlank())
+            throw WhatsappNotConfiguredException("WhatsApp token não configurado para organização ${organization.id}")
         return WhatsappConfig(phoneNumberId, accessToken)
     }
 }

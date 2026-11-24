@@ -15,7 +15,6 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.HttpStatusEntryPoint
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher
 
 @Configuration
 @EnableWebSecurity
@@ -96,13 +95,8 @@ class SecurityConfig(
                     // ── Tudo mais requer autenticação ──────────────
                     .anyRequest().authenticated()
             }
-            // shortcut: 401 sem token só nas integrações; o resto ainda responde 403 (padrão do Spring) — tornar global numa change própria
-            .exceptionHandling {
-                it.defaultAuthenticationEntryPointFor(
-                    HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
-                    AntPathRequestMatcher("/api/v1/integrations/**")
-                )
-            }
+            // Sem token → 401 (sem isso o Spring responde 403); 403 fica para papel sem permissão.
+            .exceptionHandling { it.authenticationEntryPoint(HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)) }
             .addFilterBefore(
                 apiKeyAuthFilter,
                 UsernamePasswordAuthenticationFilter::class.java

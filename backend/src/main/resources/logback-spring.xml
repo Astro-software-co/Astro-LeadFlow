@@ -45,6 +45,8 @@
         </root>
         <logger name="com.astro.leadflow" level="DEBUG" additivity="false">
             <appender-ref ref="CONSOLE" />
+            <!-- WARN/ERROR da aplicação também vão para application_error (G1-04). -->
+            <appender-ref ref="ASYNC_DB_ERROR" />
         </logger>
     </springProfile>
 
