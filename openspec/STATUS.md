@@ -61,6 +61,21 @@ Decidir antes de implementar a change indicada.
 - O bot qualifica 24 horas por dia; horário não dispara handoff por si só (2026-11-16).
 - Sonner é o único sistema de toast.
 
+## Gaps herdados da phase G1 (2026-11-23)
+
+Desvios do plano e problemas encontrados ao executar a G1 (`webmotors-leads-polling`). Catalogados para a phase G2 (GSD 17); a coluna "Quando" diz onde cada um é corrigido.
+
+| # | Gap | Impacto | Quando |
+|---|---|---|---|
+| G1-01 | 401 sem token só em `/api/v1/integrations/**`; os demais endpoints ainda respondem 403 (padrão do Spring sem entry point) | Semântica HTTP inconsistente; o frontend trata 401 e 403 igual | G2 (17) |
+| G1-02 | Lead duplicado conta uso duas vezes quando a mensagem sai (incremento explícito + o de `sendTemplate`); o incremento explícito é fixado por `LeadIngestionServiceTest` | Cota consumida em dobro | G4 (19), junto com R14 |
+| G1-03 | `MessageSenderService.resolveWhatsappConfig` lança `IllegalArgumentException` sem credencial no modo real; esse erro ainda marca a transação de quem chamou como rollback-only (cota e Meta já não marcam) | Lead perdido se a organização não tiver WhatsApp configurado em `prod` | G2 (17) |
+| G1-04 | Logback: `com.astro.leadflow` tem `additivity=false` e só aponta para o console, então os ERROR da aplicação **não** chegam ao `application_error`; no perfil `prod` não há appender ativo no root (o JSON está comentado) | Observabilidade e o mapa de PII do LGPD partem de uma tabela que hoje só recebe logs de bibliotecas | G2 (17) |
+| G1-05 | `LeadIntakeCommand`: campo extra `vehicleInterest` (texto livre do scraper), `externalEventId` anulável (scraper não tem id) e `message` reaproveitado como `Lead.notes` (mistura mensagem do cliente e resumo da origem) | Contrato da porta difere do plano; o modelo de interesses precisa da mensagem crua | G4 (19) |
+| G1-06 | Ramo de duplicado passa a enviar `marketplaceName` normalizado a `sendTemplate` (antes ia o valor cru); idêntico para entradas já em maiúsculas | Mudança de comportamento só para entradas fora do padrão | Registrado; sem ação |
+| G1-07 | Porta `CrmLeadIntake.intake(command)` sem `organizationId` separado; `IntakeResult.created` é sempre `true` | Semântica de "criado" indefinida até existir "interesse adicionado" | G4 (19) |
+| G1-08 | Banco local `leadflow` do Ruy tem a `V19` aplicada com o checksum anterior à T1.4 | Flyway falha ao subir localmente | Ação local: recriar o banco ou `flyway repair` |
+
 ## Como usar o OpenSpec aqui
 
 - Nova frente: `/openspec-propose "ideia"` cria a change com proposta, design, specs e tarefas.
