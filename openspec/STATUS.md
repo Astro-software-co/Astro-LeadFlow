@@ -13,6 +13,7 @@ Fotografia mantida junto das specs. O comportamento implementado está em `opens
 | Chatbot | Funcional em mock; slots gravam no Lead, handoff com histórico, atendimento 24h | `specs/chatbot-qualification`, change `lex-real-engine` |
 | WhatsApp (Meta) | Mock; nunca validado contra a Meta real | `specs/whatsapp-communication`, change `meta-whatsapp-real` |
 | Ingestão Webmotors (polling) | Implementado em `integrations/webmotors`; não homologado com a Webmotors real (suposições H1–H13) | change `webmotors-leads-polling` |
+| LGPD (solicitações de titulares, anonimização, exclusão manual, retenção) | Implementado (phase G2); textos e prazos pendentes de revisão jurídica | change `lgpd-data-subject-requests`, `docs/RUNBOOK-PRIVACIDADE.md` |
 | Ingestão Mercado Livre | Código existe com falhas conhecidas | `specs/lead-ingestion`, change `ingestion-hardening` |
 | E-mail em produção | Só MailHog | change `email-ses-prod` |
 | CI/CD e deploy AWS | Scaffold em standby, nada executado | change `aws-deploy-activation` |
@@ -67,10 +68,10 @@ Desvios do plano e problemas encontrados ao executar a G1 (`webmotors-leads-poll
 
 | # | Gap | Impacto | Quando |
 |---|---|---|---|
-| G1-01 | 401 sem token só em `/api/v1/integrations/**`; os demais endpoints ainda respondem 403 (padrão do Spring sem entry point) | Semântica HTTP inconsistente; o frontend trata 401 e 403 igual | G2 (17) |
+| G1-01 | 401 sem token só em `/api/v1/integrations/**`; os demais endpoints ainda respondem 403 (padrão do Spring sem entry point) | Semântica HTTP inconsistente; o frontend trata 401 e 403 igual | **Corrigido na G2 (17)** |
 | G1-02 | Lead duplicado conta uso duas vezes quando a mensagem sai (incremento explícito + o de `sendTemplate`); o incremento explícito é fixado por `LeadIngestionServiceTest` | Cota consumida em dobro | G4 (19), junto com R14 |
-| G1-03 | `MessageSenderService.resolveWhatsappConfig` lança `IllegalArgumentException` sem credencial no modo real; esse erro ainda marca a transação de quem chamou como rollback-only (cota e Meta já não marcam) | Lead perdido se a organização não tiver WhatsApp configurado em `prod` | G2 (17) |
-| G1-04 | Logback: fora do `prod`, `com.astro.leadflow` tem `additivity=false` e só aponta para o console, então os ERROR da aplicação **não** chegam ao `application_error`. (No `prod` o root ganhou CONSOLE + `ASYNC_DB_ERROR` e o logger da aplicação herda, no trabalho de infra da mesma branch.) | Observabilidade e o mapa de PII do LGPD partem de uma tabela que hoje só recebe logs de bibliotecas | G2 (17) |
+| G1-03 | `MessageSenderService.resolveWhatsappConfig` lança `IllegalArgumentException` sem credencial no modo real; esse erro ainda marca a transação de quem chamou como rollback-only (cota e Meta já não marcam) | Lead perdido se a organização não tiver WhatsApp configurado em `prod` | **Corrigido na G2 (17)** |
+| G1-04 | Logback: fora do `prod`, `com.astro.leadflow` tem `additivity=false` e só aponta para o console, então os ERROR da aplicação **não** chegam ao `application_error`. (No `prod` o root ganhou CONSOLE + `ASYNC_DB_ERROR` e o logger da aplicação herda, no trabalho de infra da mesma branch.) | Observabilidade e o mapa de PII do LGPD partem de uma tabela que hoje só recebe logs de bibliotecas | **Corrigido na G2 (17)** |
 | G1-05 | `LeadIntakeCommand`: campo extra `vehicleInterest` (texto livre do scraper), `externalEventId` anulável (scraper não tem id) e `message` reaproveitado como `Lead.notes` (mistura mensagem do cliente e resumo da origem) | Contrato da porta difere do plano; o modelo de interesses precisa da mensagem crua | G4 (19) |
 | G1-06 | Ramo de duplicado passa a enviar `marketplaceName` normalizado a `sendTemplate` (antes ia o valor cru); idêntico para entradas já em maiúsculas | Mudança de comportamento só para entradas fora do padrão | Registrado; sem ação |
 | G1-07 | Porta `CrmLeadIntake.intake(command)` sem `organizationId` separado; `IntakeResult.created` é sempre `true` | Semântica de "criado" indefinida até existir "interesse adicionado" | G4 (19) |
