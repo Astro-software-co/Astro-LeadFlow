@@ -1,6 +1,7 @@
 # Deploy na AWS — staging (passo a passo)
 
 > Escopo: **um ambiente (staging)** na região **us-east-1**, imagens no **Amazon ECR**, deploy automático a partir da branch **`master`**, sem domínio próprio por enquanto (endereço temporário `*.sslip.io`).
+> Prefere clicar pela interface? Use [`DEPLOY-AWS-CONSOLE.md`](DEPLOY-AWS-CONSOLE.md).
 > Automação: `infra/aws/` (cria a infraestrutura) · `infra/prod/` (scripts da EC2) · `.github/workflows/` (CI/CD).
 > **Estado da validação:** ver a seção 9. Em resumo: a lógica foi testada localmente com stubs e o boot do perfil `prod` foi comprovado, mas **nenhuma chamada real à AWS foi executada** — espere pequenos ajustes na primeira execução e rode passo a passo.
 

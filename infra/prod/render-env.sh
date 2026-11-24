@@ -22,10 +22,25 @@ src, prefix, dst = sys.argv[1:4]
 params = json.load(open(src))["Parameters"]
 if not params:
     sys.exit(f"nenhum parâmetro encontrado em {prefix}")
-lines = []
-for p in sorted(params, key=lambda x: x["Name"]):
+kv = {}
+# 1) Parâmetro opcional ENV_FILE: um único SecureString com linhas CHAVE=valor (útil quando se cria pelo console).
+for p in params:
+    if p["Name"] == f"{prefix}/ENV_FILE":
+        for ln in p["Value"].splitlines():
+            ln = ln.strip()
+            if not ln or ln.startswith("#") or "=" not in ln:
+                continue
+            k, v = ln.split("=", 1)
+            kv[k.strip()] = v
+# 2) Parâmetros individuais (/leadflow/<env>/CHAVE) têm precedência sobre o ENV_FILE.
+for p in params:
     key = p["Name"][len(prefix):].lstrip("/")
-    val = p["Value"]
+    if key == "ENV_FILE":
+        continue
+    kv[key] = p["Value"]
+lines = []
+for key in sorted(kv):
+    val = kv[key]
     if "\n" in val or "\r" in val:
         sys.exit(f"valor de {key} contém quebra de linha")
     lines.append(f"{key}={val.replace('$', '$$')}")   # $ literal no Compose

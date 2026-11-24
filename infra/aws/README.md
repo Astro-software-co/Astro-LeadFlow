@@ -1,6 +1,7 @@
 # Infraestrutura AWS (staging)
 
-Automação que cria tudo o que o deploy precisa. **Passo a passo completo:** [`docs/DEPLOY-AWS-STAGING.md`](../../docs/DEPLOY-AWS-STAGING.md).
+Automação que cria tudo o que o deploy precisa. **Passo a passo por script:** [`docs/DEPLOY-AWS-STAGING.md`](../../docs/DEPLOY-AWS-STAGING.md). **Pelo console (sem scripts):** [`docs/DEPLOY-AWS-CONSOLE.md`](../../docs/DEPLOY-AWS-CONSOLE.md).
+Para o caminho manual, `make-env-file.sh` gera (sem acessar a AWS) o bloco de configuração a colar no SSM como `/leadflow/staging/ENV_FILE`.
 
 ```bash
 ./infra/aws/preflight.sh                                # só leitura: mostra quem você é e descobre travas da conta/organização
