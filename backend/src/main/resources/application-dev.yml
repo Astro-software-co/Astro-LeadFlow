@@ -85,3 +85,7 @@ logging:
     org.hibernate.SQL: DEBUG
     org.springframework.security: DEBUG
     org.flywaydb: DEBUG
+
+privacy:
+  # Só para desenvolvimento: nunca usar este valor fora do dev.
+  hash-secret: ${PRIVACY_HASH_SECRET:dev-only-privacy-hash-secret}

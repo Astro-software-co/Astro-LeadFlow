@@ -10,6 +10,7 @@ import com.astro.leadflow.shared.modules.communication.meta.MetaApiClient
 import com.astro.leadflow.shared.modules.crm.domain.Lead
 import com.astro.leadflow.shared.exception.ExternalServiceException
 import com.astro.leadflow.shared.exception.QuotaExceededException
+import com.astro.leadflow.shared.exception.RecipientBlockedException
 import com.astro.leadflow.shared.modules.iam.domain.Organization
 import com.astro.leadflow.shared.modules.saas.domain.MarketplaceType
 import com.astro.leadflow.shared.modules.saas.service.UsageLimitService
@@ -32,7 +33,7 @@ class MessageSenderService(
     private val log = LoggerFactory.getLogger(this::class.java)
 
     // Cota, Meta e falta de credencial falham antes de gravar: não podem marcar como rollback-only a transação de quem chamou (o lead já salvo).
-    @Transactional(noRollbackFor = [QuotaExceededException::class, ExternalServiceException::class, WhatsappNotConfiguredException::class])
+    @Transactional(noRollbackFor = [QuotaExceededException::class, ExternalServiceException::class, WhatsappNotConfiguredException::class, RecipientBlockedException::class])
     fun sendText(
         lead: Lead,
         organization: Organization,
@@ -43,6 +44,7 @@ class MessageSenderService(
         intentDetected: String? = null,
         engineUsed: String? = null
     ): ChatMessage {
+        checkRecipient(lead)
         checkQuota(organization, marketplaceName)
         val whatsappConfig = resolveWhatsappConfig(organization)
 
@@ -83,7 +85,7 @@ class MessageSenderService(
     }
 
     // Cota, Meta e falta de credencial falham antes de gravar: não podem marcar como rollback-only a transação de quem chamou (o lead já salvo).
-    @Transactional(noRollbackFor = [QuotaExceededException::class, ExternalServiceException::class, WhatsappNotConfiguredException::class])
+    @Transactional(noRollbackFor = [QuotaExceededException::class, ExternalServiceException::class, WhatsappNotConfiguredException::class, RecipientBlockedException::class])
     fun sendTemplate(
         lead: Lead,
         organization: Organization,
@@ -91,6 +93,7 @@ class MessageSenderService(
         marketplaceName: String? = null,
         senderType: ChatMessageSenderType = ChatMessageSenderType.SELLER
     ): ChatMessage {
+        checkRecipient(lead)
         checkQuota(organization, marketplaceName)
         val whatsappConfig = resolveWhatsappConfig(organization)
 
@@ -125,6 +128,11 @@ class MessageSenderService(
 
         usageLimitService.incrementUsage(organization.id, marketplaceName)
         return chatMessage
+    }
+
+    /** Portão único de saída: bot, templates e textos passam por aqui. */
+    private fun checkRecipient(lead: Lead) {
+        if (lead.anonymizedAt != null) throw RecipientBlockedException("Lead anonimizado não recebe mensagens.")
     }
 
     private fun checkQuota(organization: Organization, marketplaceName: String?) {

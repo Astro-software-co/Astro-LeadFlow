@@ -64,3 +64,8 @@ logging:
   level:
     root: INFO
     com.astro.leadflow: INFO
+
+privacy:
+  hash-secret: ${PRIVACY_HASH_SECRET:}
+  retention:
+    enabled: ${PRIVACY_RETENTION_ENABLED:true}

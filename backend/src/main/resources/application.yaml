@@ -180,3 +180,13 @@ integrations:
     page-param: ${WEBMOTORS_PAGE_PARAM:pagina}
     # AES-256 em Base64 (32 bytes). Gerar com: openssl rand -base64 32
     secrets-key: ${WEBMOTORS_SECRETS_KEY:}
+
+# ── Privacidade / LGPD (phase G2) ──────────────────────────────────────────
+privacy:
+  # HMAC dos identificadores de titular. Obrigatório em prod (sem valor, a anonimização falha).
+  hash-secret: ${PRIVACY_HASH_SECRET:}
+  sla-days: ${PRIVACY_SLA_DAYS:15}
+  retention:
+    enabled: ${PRIVACY_RETENTION_ENABLED:false}
+    webhook-payload-days: ${PRIVACY_RETENTION_WEBHOOK_PAYLOAD_DAYS:90}
+    cron: ${PRIVACY_RETENTION_CRON:0 30 3 * * *}
